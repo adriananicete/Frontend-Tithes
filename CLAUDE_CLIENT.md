@@ -490,6 +490,7 @@ Don't skip ahead. Each page builds on patterns from the previous ones.
 ## 13. Update History
 
 - **2026-04-10** — Initial frontend context. Established tech stack, folder structure, design system, auth flow, shared components list, mobile strategy, anti-patterns.
+- **2026-04-10** — `feat/login` pushed. Shipped: Login page (`src/pages/Login.jsx`), reusable `LoginInput` component with password visibility toggle, `OauthButton` placeholder for Google/Facebook sign-in, Inter variable font installed via `@fontsource-variable/inter` and set as Tailwind v4 default via `--font-sans` theme token. Controlled form inputs wired with `useState` + `handleChange`; `handleSubmit` stub in place (fetch call pending). **Deviations from plan:** using `react-icons` instead of `lucide-react` (react-icons already installed); using `fetch` instead of `axios` per Adrian's preference.
 
 ---
 
