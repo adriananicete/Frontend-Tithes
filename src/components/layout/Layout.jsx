@@ -8,7 +8,7 @@ function Layout() {
             <div className="w-[95%] h-[95%] flex justify-center items-center shadow-md">
             
                 <Sidebar />
-            <div className="w-full h-full bg-white flex flex-col justify-start item-center gap-8 p-5">
+            <div className="w-full h-full bg-white flex flex-col justify-start items-center gap-8 p-5">
                 <Header />
                 <Outlet />
             </div>
