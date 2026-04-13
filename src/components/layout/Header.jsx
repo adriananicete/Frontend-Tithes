@@ -19,7 +19,7 @@ function Header() {
     <header className="w-full flex items-center justify-between gap-5 border-b border-gray-200 pb-3">
       <div className="flex items-center gap-4">
         <p className="text-[20px] font-bold">
-          <span className="text-[#2f6a7a]">JOSCM</span> Dashboard
+          <span className="text-[#2f6a7a]">JOSCM</span> Tithes Management System
         </p>
       </div>
 
