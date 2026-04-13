@@ -487,11 +487,124 @@ Don't skip ahead. Each page builds on patterns from the previous ones.
 
 ---
 
-## 13. Update History
+## 13. Established Page Pattern (Tithes / RF / Voucher — follow for every new list page)
+
+This is the real-world pattern the codebase has converged on. **When building a new feature page, don't reinvent the layout — mirror this.**
+
+### 13.1 Folder layout per feature
+
+Actual folder convention (supersedes the planned `features/<name>/` in §2):
+
+```
+src/components/<feature>-components/
+  mockData.js                 ← mock arrays + statusConfig + formatPHP/formatDate/formatDateTime
+  <Feature>SummaryStats.jsx   ← Card with CardHeader + CardContent grid of StatTile
+  <Feature>Table.jsx          ← Card: header with filters, CardContent with Table, CardFooter with pagination
+  <Feature>DetailsDialog.jsx  ← read-only details modal
+  Create<Feature>Dialog.jsx   ← create/submit modal
+  (optional) <Feature>PipelineTracker.jsx, PendingRfsCard.jsx, RejectDialog.jsx, etc.
+
+src/pages/<Feature>.jsx       ← thin assembly (~30–50 lines): useState hoist, import components, layout
+```
+
+### 13.2 Page shell (copy verbatim)
+
+```jsx
+<div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto">
+  {/* Header row: title block on left, CTA on right */}
+  <div className="flex items-center justify-between">
+    <div>
+      <h1 className="text-2xl font-semibold">Page Title</h1>
+      <p className="text-sm text-muted-foreground">One-line description.</p>
+    </div>
+    <div className="w-40" onClick={() => launch()}>
+      <CustomButton titleName="Create X" icon={GoPlus} />
+    </div>
+  </div>
+
+  <FeatureSummaryStats />
+  {/* optional: pipeline tracker, pending-action card */}
+  <div className="h-[32rem]">
+    <FeatureTable onViewItem={setViewing} />
+  </div>
+
+  <FeatureDetailsDialog item={viewing} open={!!viewing} onOpenChange={...} />
+</div>
+```
+
+- **Gap rule:** `gap-5` between page sections, never mix.
+- **Table height:** fixed `h-[32rem]` wrapper so rows scroll internally, not the whole page.
+- **CTA button:** use the custom `@/components/Buttons.jsx` (react-icons `GoPlus`) wrapped in `<div className="w-40" onClick>`. Cancel/Submit inside dialogs still use shadcn `Button` for `variant`/`disabled` support.
+- **Custom hook for dialog state** when the dialog needs to be launched from multiple places (CTA + pending card): hoist `open` and `preselectedId` to the page, pass as controlled props.
+
+### 13.3 Modal (Dialog) pattern
+
+```jsx
+<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
+  <DialogHeader>
+    <DialogTitle>Submit New X</DialogTitle>
+    <DialogDescription>One-line context.</DialogDescription>
+  </DialogHeader>
+  <form className="space-y-4"> ... </form>
+</DialogContent>
+```
+
+- `overflow-x-hidden` is **required** — without it the `DialogFooter -mx-4` bleed causes a horizontal scrollbar when vertical scroll appears.
+- `DialogTitle` default styling (`text-lg font-semibold`) is set in `components/ui/dialog.jsx`; do not override per modal.
+- Form sections use `space-y-4`; label+input pairs use `space-y-1.5`; two-column rows use `grid grid-cols-2 gap-3`.
+- File upload uses a **dropzone label** (hidden `<input type="file">`) + a list of uploaded file chips with remove button. No URL-string inputs for attachments.
+- Remarks/notes fields use `<Textarea rows={3}>` (imported from `@/components/ui/textarea`).
+
+### 13.4 Table pattern
+
+- Outer `<Card className="w-full h-full flex flex-col">` so it fills the wrapper.
+- `CardHeader` has two rows: title/description row, then filter row (`Input` search + `Select` filters).
+- `CardContent className="flex-1 min-h-0 overflow-auto"` with `<TableHeader className="sticky top-0 bg-background z-10">`.
+- `CardFooter` has `Showing X–Y of N` on left, Previous/Next pagination on right.
+- Row action column uses `DropdownMenu` with a state-aware items array (items vary by row status — see `RfTable.jsx` `ActionMenu`).
+- Status badges: `<Badge variant="secondary" className={cfg.color}>{cfg.label}</Badge>` where `cfg` comes from the feature's `statusConfig` in mockData.
+
+### 13.5 Summary stats pattern
+
+- `Card` → `CardHeader` (title + description) → `CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-3">` of `StatTile`.
+- Each `StatTile` shows: label + icon top row, big `formatPHP(amount)` value, small `{count} unit` subtext.
+- Pastel accent per tile via `accent="bg-blue-50/50"` style classes.
+- For fixed-height cards (e.g., Voucher summary), use `h-auto lg:h-80` — hug content on narrow screens, fixed on desktop.
+
+### 13.6 Mock data conventions
+
+Every `mockData.js` exports:
+
+- `mockCategories` (string array)
+- `mock<Feature>s` (array of domain objects, with `id`, timestamps, nested `timeline` where applicable)
+- `statusConfig` — `{ [status]: { label, color: "bg-X-100 text-X-700", order? } }`
+- `formatPHP(n)` — `Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP", maximumFractionDigits: 0 })`
+- `formatDate(d)` — `toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })`
+- `formatDateTime(d)` — same + hour/minute
+
+Keep payload shapes close to the backend Mongoose schemas in `CLAUDE.md` so the later swap to real API is a one-line change inside the hook/component.
+
+### 13.7 Select (dropdown) conventions
+
+- **Value must be the user-facing identifier**, not a numeric id. e.g., use `rfNo` (`"RF-0008"`), not `id` (`8`). Otherwise the trigger falls back to showing the raw value after selection.
+- For multi-line items, wrap children in `<div className="flex flex-col items-start text-left ...">`. Set `<SelectTrigger className="h-auto py-2">` when items are multi-line.
+
+### 13.8 Absolute rules
+
+- **Never add horizontal scrollbars to modals** — always `overflow-x-hidden` alongside `overflow-y-auto`.
+- **Never use solid-color status badges** — always the `bg-X-100 text-X-700` pastel pattern.
+- **Never inline status strings in UI** — always go through `statusConfig`.
+- **Never duplicate `formatPHP`/`formatDate`** — import from the feature's `mockData.js` (or later, `lib/formatters.js` after migration).
+- **TODO comments point to the real API endpoint** (e.g., `// TODO: POST /api/vouchers`). Mock `console.log` payloads stay until the feature is wired to the backend.
+
+---
+
+## 14. Update History
 
 - **2026-04-10** — Initial frontend context. Established tech stack, folder structure, design system, auth flow, shared components list, mobile strategy, anti-patterns.
 - **2026-04-10** — `feat/login` pushed. Shipped: Login page (`src/pages/Login.jsx`), reusable `LoginInput` component with password visibility toggle, `OauthButton` placeholder for Google/Facebook sign-in, Inter variable font installed via `@fontsource-variable/inter` and set as Tailwind v4 default via `--font-sans` theme token. Controlled form inputs wired with `useState` + `handleChange`; `handleSubmit` stub in place (fetch call pending). **Deviations from plan:** using `react-icons` instead of `lucide-react` (react-icons already installed); using `fetch` instead of `axios` per Adrian's preference.
 - **2026-04-13** — `feat/layout-shell` pushed. Shipped: Dashboard wired with two chart widgets — `ChartAreaGradient` and `ChartBarExpense` (plus `ChartAreaInteractive` scaffolded) under `src/components/dashboard-components/`. Added shadcn primitives `card.jsx`, `chart.jsx`, `select.jsx` under `src/components/ui/`. Updated `--chart-*` tokens in `src/index.css` (light theme: blue/red/black brand palette; dark theme: shadcn defaults). Pinned `recharts` to `^3.8.0`.
+- **2026-04-13** — `feat/request-form-page` pushed (covers both Request Form and Voucher pages). Shipped: (1) **Request Form page** — `src/pages/RequestForm.jsx` assembled from `src/components/request-form-components/`: `mockData.js` (16 mock RFs across 7 statuses + pipelineStages + statusConfig + formatters), `RfSummaryStats` (4 KPI tiles: Active/Pending Disbursement/Approved/Rejected), `RfPipelineTracker` (horizontal clickable stages that filter the table + separated Rejected stage), `RfTable` (search + status + category filters, state-aware action menu per row status, pagination), `RfDetailsDialog` (full approval timeline with done/current/upcoming/rejected states + rejection note card), `CreateRfDialog` (Save as Draft vs Submit for Validation dual-action footer, multi-URL attachments), `RejectDialog` (shared for validate/approve stages). Page hoists `activeStatus` + `viewingRf` state for cross-component wiring. (2) **Voucher page** — `src/pages/Voucher.jsx` assembled from `src/components/voucher-components/`: `mockData.js` (3 mock vouchers + 4 approved RFs awaiting voucher + voucherStatusConfig), `VoucherSummaryStats` (4 tiles: Total Issued/Pending Receipt/Disbursed/RFs Awaiting Voucher, `h-auto lg:h-80` responsive height), `PendingRfsCard` (clickable grid of approved RFs that launches pre-filled CreateVoucherDialog), `VoucherTable` (search + status + category filters), `VoucherDetailsDialog` (voucher + linked RF summary card + receipts), `CreateVoucherDialog` (controlled-or-uncontrolled modal supporting `preselectedRfId`; Select dropdown keyed on `rfNo` so trigger shows "RF-0008"; file upload dropzone for receipts with multi-file support; optional remarks/notes Textarea). (3) **Shared tweaks** — `src/components/ui/dialog.jsx` DialogTitle default bumped to `text-lg font-semibold`; all modals set `overflow-x-hidden` to kill the horizontal scrollbar caused by DialogFooter's `-mx-4` bleed; `src/components/ui/textarea.jsx` added. `src/components/layout/Header.jsx` brand text updated to "JOSCM Tithes Management System". (4) **Documentation** — new §13 "Established Page Pattern" codifies the page shell, modal pattern, table pattern, summary-stats pattern, mock-data conventions, Select conventions, and absolute rules so future list pages are built consistently without re-deriving the layout.
 - **2026-04-13** — `feat/dashboard-stats` pushed. Shipped: (1) Dashboard expansion — `SummaryStats.jsx` (4 KPI tiles: Tithes/Expenses/Net/Pending) and `RecentActivity.jsx` (filterable + paginated activity table with sticky header, type dropdown, 10/page pagination) under `src/components/dashboard-components/`. (2) Full Tithes page build — `src/pages/Tithes.jsx` composed from five new components under `src/components/tithes-components/`: `TithesTrendChart` (area chart with 7D/30D/90D/1Y range presets + service type filter + computed stats footer), `TithesSummary` (4 status KPI tiles), `ServiceTypeBreakdown` (horizontal bar chart, % distribution), `TithesTable` (search + status + service filters, status badges via shadcn Badge, row action dropdown, details dialog showing denominations breakdown, pagination), `SubmitTithesDialog` (modal triggered by custom `Buttons.jsx` component; form with entryDate, serviceType, 9 denomination rows ₱1000–₱1 with auto-computed subtotals + total, remarks). (3) Layout refactor — `Header.jsx` simplified to global chrome only (logo, search, date, icons); per-page greeting/action headers adopted in `Dashboard.jsx` and `Tithes.jsx` so each page owns its own action button (e.g., Tithes owns `SubmitTithesDialog`). Fixed `Dashboard.jsx` outer from `h-full` to `flex-1 min-h-0` so Layout's flex-col correctly allocates remaining space after Header. Added shadcn primitives: `table, dialog, input, label, popover, calendar, dropdown-menu, badge`. **Deviations:** Tithes submit trigger uses the existing custom `Buttons.jsx` (wrapped in clickable div, Dialog controlled via `open` state) per Adrian's request, while Cancel/Submit inside the dialog stay as shadcn Button for `variant`/`type`/`disabled` support.
 
 ---
