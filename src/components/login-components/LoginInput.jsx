@@ -20,14 +20,14 @@ function LoginInput({
   return (
     <div className="w-full bg-[]">
       <div className="bg-[] flex justify-between items-center">
-        <p className="text-xs text-gray-600">{titleName}</p>
-        <p className="text-[10px] text-indigo-400">{secondName}</p>
+        <p className="text-sm text-gray-600">{titleName}</p>
+        <p className="text-[12px] cursor-pointer text-indigo-400">{secondName}</p>
       </div>
 
       <div className="bg-[] border border-gray-700 w-full p-2 flex justify-between items-center rounded-[5px]">
         <Icon size={18} />
         <input
-          className="bg-[] w-[92%] px-2 rounded-[3px] bg-[transparent] outline-none text-xs"
+          className="bg-[] w-[92%] px-2 rounded-[3px] bg-[transparent] outline-none text-sm"
           type={type || inputType}
           placeholder={placeholder}
           onChange={onChange}

@@ -30,7 +30,7 @@ function Login() {
 
   return (
     <div className="bg-gray-200 w-full h-dvh flex justify-center items-center ">
-      <div className="bg-[#ffffff] w-[80%] h-[auto] p-8 flex flex-col justify-center items-center gap-4 rounded-[8px] shadow-md">
+      <div className="bg-[#ffffff] w-[80%] max-w-[400px] h-[auto] p-8 flex flex-col justify-center items-center gap-4 rounded-[8px] shadow-md">
         {/* header */}
         <div className="w-full flex justify-start items-center gap-2">
           <div className="w-[48px] h-[48px]">
@@ -40,8 +40,8 @@ function Login() {
             />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-700">JOSCM <span className="text-[#2f6a7a] ">Tithes App</span></h1>
-            <p className="text-xs text-gray-500">Financial Management System</p>
+            <h1 className="text-xl font-bold text-gray-700">JOSCM <span className="text-[#2f6a7a] ">Tithes App</span></h1>
+            <p className="text-sm text-gray-500">Financial Management System</p>
           </div>
         </div>
 
@@ -79,11 +79,11 @@ function Login() {
         </form>
 
         {/* Oauth button */}
-        <div className="bg-[] w-full h-auto flex flex-col justify-between items-center mt-5">
-            <div className="w-full flex justify-between items-center gap-2">
-                <div className="w-[90%] border border-gray-500"></div>
-                <h3 className="w-full text-xs">Or Sign in with</h3>
-                <div className="w-[90%] border border-gray-500"></div>
+        <div className="bg-[] w-full h-auto flex flex-col justify-center items-center mt-5">
+            <div className="w-full flex justify-center items-center gap-2">
+                <div className="flex-[1] border border-gray-500"></div>
+                <h3 className="flex-[1] text-sm text-center">Or Sign in with</h3>
+                <div className="flex-[1] border border-gray-500"></div>
             </div>
 
             <div className="w-full flex justify-center items-center p-5 gap-5">
