@@ -11,8 +11,12 @@ import {
   mockTithesData,
   resolvePreset,
 } from "@/components/reports-components/mockData";
+import { useAuth } from "@/hooks/useAuth";
+import { can } from "@/utils/rolePermissions";
 
 function Reports() {
+  const { user } = useAuth();
+  const canViewExpense = can.viewExpenseReport(user?.role);
   const initial = resolvePreset("this_month");
   const [tab, setTab] = useState("tithes");
   const [startDate, setStartDate] = useState(initial.start);
@@ -25,11 +29,13 @@ function Reports() {
     setPreset(p);
   };
 
+  const effectiveTab = tab === "expense" && !canViewExpense ? "tithes" : tab;
+
   const filteredData = useMemo(() => {
-    const dateKey = tab === "tithes" ? "entryDate" : "date";
-    const source = tab === "tithes" ? mockTithesData : mockExpenseData;
+    const dateKey = effectiveTab === "tithes" ? "entryDate" : "date";
+    const source = effectiveTab === "tithes" ? mockTithesData : mockExpenseData;
     return filterByRange(source, dateKey, startDate, endDate);
-  }, [tab, startDate, endDate]);
+  }, [effectiveTab, startDate, endDate]);
 
   return (
     <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1">
@@ -60,23 +66,25 @@ function Reports() {
         >
           <Coins className="h-4 w-4" /> Tithes
         </Button>
-        <Button
-          type="button"
-          variant={tab === "expense" ? "default" : "ghost"}
-          size="sm"
-          onClick={() => setTab("expense")}
-        >
-          <Receipt className="h-4 w-4" /> Expense
-        </Button>
+        {canViewExpense && (
+          <Button
+            type="button"
+            variant={tab === "expense" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setTab("expense")}
+          >
+            <Receipt className="h-4 w-4" /> Expense
+          </Button>
+        )}
       </div>
 
       <div className="shrink-0">
-        <ReportSummary tab={tab} data={filteredData} />
+        <ReportSummary tab={effectiveTab} data={filteredData} />
       </div>
 
       <div className="shrink-0">
         <ExportBar
-          tab={tab}
+          tab={effectiveTab}
           startDate={startDate}
           endDate={endDate}
           rowCount={filteredData.length}
@@ -84,7 +92,7 @@ function Reports() {
       </div>
 
       <div className="h-[32rem] shrink-0">
-        <ReportPreviewTable tab={tab} data={filteredData} />
+        <ReportPreviewTable tab={effectiveTab} data={filteredData} />
       </div>
     </div>
   );
