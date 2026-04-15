@@ -6,8 +6,12 @@ import { PendingRfsCard } from "@/components/voucher-components/PendingRfsCard";
 import { VoucherDetailsDialog } from "@/components/voucher-components/VoucherDetailsDialog";
 import { VoucherSummaryStats } from "@/components/voucher-components/VoucherSummaryStats";
 import { VoucherTable } from "@/components/voucher-components/VoucherTable";
+import { useAuth } from "@/hooks/useAuth";
+import { can } from "@/utils/rolePermissions";
 
 function Voucher() {
+  const { user } = useAuth();
+  const canCreate = can.createVoucher(user?.role);
   const [viewingVoucher, setViewingVoucher] = useState(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [preselectedRfId, setPreselectedRfId] = useState(null);
@@ -26,9 +30,11 @@ function Voucher() {
             Issue PCF vouchers for approved request forms and track disbursements.
           </p>
         </div>
-        <div className="w-40" onClick={() => launchCreate()}>
-          <CustomButton titleName="Create Voucher" icon={GoPlus} />
-        </div>
+        {canCreate && (
+          <div className="w-40" onClick={() => launchCreate()}>
+            <CustomButton titleName="Create Voucher" icon={GoPlus} />
+          </div>
+        )}
       </div>
 
       <CreateVoucherDialog
@@ -44,9 +50,11 @@ function Voucher() {
         <VoucherSummaryStats />
       </div>
 
-      <div className="shrink-0">
-        <PendingRfsCard onCreateVoucher={launchCreate} />
-      </div>
+      {canCreate && (
+        <div className="shrink-0">
+          <PendingRfsCard onCreateVoucher={launchCreate} />
+        </div>
+      )}
 
       <div className="h-[32rem] shrink-0">
         <VoucherTable onViewVoucher={setViewingVoucher} />
