@@ -1,5 +1,6 @@
-import { Route, Routes } from "react-router";
+import { Navigate, Route, Routes } from "react-router";
 import Layout from "./components/layout/Layout";
+import ProtectedRoute from "./routes/ProtectedRoute";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Tithes from "./pages/Tithes";
@@ -13,18 +14,31 @@ import Categories from "./pages/Categories";
 function App() {
   return (
     <Routes>
-      <Route element={<Login />} />
+      <Route path="/login" element={<Login />} />
 
-      <Route element={<Layout />}>
-        <Route path="/dashboard" element={<Dashboard />}/>
-        <Route path="/tithes" element={<Tithes />} />
-        <Route path="/request-form" element={<RequestForm />}/>
-        <Route path="/voucher" element={<Voucher />} />
-        <Route path="/expense" element={<Expense />}/>
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/admin/users" element={<Users />}/>
-        <Route path="/admin/categories" element={<Categories />} />
+      <Route element={<ProtectedRoute />}>
+        <Route element={<Layout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/tithes" element={<Tithes />} />
+          <Route path="/request-form" element={<RequestForm />} />
+          <Route path="/reports" element={<Reports />} />
+
+          <Route element={<ProtectedRoute allowedRoles={["admin", "do", "validator", "auditor"]} />}>
+            <Route path="/voucher" element={<Voucher />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={["admin", "auditor"]} />}>
+            <Route path="/expense" element={<Expense />} />
+          </Route>
+
+          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+            <Route path="/admin/users" element={<Users />} />
+            <Route path="/admin/categories" element={<Categories />} />
+          </Route>
+        </Route>
       </Route>
+
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }
