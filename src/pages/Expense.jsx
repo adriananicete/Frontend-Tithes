@@ -7,8 +7,12 @@ import { ExpenseSummaryStats } from "@/components/expense-components/ExpenseSumm
 import { ExpenseTable } from "@/components/expense-components/ExpenseTable";
 import { ExpenseTrendChart } from "@/components/expense-components/ExpenseTrendChart";
 import { RecordExpenseDialog } from "@/components/expense-components/RecordExpenseDialog";
+import { useAuth } from "@/hooks/useAuth";
+import { can } from "@/utils/rolePermissions";
 
 function Expense() {
+  const { user } = useAuth();
+  const canRecord = can.recordManualExpense(user?.role);
   const [viewingExpense, setViewingExpense] = useState(null);
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -21,9 +25,11 @@ function Expense() {
             Track and record all church expenses across vouchers and manual entries.
           </p>
         </div>
-        <div className="w-44" onClick={() => setCreateOpen(true)}>
-          <CustomButton titleName="Record Expense" icon={GoPlus} />
-        </div>
+        {canRecord && (
+          <div className="w-44" onClick={() => setCreateOpen(true)}>
+            <CustomButton titleName="Record Expense" icon={GoPlus} />
+          </div>
+        )}
       </div>
 
       <div className="shrink-0">

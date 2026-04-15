@@ -52,6 +52,8 @@ import {
   statusConfig,
 } from "./mockData";
 import { RejectDialog } from "./RejectDialog";
+import { useAuth } from "@/hooks/useAuth";
+import { can } from "@/utils/rolePermissions";
 
 const PAGE_SIZE = 10;
 
@@ -66,24 +68,40 @@ const statusOptions = [
   "rejected",
 ];
 
-function ActionMenu({ status, onView, onReject }) {
+function ActionMenu({ rf, onView, onReject, role, currentUserName }) {
+  const status = rf.status;
+  const isOwner = rf.requestedBy === currentUserName;
   const items = [];
   items.push({ key: "view", label: "View details", icon: Eye, action: onView });
 
   if (status === "draft") {
-    items.push({ key: "edit", label: "Edit", icon: Pencil });
-    items.push({ key: "submit", label: "Submit", icon: Send });
-    items.push({ key: "delete", label: "Delete", icon: Trash2, destructive: true });
+    if (isOwner) {
+      items.push({ key: "edit", label: "Edit", icon: Pencil });
+      items.push({ key: "submit", label: "Submit", icon: Send });
+      items.push({ key: "delete", label: "Delete", icon: Trash2, destructive: true });
+    }
   } else if (status === "submitted") {
-    items.push({ key: "validate", label: "Validate", icon: FileCheck2 });
-    items.push({ key: "reject", label: "Reject", icon: X, destructive: true, action: onReject });
+    if (can.validateRf(role)) {
+      items.push({ key: "validate", label: "Validate", icon: FileCheck2 });
+    }
+    if (can.rejectRf(role)) {
+      items.push({ key: "reject", label: "Reject", icon: X, destructive: true, action: onReject });
+    }
   } else if (status === "for_approval") {
-    items.push({ key: "approve", label: "Approve", icon: Check });
-    items.push({ key: "reject", label: "Reject", icon: X, destructive: true, action: onReject });
+    if (can.approveRf(role)) {
+      items.push({ key: "approve", label: "Approve", icon: Check });
+    }
+    if (can.rejectRf(role)) {
+      items.push({ key: "reject", label: "Reject", icon: X, destructive: true, action: onReject });
+    }
   } else if (status === "approved") {
-    items.push({ key: "voucher", label: "Create Voucher", icon: Receipt });
+    if (can.createVoucherFromRf(role)) {
+      items.push({ key: "voucher", label: "Create Voucher", icon: Receipt });
+    }
   } else if (status === "voucher_created") {
-    items.push({ key: "received", label: "Mark Received", icon: PackageCheck });
+    if (can.markRfReceived(role) && isOwner) {
+      items.push({ key: "received", label: "Mark Received", icon: PackageCheck });
+    }
   }
 
   return (
@@ -111,6 +129,7 @@ function ActionMenu({ status, onView, onReject }) {
 }
 
 export function RfTable({ className, statusFilter, onClearStatusFilter, onViewRf }) {
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [category, setCategory] = useState("All");
@@ -249,7 +268,9 @@ export function RfTable({ className, statusFilter, onClearStatusFilter, onViewRf
                       </TableCell>
                       <TableCell className="text-right">
                         <ActionMenu
-                          status={rf.status}
+                          rf={rf}
+                          role={user?.role}
+                          currentUserName={user?.name}
                           onView={() => onViewRf?.(rf)}
                           onReject={() => setRejectingRf(rf)}
                         />

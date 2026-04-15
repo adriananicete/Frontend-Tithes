@@ -40,6 +40,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAuth } from "@/hooks/useAuth";
+import { can } from "@/utils/rolePermissions";
 
 // ============================================================
 // MOCK DATA — palitan ng GET /api/tithes
@@ -80,6 +82,7 @@ const formatDate = (d) =>
   new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
 export function TithesTable({ className }) {
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [service, setService] = useState("All");
@@ -210,17 +213,28 @@ export function TithesTable({ className }) {
                           <DropdownMenuItem onClick={() => setViewing(row)}>
                             <Eye className="h-4 w-4" /> View details
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem disabled={row.status !== "pending"}>
-                            <Check className="h-4 w-4 text-green-600" /> Approve
-                          </DropdownMenuItem>
-                          <DropdownMenuItem disabled={row.status !== "pending"}>
-                            <X className="h-4 w-4 text-red-600" /> Reject
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem disabled={row.status !== "pending"}>
-                            <Pencil className="h-4 w-4" /> Edit
-                          </DropdownMenuItem>
+                          {(can.approveTithes(user?.role, row.submittedBy, user?.name) ||
+                            can.rejectTithes(user?.role)) && (
+                            <DropdownMenuSeparator />
+                          )}
+                          {can.approveTithes(user?.role, row.submittedBy, user?.name) && (
+                            <DropdownMenuItem disabled={row.status !== "pending"}>
+                              <Check className="h-4 w-4 text-green-600" /> Approve
+                            </DropdownMenuItem>
+                          )}
+                          {can.rejectTithes(user?.role) && (
+                            <DropdownMenuItem disabled={row.status !== "pending"}>
+                              <X className="h-4 w-4 text-red-600" /> Reject
+                            </DropdownMenuItem>
+                          )}
+                          {row.submittedBy === user?.name && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem disabled={row.status !== "pending"}>
+                                <Pencil className="h-4 w-4" /> Edit
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
