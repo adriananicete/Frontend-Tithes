@@ -31,19 +31,19 @@ export function PendingRfsCard({ className, onCreateVoucher }) {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="max-h-72 overflow-y-auto">
+      <CardContent className="overflow-x-auto">
         {rfs.length === 0 ? (
           <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
             No approved RFs awaiting voucher. You're all caught up.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="flex gap-3">
             {rfs.map((rf) => (
               <button
                 key={rf.id}
                 type="button"
                 onClick={() => onCreateVoucher?.(rf.id)}
-                className="group text-left rounded-lg border p-3 hover:bg-muted/50 hover:border-purple-300 transition flex flex-col gap-2"
+                className="group text-left rounded-lg border p-3 hover:bg-muted/50 hover:border-purple-300 transition flex flex-col gap-2 shrink-0 w-72"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold">{rf.rfNo}</span>

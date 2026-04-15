@@ -42,7 +42,7 @@ function StatTile({ label, amount, count, unit, icon: Icon, accent }) {
 export function VoucherSummaryStats({ className }) {
   const stats = computeStats();
   return (
-    <Card className={`w-full h-auto lg:h-80 ${className ?? ""}`}>
+    <Card className={`w-full ${className ?? ""}`}>
       <CardHeader>
         <CardTitle>Voucher Summary</CardTitle>
         <CardDescription>Overview of issued vouchers and pending actions</CardDescription>
