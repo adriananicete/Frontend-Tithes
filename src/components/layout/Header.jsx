@@ -24,6 +24,7 @@ function Header() {
       </div>
 
       <div className="flex items-center gap-5">
+        <p className="text-sm text-gray-600 whitespace-nowrap">{dateLabel}</p>
         <div className="border border-gray-300 w-70 p-2 flex justify-between items-center rounded-[5px]">
           <CiSearch size={18} />
           <input
@@ -33,8 +34,6 @@ function Header() {
             autoComplete=""
           />
         </div>
-
-        <p className="text-sm text-gray-600 whitespace-nowrap">{dateLabel}</p>
 
         <div className="flex items-center gap-2">
           <div className="border border-gray-300 p-2 rounded-[5px]">

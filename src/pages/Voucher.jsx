@@ -18,7 +18,7 @@ function Voucher() {
   };
 
   return (
-    <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto">
+    <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Vouchers</h1>
@@ -40,11 +40,15 @@ function Voucher() {
         preselectedRfId={preselectedRfId}
       />
 
-      <VoucherSummaryStats />
+      <div className="shrink-0">
+        <VoucherSummaryStats />
+      </div>
 
-      <PendingRfsCard onCreateVoucher={launchCreate} />
+      <div className="shrink-0">
+        <PendingRfsCard onCreateVoucher={launchCreate} />
+      </div>
 
-      <div className="h-[32rem]">
+      <div className="h-[32rem] shrink-0">
         <VoucherTable onViewVoucher={setViewingVoucher} />
       </div>
 
