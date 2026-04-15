@@ -36,7 +36,7 @@ function Dashboard() {
         </div>
       </div>
 
-      <div className="w-full h-95">
+      <div className="w-full flex-1 min-h-0">
         <RecentActivity />
       </div>
     </div>

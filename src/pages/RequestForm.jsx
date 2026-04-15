@@ -10,7 +10,7 @@ function RequestForm() {
   const [viewingRf, setViewingRf] = useState(null);
 
   return (
-    <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto">
+    <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Request Forms</h1>
@@ -21,14 +21,18 @@ function RequestForm() {
         <CreateRfDialog />
       </div>
 
-      <RfPipelineTracker
-        activeStatus={activeStatus}
-        onSelectStatus={setActiveStatus}
-      />
+      <div className="shrink-0">
+        <RfPipelineTracker
+          activeStatus={activeStatus}
+          onSelectStatus={setActiveStatus}
+        />
+      </div>
 
-      <RfSummaryStats />
+      <div className="shrink-0">
+        <RfSummaryStats />
+      </div>
 
-      <div className="h-[32rem]">
+      <div className="h-[32rem] shrink-0">
         <RfTable
           statusFilter={activeStatus}
           onClearStatusFilter={() => setActiveStatus(null)}
