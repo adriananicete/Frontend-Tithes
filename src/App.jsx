@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router";
 import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import Login from "./pages/Login";
+import DevRolePicker from "./pages/DevRolePicker";
 import Dashboard from "./pages/Dashboard";
 import Tithes from "./pages/Tithes";
 import RequestForm from "./pages/RequestForm";
@@ -15,6 +16,7 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/dev-login" element={<DevRolePicker />} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>

@@ -1,26 +1,36 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router";
+import LoginInput from "../components/login-components/LoginInput";
+import { FiUser } from "react-icons/fi";
+import { RiLockPasswordLine } from "react-icons/ri";
 import { BiRightArrowAlt } from "react-icons/bi";
-import { useAuth } from "../hooks/useAuth";
-import { MOCK_USERS, ROLE_LABELS } from "../utils/rolePermissions";
+import { LuEyeClosed } from "react-icons/lu";
+import OauthButton from "../components/login-components/OauthButton";
+import { LuEye } from "react-icons/lu";
+import { useState } from "react";
 
 function Login() {
-  const { user, login } = useAuth();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (user) navigate("/dashboard", { replace: true });
-  }, [user, navigate]);
 
-  const handlePickRole = (mockUser) => {
-    const mockToken = `mock-${mockUser.role}-token`;
-    login(mockUser, mockToken);
-    navigate("/dashboard", { replace: true });
-  };
+    const [ email, setEmail ] = useState('');
+    const [ password, setPassword ] = useState('');
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        console.log({ email, password }); 
+    }
+
+    const handleChange = (e) => {
+        if(e.target.name === 'Email') {
+            setEmail(e.target.value)
+        }
+
+        if(e.target.name === 'Password') {
+            setPassword(e.target.value)
+        }
+    }
 
   return (
-    <div className="bg-gray-200 w-full h-dvh flex justify-center items-center">
-      <div className="bg-white w-[90%] max-w-[440px] p-8 flex flex-col gap-5 rounded-[8px] shadow-md">
+    <div className="bg-gray-200 w-full h-dvh flex justify-center items-center ">
+      <div className="bg-[#ffffff] w-[80%] max-w-[400px] h-[auto] p-8 flex flex-col justify-center items-center gap-4 rounded-[8px] shadow-md">
         {/* header */}
         <div className="w-full flex justify-start items-center gap-2">
           <div className="w-[48px] h-[48px]">
@@ -30,45 +40,60 @@ function Login() {
             />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-700">
-              JOSCM <span className="text-[#2f6a7a]">Tithes App</span>
-            </h1>
+            <h1 className="text-xl font-bold text-gray-700">JOSCM <span className="text-[#2f6a7a] ">Tithes App</span></h1>
             <p className="text-sm text-gray-500">Financial Management System</p>
           </div>
         </div>
 
         {/* body */}
-        <div className="w-full">
-          <h2 className="text-xl font-bold">Dev Sign-In</h2>
+        <div className="w-full mt-5">
+          <h2 className="text-xl font-bold ">Sign In</h2>
           <p className="text-gray-400 text-xs">
-            Pick a role to preview the app. Mock auth for development only.
+            Please sign-in to continue your account.
           </p>
         </div>
+        <form onSubmit={handleSubmit} className="w-full flex flex-col justify-between items-center gap-2">
+          <LoginInput
+            icon={FiUser}
+            inputType="email"
+            placeholder="Enter your email"
+            name="email"
+            titleName='Email'
+            onChange={handleChange}
+          />
+          <LoginInput
+            icon={RiLockPasswordLine}
+            icon2={LuEyeClosed}
+            icon3={LuEye}
+            inputType="password"
+            placeholder="Enter your password"
+            name="password"
+            titleName='Password'
+            secondName="Foget Password?"
+            onChange={handleChange}
+          />
+          {/* Login button */}
+          <button type="submit" className="bg-black flex justify-center items-center gap-1 text-white text-sm w-full rounded-[3px] py-2 mt-3 cursor-pointer">
+            Login <BiRightArrowAlt size={18} />
+          </button>
+        </form>
 
-        <div className="flex flex-col gap-2">
-          {MOCK_USERS.map((u) => (
-            <button
-              key={u._id}
-              type="button"
-              onClick={() => handlePickRole(u)}
-              className="group flex justify-between items-center gap-3 border border-gray-200 hover:border-[#2f6a7a] hover:bg-[#f6f6f6] rounded-[5px] px-4 py-3 text-left transition cursor-pointer"
-            >
-              <div>
-                <p className="text-sm font-medium text-gray-800">{u.name}</p>
-                <p className="text-xs text-gray-500">{ROLE_LABELS[u.role]} · {u.email}</p>
-              </div>
-              <BiRightArrowAlt
-                size={20}
-                className="text-gray-400 group-hover:text-[#2f6a7a] transition"
-              />
-            </button>
-          ))}
+        {/* Oauth button */}
+        <div className="bg-[] w-full h-auto flex flex-col justify-center items-center mt-5">
+            <div className="w-full flex justify-center items-center gap-2">
+                <div className="flex-[1] border border-gray-500"></div>
+                <h3 className="flex-[1] text-sm text-center">Or Sign in with</h3>
+                <div className="flex-[1] border border-gray-500"></div>
+            </div>
+
+            <div className="w-full flex justify-center items-center p-5 gap-5">
+                <OauthButton img={'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/google/google-original.svg'} name={'Google'}/>
+                <OauthButton img={'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/facebook/facebook-original.svg'} name={'Facebook'}/>
+            </div>
         </div>
 
-        <div className="w-full">
-          <p className="text-[10px] text-gray-400 text-center">
-            &copy; {new Date().getFullYear()} — Design &amp; Built by ianDev
-          </p>
+        <div className="bg-[]">
+            <p className="text-[9px] text-gray-400"> &copy; {new Date().getFullYear()} - Design & Built by ianDev</p>
         </div>
       </div>
     </div>
