@@ -86,7 +86,7 @@ export function RfDetailsDialog({ rf, open, onOpenChange }) {
         </DialogHeader>
 
         <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <div className="text-xs text-muted-foreground">Requester</div>
               <div className="font-medium">{rf.requestedBy}</div>
@@ -95,12 +95,12 @@ export function RfDetailsDialog({ rf, open, onOpenChange }) {
               <div className="text-xs text-muted-foreground">Estimated Amount</div>
               <div className="font-medium">{formatPHP(rf.estimatedAmount)}</div>
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <div className="text-xs text-muted-foreground">Remarks</div>
               <div>{rf.remarks || "—"}</div>
             </div>
             {rf.voucherNo && (
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <div className="text-xs text-muted-foreground">Voucher</div>
                 <Badge variant="secondary" className="bg-purple-100 text-purple-700">
                   {rf.voucherNo}

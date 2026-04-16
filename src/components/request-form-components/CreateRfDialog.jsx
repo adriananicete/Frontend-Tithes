@@ -68,7 +68,7 @@ export function CreateRfDialog() {
 
   return (
     <>
-      <div className="w-40" onClick={() => setOpen(true)}>
+      <div className="w-full sm:w-40" onClick={() => setOpen(true)}>
         <CustomButton titleName="Create Request" icon={GoPlus} />
       </div>
 
@@ -88,7 +88,7 @@ export function CreateRfDialog() {
           </DialogHeader>
 
           <form className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="entryDate">Entry Date</Label>
                 <Input
@@ -170,7 +170,7 @@ export function CreateRfDialog() {
               />
             </div>
 
-            <DialogFooter className="flex gap-2">
+            <DialogFooter>
               <DialogClose asChild>
                 <Button type="button" variant="outline">Cancel</Button>
               </DialogClose>

@@ -24,14 +24,14 @@ function Categories() {
 
   return (
     <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Categories</h1>
+          <h1 className="text-xl md:text-2xl font-semibold">Categories</h1>
           <p className="text-sm text-muted-foreground">
             Organize request forms and expenses into named categories with color accents.
           </p>
         </div>
-        <div className="w-44" onClick={() => setCreateOpen(true)}>
+        <div className="w-full sm:w-44" onClick={() => setCreateOpen(true)}>
           <CustomButton titleName="Create Category" icon={GoPlus} />
         </div>
       </div>
@@ -40,7 +40,7 @@ function Categories() {
         <CategoriesSummaryStats />
       </div>
 
-      <div className="h-[32rem] shrink-0">
+      <div className="h-[24rem] md:h-[32rem] shrink-0">
         <CategoriesTable
           onEditCategory={setEditingCategory}
           onToggleActive={handleToggleActive}

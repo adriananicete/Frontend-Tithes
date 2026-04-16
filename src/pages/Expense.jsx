@@ -18,15 +18,15 @@ function Expense() {
 
   return (
     <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Expenses</h1>
+          <h1 className="text-xl md:text-2xl font-semibold">Expenses</h1>
           <p className="text-sm text-muted-foreground">
             Track and record all church expenses across vouchers and manual entries.
           </p>
         </div>
         {canRecord && (
-          <div className="w-44" onClick={() => setCreateOpen(true)}>
+          <div className="w-full sm:w-44" onClick={() => setCreateOpen(true)}>
             <CustomButton titleName="Record Expense" icon={GoPlus} />
           </div>
         )}
@@ -37,15 +37,15 @@ function Expense() {
       </div>
 
       <div className="shrink-0 grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <div className="h-96">
+        <div className="h-72 md:h-96">
           <ExpenseTrendChart />
         </div>
-        <div className="h-96">
+        <div className="h-72 md:h-96">
           <ExpenseCategoryBreakdown />
         </div>
       </div>
 
-      <div className="h-[32rem] shrink-0">
+      <div className="h-[24rem] md:h-[32rem] shrink-0">
         <ExpenseTable onViewExpense={setViewingExpense} />
       </div>
 
