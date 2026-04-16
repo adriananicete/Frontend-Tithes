@@ -8,7 +8,7 @@ import { SummaryStats } from "@/components/dashboard-components/SummaryStats";
 function Dashboard() {
   return (
     <div
-      className="w-full flex-1 min-h-0 flex flex-col gap-5"
+      className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto"
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -36,7 +36,7 @@ function Dashboard() {
         </div>
       </div>
 
-      <div className="w-full flex-1 min-h-0">
+      <div className="w-full h-[28rem] md:flex-1 md:min-h-0">
         <RecentActivity />
       </div>
     </div>
