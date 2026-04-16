@@ -6,24 +6,43 @@ import { LuEyeClosed } from "react-icons/lu";
 import OauthButton from "../components/login-components/OauthButton";
 import { LuEye } from "react-icons/lu";
 import { useState } from "react";
+import { useNavigate } from "react-router";
+import { apiFetch } from "../services/api";
+import { useAuth } from "../hooks/useAuth";
 
 function Login() {
-
+    const navigate = useNavigate();
+    const { login } = useAuth();
 
     const [ email, setEmail ] = useState('');
     const [ password, setPassword ] = useState('');
+    const [ error, setError ] = useState('');
+    const [ isSubmitting, setIsSubmitting ] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log({ email, password }); 
+        setError('');
+        setIsSubmitting(true);
+        try {
+            const res = await apiFetch('/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ email, password }),
+            });
+            login(res.data, res.token);
+            navigate('/dashboard', { replace: true });
+        } catch (err) {
+            setError(err.message || 'Login failed');
+        } finally {
+            setIsSubmitting(false);
+        }
     }
 
     const handleChange = (e) => {
-        if(e.target.name === 'Email') {
+        if(e.target.name === 'email') {
             setEmail(e.target.value)
         }
 
-        if(e.target.name === 'Password') {
+        if(e.target.name === 'password') {
             setPassword(e.target.value)
         }
     }
@@ -72,9 +91,16 @@ function Login() {
             secondName="Foget Password?"
             onChange={handleChange}
           />
+          {error && (
+            <p className="w-full text-xs text-red-600 mt-1">{error}</p>
+          )}
           {/* Login button */}
-          <button type="submit" className="bg-black flex justify-center items-center gap-1 text-white text-sm w-full rounded-[3px] py-2 mt-3 cursor-pointer">
-            Login <BiRightArrowAlt size={18} />
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-black flex justify-center items-center gap-1 text-white text-sm w-full rounded-[3px] py-2 mt-3 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? 'Signing in…' : (<>Login <BiRightArrowAlt size={18} /></>)}
           </button>
         </form>
 
