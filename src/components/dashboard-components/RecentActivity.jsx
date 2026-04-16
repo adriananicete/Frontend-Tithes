@@ -101,75 +101,122 @@ export function RecentActivity({ className }) {
 
   return (
     <Card className={`w-full h-full flex flex-col ${className ?? ""}`}>
-      <CardHeader className="flex flex-row items-start justify-between gap-4">
-        <div className="space-y-1">
-          <CardTitle>Recent Activity</CardTitle>
-          <CardDescription>Latest actions across all accounts</CardDescription>
+      <CardHeader className="gap-3">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div className="space-y-1">
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Latest actions across all accounts</CardDescription>
+          </div>
         </div>
-        <Select value={typeFilter} onValueChange={handleFilterChange}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Filter by type" />
-          </SelectTrigger>
-          <SelectContent>
-            {typeOptions.map((opt) => (
-              <SelectItem key={opt} value={opt}>
-                {opt}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
+          <Select value={typeFilter} onValueChange={handleFilterChange}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              {typeOptions.map((opt) => (
+                <SelectItem key={opt} value={opt}>
+                  {opt}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
 
       <CardContent className="flex-1 min-h-0 overflow-auto">
-        <Table>
-          <TableHeader className="sticky top-0 bg-background z-10">
-            <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Action</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Reference</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-              <TableHead>Date</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pageItems.length === 0 ? (
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
-                  No activity found.
-                </TableCell>
+                <TableHead>User</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Action</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Reference</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>Date</TableHead>
               </TableRow>
-            ) : (
-              pageItems.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.user}</TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role]}`}>
+            </TableHeader>
+            <TableBody>
+              {pageItems.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
+                    No activity found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                pageItems.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium">{item.user}</TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role]}`}>
+                        {item.role}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${actionStyles[item.action]}`}>
+                        {item.action}
+                      </span>
+                    </TableCell>
+                    <TableCell>{item.type}</TableCell>
+                    <TableCell className="text-muted-foreground">{item.ref}</TableCell>
+                    <TableCell className="text-right font-medium">{formatAmount(item.amount)}</TableCell>
+                    <TableCell className="text-muted-foreground">{formatDate(item.date)}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="md:hidden -mx-4 divide-y border-t">
+          {pageItems.length === 0 ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              No activity found.
+            </div>
+          ) : (
+            pageItems.map((item) => (
+              <div key={item.id} className="px-4 py-3 space-y-1.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="font-medium truncate">{item.user}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {item.type} · {item.ref}
+                    </div>
+                  </div>
+                  <span
+                    className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${actionStyles[item.action]}`}
+                  >
+                    {item.action}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2 text-sm">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role]}`}
+                    >
                       {item.role}
                     </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${actionStyles[item.action]}`}>
-                      {item.action}
+                    <span className="text-xs text-muted-foreground truncate">
+                      {formatDate(item.date)}
                     </span>
-                  </TableCell>
-                  <TableCell>{item.type}</TableCell>
-                  <TableCell className="text-muted-foreground">{item.ref}</TableCell>
-                  <TableCell className="text-right font-medium">{formatAmount(item.amount)}</TableCell>
-                  <TableCell className="text-muted-foreground">{formatDate(item.date)}</TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
+                  </div>
+                  <span className="font-medium tabular-nums shrink-0">
+                    {formatAmount(item.amount)}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </CardContent>
 
-      <CardFooter className="flex items-center justify-between border-t py-3">
-        <p className="text-xs text-muted-foreground">
+      <CardFooter className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 border-t py-3">
+        <p className="hidden sm:block text-xs text-muted-foreground">
           Showing {filtered.length === 0 ? 0 : pageStart + 1}–{Math.min(pageStart + PAGE_SIZE, filtered.length)} of {filtered.length}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
