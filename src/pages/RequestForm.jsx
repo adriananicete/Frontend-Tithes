@@ -11,9 +11,9 @@ function RequestForm() {
 
   return (
     <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Request Forms</h1>
+          <h1 className="text-xl md:text-2xl font-semibold">Request Forms</h1>
           <p className="text-sm text-muted-foreground">
             Create, track, and approve request forms through the pipeline.
           </p>
@@ -32,7 +32,7 @@ function RequestForm() {
         <RfSummaryStats />
       </div>
 
-      <div className="h-[32rem] shrink-0">
+      <div className="h-[24rem] md:h-[32rem] shrink-0">
         <RfTable
           statusFilter={activeStatus}
           onClearStatusFilter={() => setActiveStatus(null)}

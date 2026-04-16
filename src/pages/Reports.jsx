@@ -39,9 +39,9 @@ function Reports() {
 
   return (
     <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Reports</h1>
+          <h1 className="text-xl md:text-2xl font-semibold">Reports</h1>
           <p className="text-sm text-muted-foreground">
             Export tithes and expense data for any date range as Excel or PDF.
           </p>
@@ -91,7 +91,7 @@ function Reports() {
         />
       </div>
 
-      <div className="h-[32rem] shrink-0">
+      <div className="h-[24rem] md:h-[32rem] shrink-0">
         <ReportPreviewTable tab={effectiveTab} data={filteredData} />
       </div>
     </div>

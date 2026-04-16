@@ -10,28 +10,28 @@ function Dashboard() {
     <div
       className="w-full flex-1 min-h-0 flex flex-col gap-5"
     >
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <p className="text-[25px] font-[600]">Welcome, Admin 👋</p>
+          <p className="text-xl md:text-[25px] font-[600]">Welcome, Admin 👋</p>
           <p className="text-gray-600 text-sm">
             Let's Rock today. We have 2 Pending Tasks and 5 New Records.
           </p>
         </div>
-        <div className="w-33">
+        <div className="w-full sm:w-36">
           <Button titleName="Add Category" icon={GoPlus} />
         </div>
       </div>
 
-      <div className=" flex justify-start items-center gap-5 w-full h-auto">
-        <div className="w-110">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 w-full">
+        <div className="min-w-0">
           <ChartAreaGradient />
         </div>
 
-        <div className="w-110">
+        <div className="min-w-0">
           <ChartBarExpense />
         </div>
 
-        <div className="flex-1 h-98">
+        <div className="min-w-0 lg:h-auto">
           <SummaryStats />
         </div>
       </div>

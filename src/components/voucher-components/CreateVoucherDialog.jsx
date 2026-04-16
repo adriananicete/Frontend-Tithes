@@ -146,7 +146,7 @@ export function CreateVoucherDialog({ preselectedRfId, open: controlledOpen, onO
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="vdate">Voucher Date</Label>
                 <Input
@@ -229,7 +229,7 @@ export function CreateVoucherDialog({ preselectedRfId, open: controlledOpen, onO
               />
             </div>
 
-            <DialogFooter className="flex gap-2">
+            <DialogFooter>
               <DialogClose asChild>
                 <Button type="button" variant="outline">Cancel</Button>
               </DialogClose>

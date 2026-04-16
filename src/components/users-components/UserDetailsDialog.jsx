@@ -39,7 +39,7 @@ export function UserDetailsDialog({ user, open, onOpenChange }) {
             </Badge>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <div className="text-xs text-muted-foreground">Account Created</div>
               <div className="font-medium">{formatDate(user.createdAt)}</div>
