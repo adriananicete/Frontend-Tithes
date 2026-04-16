@@ -30,7 +30,7 @@ export function VoucherDetailsDialog({ voucher, open, onOpenChange }) {
         </DialogHeader>
 
         <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <div className="text-xs text-muted-foreground">Amount</div>
               <div className="font-medium">{formatPHP(voucher.amount)}</div>
@@ -42,7 +42,7 @@ export function VoucherDetailsDialog({ voucher, open, onOpenChange }) {
               </div>
             </div>
             {voucher.receivedAt && (
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <div className="text-xs text-muted-foreground">Received</div>
                 <div className="font-medium">
                   {formatDateTime(voucher.receivedAt)} · by {voucher.linkedRf.requestedBy}
@@ -53,7 +53,7 @@ export function VoucherDetailsDialog({ voucher, open, onOpenChange }) {
 
           <div className="rounded-md border bg-muted/30 p-3 space-y-2">
             <div className="text-xs font-medium text-muted-foreground">Linked Request Form</div>
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div>
                 <div className="text-xs text-muted-foreground">RF No</div>
                 <div className="font-medium">{voucher.linkedRf.rfNo}</div>

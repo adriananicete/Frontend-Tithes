@@ -24,14 +24,14 @@ function Users() {
 
   return (
     <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Users</h1>
+          <h1 className="text-xl md:text-2xl font-semibold">Users</h1>
           <p className="text-sm text-muted-foreground">
             Manage user accounts, assign roles, and control access to the system.
           </p>
         </div>
-        <div className="w-40" onClick={() => setCreateOpen(true)}>
+        <div className="w-full sm:w-40" onClick={() => setCreateOpen(true)}>
           <CustomButton titleName="Create User" icon={GoPlus} />
         </div>
       </div>
@@ -40,7 +40,7 @@ function Users() {
         <UsersSummaryStats />
       </div>
 
-      <div className="h-[32rem] shrink-0">
+      <div className="h-[24rem] md:h-[32rem] shrink-0">
         <UsersTable
           onViewUser={setViewingUser}
           onEditUser={setEditingUser}

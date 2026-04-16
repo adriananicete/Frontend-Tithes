@@ -33,7 +33,7 @@ export function ExpenseDetailsDialog({ expense, open, onOpenChange }) {
         </DialogHeader>
 
         <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <div className="text-xs text-muted-foreground">Category</div>
               <div className="font-medium">{expense.category}</div>
@@ -51,7 +51,7 @@ export function ExpenseDetailsDialog({ expense, open, onOpenChange }) {
               <div className="font-medium">{cfg.label}</div>
             </div>
             {expense.remarks && (
-              <div className="col-span-2">
+              <div className="sm:col-span-2">
                 <div className="text-xs text-muted-foreground">Remarks</div>
                 <div className="font-medium">{expense.remarks}</div>
               </div>
@@ -61,7 +61,7 @@ export function ExpenseDetailsDialog({ expense, open, onOpenChange }) {
           {linkedVoucher && (
             <div className="rounded-md border bg-muted/30 p-3 space-y-2">
               <div className="text-xs font-medium text-muted-foreground">Linked Voucher</div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div>
                   <div className="text-xs text-muted-foreground">PCF No</div>
                   <div className="font-medium">{expense.linkedRef}</div>
