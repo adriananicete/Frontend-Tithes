@@ -81,6 +81,43 @@ const formatPHP = (n) =>
 const formatDate = (d) =>
   new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
+function RowActions({ row, role, userName, onView }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onView}>
+          <Eye className="h-4 w-4" /> View details
+        </DropdownMenuItem>
+        {(can.approveTithes(role, row.submittedBy, userName) ||
+          can.rejectTithes(role)) && <DropdownMenuSeparator />}
+        {can.approveTithes(role, row.submittedBy, userName) && (
+          <DropdownMenuItem disabled={row.status !== "pending"}>
+            <Check className="h-4 w-4 text-green-600" /> Approve
+          </DropdownMenuItem>
+        )}
+        {can.rejectTithes(role) && (
+          <DropdownMenuItem disabled={row.status !== "pending"}>
+            <X className="h-4 w-4 text-red-600" /> Reject
+          </DropdownMenuItem>
+        )}
+        {row.submittedBy === userName && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem disabled={row.status !== "pending"}>
+              <Pencil className="h-4 w-4" /> Edit
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function TithesTable({ className }) {
   const { user } = useAuth();
   const [search, setSearch] = useState("");
@@ -122,7 +159,7 @@ export function TithesTable({ className }) {
               <CardDescription>All submissions with filters and actions</CardDescription>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
             <Input
               placeholder="Search submitter or remarks..."
               value={search}
@@ -130,7 +167,7 @@ export function TithesTable({ className }) {
                 setSearch(e.target.value);
                 resetPage();
               }}
-              className="w-60"
+              className="w-full sm:w-60"
             />
             <Select
               value={status}
@@ -139,7 +176,7 @@ export function TithesTable({ className }) {
                 resetPage();
               }}
             >
-              <SelectTrigger className="w-36">
+              <SelectTrigger className="w-full sm:w-36">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -157,7 +194,7 @@ export function TithesTable({ className }) {
                 resetPage();
               }}
             >
-              <SelectTrigger className="w-44">
+              <SelectTrigger className="w-full sm:w-44">
                 <SelectValue placeholder="Service" />
               </SelectTrigger>
               <SelectContent>
@@ -172,85 +209,93 @@ export function TithesTable({ className }) {
         </CardHeader>
 
         <CardContent className="flex-1 min-h-0 overflow-auto">
-          <Table>
-            <TableHeader className="sticky top-0 bg-background z-10">
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Submitter</TableHead>
-                <TableHead>Service Type</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pageItems.length === 0 ? (
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader className="sticky top-0 bg-background z-10">
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
-                    No tithes entries found.
-                  </TableCell>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Submitter</TableHead>
+                  <TableHead>Service Type</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : (
-                pageItems.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className="text-muted-foreground">{formatDate(row.entryDate)}</TableCell>
-                    <TableCell className="font-medium">{row.submittedBy}</TableCell>
-                    <TableCell>{row.serviceType}</TableCell>
-                    <TableCell className="text-right font-medium">{formatPHP(row.total)}</TableCell>
-                    <TableCell>
+              </TableHeader>
+              <TableBody>
+                {pageItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
+                      No tithes entries found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  pageItems.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell className="text-muted-foreground">{formatDate(row.entryDate)}</TableCell>
+                      <TableCell className="font-medium">{row.submittedBy}</TableCell>
+                      <TableCell>{row.serviceType}</TableCell>
+                      <TableCell className="text-right font-medium">{formatPHP(row.total)}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className={statusStyles[row.status]}>
+                          {row.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <RowActions
+                          row={row}
+                          role={user?.role}
+                          userName={user?.name}
+                          onView={() => setViewing(row)}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="md:hidden -mx-4 divide-y border-t">
+            {pageItems.length === 0 ? (
+              <div className="py-10 text-center text-sm text-muted-foreground">
+                No tithes entries found.
+              </div>
+            ) : (
+              pageItems.map((row) => (
+                <div key={row.id} className="px-4 py-3 space-y-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{row.submittedBy}</div>
+                      <div className="text-xs text-muted-foreground truncate">{row.serviceType}</div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
                       <Badge variant="secondary" className={statusStyles[row.status]}>
                         {row.status}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setViewing(row)}>
-                            <Eye className="h-4 w-4" /> View details
-                          </DropdownMenuItem>
-                          {(can.approveTithes(user?.role, row.submittedBy, user?.name) ||
-                            can.rejectTithes(user?.role)) && (
-                            <DropdownMenuSeparator />
-                          )}
-                          {can.approveTithes(user?.role, row.submittedBy, user?.name) && (
-                            <DropdownMenuItem disabled={row.status !== "pending"}>
-                              <Check className="h-4 w-4 text-green-600" /> Approve
-                            </DropdownMenuItem>
-                          )}
-                          {can.rejectTithes(user?.role) && (
-                            <DropdownMenuItem disabled={row.status !== "pending"}>
-                              <X className="h-4 w-4 text-red-600" /> Reject
-                            </DropdownMenuItem>
-                          )}
-                          {row.submittedBy === user?.name && (
-                            <>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem disabled={row.status !== "pending"}>
-                                <Pencil className="h-4 w-4" /> Edit
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                      <RowActions
+                        row={row}
+                        role={user?.role}
+                        userName={user?.name}
+                        onView={() => setViewing(row)}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{formatDate(row.entryDate)}</span>
+                    <span className="font-medium tabular-nums">{formatPHP(row.total)}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-between border-t py-3">
-          <p className="text-xs text-muted-foreground">
+        <CardFooter className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 border-t py-3">
+          <p className="hidden sm:block text-xs text-muted-foreground">
             Showing {filtered.length === 0 ? 0 : pageStart + 1}–
             {Math.min(pageStart + PAGE_SIZE, filtered.length)} of {filtered.length}
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
               size="sm"

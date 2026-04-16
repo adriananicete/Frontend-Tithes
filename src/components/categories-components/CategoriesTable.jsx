@@ -43,6 +43,42 @@ import {
 
 const PAGE_SIZE = 10;
 
+function RowActions({ c, onEdit, onToggleActive, onDelete }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onEdit}>
+          <Pencil className="h-4 w-4" /> Edit
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onToggleActive}>
+          {c.isActive ? (
+            <>
+              <Archive className="h-4 w-4" /> Archive
+            </>
+          ) : (
+            <>
+              <ArchiveRestore className="h-4 w-4" /> Restore
+            </>
+          )}
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={onDelete}
+          className="text-red-600 focus:text-red-700"
+          disabled={c.usageCount > 0}
+        >
+          <Trash2 className="h-4 w-4" /> Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function CategoriesTable({
   className,
   onEditCategory,
@@ -76,7 +112,7 @@ export function CategoriesTable({
           <CardTitle>Categories</CardTitle>
           <CardDescription>Manage request form and expense categories</CardDescription>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
           <Input
             placeholder="Search category name..."
             value={search}
@@ -84,7 +120,7 @@ export function CategoriesTable({
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-64"
+            className="w-full sm:w-64"
           />
           <Select
             value={type}
@@ -93,7 +129,7 @@ export function CategoriesTable({
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="w-full sm:w-44">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
@@ -112,7 +148,7 @@ export function CategoriesTable({
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-full sm:w-40">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -125,100 +161,122 @@ export function CategoriesTable({
       </CardHeader>
 
       <CardContent className="flex-1 min-h-0 overflow-auto">
-        <Table>
-          <TableHeader className="sticky top-0 bg-background z-10">
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Usage</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pageItems.length === 0 ? (
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
-                  No categories found.
-                </TableCell>
+                <TableHead>Name</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Usage</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              pageItems.map((c) => {
-                const tcfg = typeConfig[c.type];
-                const scfg = c.isActive ? statusConfig.active : statusConfig.inactive;
-                return (
-                  <TableRow key={c.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <span
-                          className="h-3 w-3 rounded-full border"
-                          style={{ backgroundColor: c.color }}
+            </TableHeader>
+            <TableBody>
+              {pageItems.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
+                    No categories found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                pageItems.map((c) => {
+                  const tcfg = typeConfig[c.type];
+                  const scfg = c.isActive ? statusConfig.active : statusConfig.inactive;
+                  return (
+                    <TableRow key={c.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <span
+                            className="h-3 w-3 rounded-full border"
+                            style={{ backgroundColor: c.color }}
+                          />
+                          <span className="font-medium">{c.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className={tcfg.color}>
+                          {tcfg.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className={scfg.color}>
+                          {scfg.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums text-muted-foreground">
+                        {c.usageCount} entries
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{formatDate(c.createdAt)}</TableCell>
+                      <TableCell className="text-right">
+                        <RowActions
+                          c={c}
+                          onEdit={() => onEditCategory?.(c)}
+                          onToggleActive={() => onToggleActive?.(c)}
+                          onDelete={() => onDeleteCategory?.(c)}
                         />
-                        <span className="font-medium">{c.name}</span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="md:hidden -mx-4 divide-y border-t">
+          {pageItems.length === 0 ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              No categories found.
+            </div>
+          ) : (
+            pageItems.map((c) => {
+              const tcfg = typeConfig[c.type];
+              const scfg = c.isActive ? statusConfig.active : statusConfig.inactive;
+              return (
+                <div key={c.id} className="px-4 py-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span
+                        className="h-3 w-3 rounded-full border shrink-0"
+                        style={{ backgroundColor: c.color }}
+                      />
+                      <div className="min-w-0">
+                        <div className="font-medium truncate">{c.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {c.usageCount} entries • {formatDate(c.createdAt)}
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className={tcfg.color}>
-                        {tcfg.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className={scfg.color}>
-                        {scfg.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums text-muted-foreground">
-                      {c.usageCount} entries
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{formatDate(c.createdAt)}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onEditCategory?.(c)}>
-                            <Pencil className="h-4 w-4" /> Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onToggleActive?.(c)}>
-                            {c.isActive ? (
-                              <>
-                                <Archive className="h-4 w-4" /> Archive
-                              </>
-                            ) : (
-                              <>
-                                <ArchiveRestore className="h-4 w-4" /> Restore
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => onDeleteCategory?.(c)}
-                            className="text-red-600 focus:text-red-700"
-                            disabled={c.usageCount > 0}
-                          >
-                            <Trash2 className="h-4 w-4" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
+                    </div>
+                    <RowActions
+                      c={c}
+                      onEdit={() => onEditCategory?.(c)}
+                      onToggleActive={() => onToggleActive?.(c)}
+                      onDelete={() => onDeleteCategory?.(c)}
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Badge variant="secondary" className={tcfg.color}>
+                      {tcfg.label}
+                    </Badge>
+                    <Badge variant="secondary" className={scfg.color}>
+                      {scfg.label}
+                    </Badge>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </CardContent>
 
-      <CardFooter className="flex items-center justify-between border-t py-3">
-        <p className="text-xs text-muted-foreground">
+      <CardFooter className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 border-t py-3">
+        <p className="hidden sm:block text-xs text-muted-foreground">
           Showing {filtered.length === 0 ? 0 : pageStart + 1}–
           {Math.min(pageStart + PAGE_SIZE, filtered.length)} of {filtered.length}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"

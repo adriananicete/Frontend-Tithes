@@ -43,6 +43,23 @@ import {
 const PAGE_SIZE = 10;
 const sourceOptions = ["All", "voucher", "manual"];
 
+function RowActions({ onView }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onView}>
+          <Eye className="h-4 w-4" /> View details
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function ExpenseTable({ className, onViewExpense }) {
   const [search, setSearch] = useState("");
   const [source, setSource] = useState("All");
@@ -81,7 +98,7 @@ export function ExpenseTable({ className, onViewExpense }) {
           <CardTitle>Expenses</CardTitle>
           <CardDescription>All recorded expenses across vouchers and manual entries</CardDescription>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
           <Input
             placeholder="Search category, ref, recorder, remarks..."
             value={search}
@@ -89,7 +106,7 @@ export function ExpenseTable({ className, onViewExpense }) {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-64"
+            className="w-full sm:w-64"
           />
           <Select
             value={source}
@@ -98,7 +115,7 @@ export function ExpenseTable({ className, onViewExpense }) {
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-full sm:w-40">
               <SelectValue placeholder="Source" />
             </SelectTrigger>
             <SelectContent>
@@ -116,7 +133,7 @@ export function ExpenseTable({ className, onViewExpense }) {
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="w-full sm:w-44">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -132,70 +149,95 @@ export function ExpenseTable({ className, onViewExpense }) {
       </CardHeader>
 
       <CardContent className="flex-1 min-h-0 overflow-auto">
-        <Table>
-          <TableHeader className="sticky top-0 bg-background z-10">
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Source</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Linked Ref</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-              <TableHead>Recorded By</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pageItems.length === 0 ? (
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
-                  No expenses found.
-                </TableCell>
+                <TableHead>Date</TableHead>
+                <TableHead>Source</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Linked Ref</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>Recorded By</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              pageItems.map((e) => {
-                const cfg = sourceConfig[e.source];
-                return (
-                  <TableRow key={e.id}>
-                    <TableCell className="text-muted-foreground">{formatDate(e.date)}</TableCell>
-                    <TableCell>
+            </TableHeader>
+            <TableBody>
+              {pageItems.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
+                    No expenses found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                pageItems.map((e) => {
+                  const cfg = sourceConfig[e.source];
+                  return (
+                    <TableRow key={e.id}>
+                      <TableCell className="text-muted-foreground">{formatDate(e.date)}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className={cfg.color}>
+                          {cfg.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{e.category}</TableCell>
+                      <TableCell className="font-medium">{e.linkedRef ?? "—"}</TableCell>
+                      <TableCell className="text-right font-medium tabular-nums">
+                        {formatPHP(e.amount)}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{e.recordedBy}</TableCell>
+                      <TableCell className="text-right">
+                        <RowActions onView={() => onViewExpense?.(e)} />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="md:hidden -mx-4 divide-y border-t">
+          {pageItems.length === 0 ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              No expenses found.
+            </div>
+          ) : (
+            pageItems.map((e) => {
+              const cfg = sourceConfig[e.source];
+              return (
+                <div key={e.id} className="px-4 py-3 space-y-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{e.category}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {e.linkedRef ?? "—"} • {e.recordedBy}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
                       <Badge variant="secondary" className={cfg.color}>
                         {cfg.label}
                       </Badge>
-                    </TableCell>
-                    <TableCell>{e.category}</TableCell>
-                    <TableCell className="font-medium">{e.linkedRef ?? "—"}</TableCell>
-                    <TableCell className="text-right font-medium tabular-nums">
-                      {formatPHP(e.amount)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{e.recordedBy}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onViewExpense?.(e)}>
-                            <Eye className="h-4 w-4" /> View details
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
+                      <RowActions onView={() => onViewExpense?.(e)} />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{formatDate(e.date)}</span>
+                    <span className="font-medium tabular-nums">{formatPHP(e.amount)}</span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </CardContent>
 
-      <CardFooter className="flex items-center justify-between border-t py-3">
-        <p className="text-xs text-muted-foreground">
+      <CardFooter className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 border-t py-3">
+        <p className="hidden sm:block text-xs text-muted-foreground">
           Showing {filtered.length === 0 ? 0 : pageStart + 1}–
           {Math.min(pageStart + PAGE_SIZE, filtered.length)} of {filtered.length}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
