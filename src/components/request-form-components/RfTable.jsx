@@ -179,7 +179,7 @@ export function RfTable({ className, statusFilter, onClearStatusFilter, onViewRf
               </Button>
             )}
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
             <Input
               placeholder="Search RF no, requester, remarks..."
               value={search}
@@ -187,7 +187,7 @@ export function RfTable({ className, statusFilter, onClearStatusFilter, onViewRf
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="w-64"
+              className="w-full sm:w-64"
             />
             {!statusFilter && (
               <Select
@@ -197,7 +197,7 @@ export function RfTable({ className, statusFilter, onClearStatusFilter, onViewRf
                   setPage(1);
                 }}
               >
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-full sm:w-40">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -216,7 +216,7 @@ export function RfTable({ className, statusFilter, onClearStatusFilter, onViewRf
                 setPage(1);
               }}
             >
-              <SelectTrigger className="w-44">
+              <SelectTrigger className="w-full sm:w-44">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
@@ -232,41 +232,79 @@ export function RfTable({ className, statusFilter, onClearStatusFilter, onViewRf
         </CardHeader>
 
         <CardContent className="flex-1 min-h-0 overflow-auto">
-          <Table>
-            <TableHeader className="sticky top-0 bg-background z-10">
-              <TableRow>
-                <TableHead>RF No</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Requester</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pageItems.length === 0 ? (
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader className="sticky top-0 bg-background z-10">
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
-                    No request forms found.
-                  </TableCell>
+                  <TableHead>RF No</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Requester</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : (
-                pageItems.map((rf) => {
-                  const cfg = statusConfig[rf.status];
-                  return (
-                    <TableRow key={rf.id}>
-                      <TableCell className="font-medium">{rf.rfNo}</TableCell>
-                      <TableCell className="text-muted-foreground">{formatDate(rf.entryDate)}</TableCell>
-                      <TableCell>{rf.requestedBy}</TableCell>
-                      <TableCell>{rf.category}</TableCell>
-                      <TableCell className="text-right font-medium">{formatPHP(rf.estimatedAmount)}</TableCell>
-                      <TableCell>
+              </TableHeader>
+              <TableBody>
+                {pageItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
+                      No request forms found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  pageItems.map((rf) => {
+                    const cfg = statusConfig[rf.status];
+                    return (
+                      <TableRow key={rf.id}>
+                        <TableCell className="font-medium">{rf.rfNo}</TableCell>
+                        <TableCell className="text-muted-foreground">{formatDate(rf.entryDate)}</TableCell>
+                        <TableCell>{rf.requestedBy}</TableCell>
+                        <TableCell>{rf.category}</TableCell>
+                        <TableCell className="text-right font-medium">{formatPHP(rf.estimatedAmount)}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className={cfg.color}>
+                            {cfg.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <ActionMenu
+                            rf={rf}
+                            role={user?.role}
+                            currentUserName={user?.name}
+                            onView={() => onViewRf?.(rf)}
+                            onReject={() => setRejectingRf(rf)}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="md:hidden -mx-4 divide-y border-t">
+            {pageItems.length === 0 ? (
+              <div className="py-10 text-center text-sm text-muted-foreground">
+                No request forms found.
+              </div>
+            ) : (
+              pageItems.map((rf) => {
+                const cfg = statusConfig[rf.status];
+                return (
+                  <div key={rf.id} className="px-4 py-3 space-y-1.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="font-medium truncate">{rf.rfNo}</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                          {rf.category} • {rf.requestedBy}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
                         <Badge variant="secondary" className={cfg.color}>
                           {cfg.label}
                         </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
                         <ActionMenu
                           rf={rf}
                           role={user?.role}
@@ -274,21 +312,25 @@ export function RfTable({ className, statusFilter, onClearStatusFilter, onViewRf
                           onView={() => onViewRf?.(rf)}
                           onReject={() => setRejectingRf(rf)}
                         />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{formatDate(rf.entryDate)}</span>
+                      <span className="font-medium tabular-nums">{formatPHP(rf.estimatedAmount)}</span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-between border-t py-3">
-          <p className="text-xs text-muted-foreground">
+        <CardFooter className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 border-t py-3">
+          <p className="hidden sm:block text-xs text-muted-foreground">
             Showing {filtered.length === 0 ? 0 : pageStart + 1}–
             {Math.min(pageStart + PAGE_SIZE, filtered.length)} of {filtered.length}
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
               size="sm"
