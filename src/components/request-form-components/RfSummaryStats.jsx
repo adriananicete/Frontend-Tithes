@@ -49,7 +49,7 @@ export function RfSummaryStats({ className }) {
         <CardTitle>Request Form Summary</CardTitle>
         <CardDescription>Status overview across all requests</CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-2 gap-3">
+      <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatTile
           label="Total Active"
           amount={stats.active.amount}

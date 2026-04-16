@@ -23,15 +23,15 @@ function Voucher() {
 
   return (
     <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Vouchers</h1>
+          <h1 className="text-xl md:text-2xl font-semibold">Vouchers</h1>
           <p className="text-sm text-muted-foreground">
             Issue PCF vouchers for approved request forms and track disbursements.
           </p>
         </div>
         {canCreate && (
-          <div className="w-40" onClick={() => launchCreate()}>
+          <div className="w-full sm:w-40" onClick={() => launchCreate()}>
             <CustomButton titleName="Create Voucher" icon={GoPlus} />
           </div>
         )}
@@ -56,7 +56,7 @@ function Voucher() {
         </div>
       )}
 
-      <div className="h-[32rem] shrink-0">
+      <div className="h-[24rem] md:h-[32rem] shrink-0">
         <VoucherTable onViewVoucher={setViewingVoucher} />
       </div>
 

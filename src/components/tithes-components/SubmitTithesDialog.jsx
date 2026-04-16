@@ -75,7 +75,7 @@ export function SubmitTithesDialog() {
 
   return (
     <>
-      <div className="w-40" onClick={() => setOpen(true)}>
+      <div className="w-full sm:w-40" onClick={() => setOpen(true)}>
         <CustomButton titleName="Submit New Tithes" icon={GoPlus} />
       </div>
 
@@ -95,7 +95,7 @@ export function SubmitTithesDialog() {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="entryDate">Entry Date</Label>
               <Input
