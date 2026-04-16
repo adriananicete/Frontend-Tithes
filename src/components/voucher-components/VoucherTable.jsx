@@ -43,6 +43,23 @@ import {
 const PAGE_SIZE = 10;
 const statusOptions = ["All", "voucher_created", "disbursed"];
 
+function RowActions({ onView }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onView}>
+          <Eye className="h-4 w-4" /> View details
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function VoucherTable({ className, onViewVoucher }) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
@@ -78,7 +95,7 @@ export function VoucherTable({ className, onViewVoucher }) {
           <CardTitle>Vouchers (PCF)</CardTitle>
           <CardDescription>All issued vouchers with linked request forms</CardDescription>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
           <Input
             placeholder="Search PCF no, RF no, requester..."
             value={search}
@@ -86,7 +103,7 @@ export function VoucherTable({ className, onViewVoucher }) {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-64"
+            className="w-full sm:w-64"
           />
           <Select
             value={status}
@@ -95,7 +112,7 @@ export function VoucherTable({ className, onViewVoucher }) {
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="w-full sm:w-44">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -113,7 +130,7 @@ export function VoucherTable({ className, onViewVoucher }) {
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="w-full sm:w-44">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -129,70 +146,97 @@ export function VoucherTable({ className, onViewVoucher }) {
       </CardHeader>
 
       <CardContent className="flex-1 min-h-0 overflow-auto">
-        <Table>
-          <TableHeader className="sticky top-0 bg-background z-10">
-            <TableRow>
-              <TableHead>PCF No</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Linked RF</TableHead>
-              <TableHead>Requester</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pageItems.length === 0 ? (
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground py-6">
-                  No vouchers found.
-                </TableCell>
+                <TableHead>PCF No</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Linked RF</TableHead>
+                <TableHead>Requester</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              pageItems.map((v) => {
-                const cfg = voucherStatusConfig[v.linkedRfStatus];
-                return (
-                  <TableRow key={v.id}>
-                    <TableCell className="font-medium">{v.pcfNo}</TableCell>
-                    <TableCell className="text-muted-foreground">{formatDate(v.date)}</TableCell>
-                    <TableCell className="font-medium">{v.linkedRf.rfNo}</TableCell>
-                    <TableCell>{v.linkedRf.requestedBy}</TableCell>
-                    <TableCell>{v.category}</TableCell>
-                    <TableCell className="text-right font-medium">{formatPHP(v.amount)}</TableCell>
-                    <TableCell>
+            </TableHeader>
+            <TableBody>
+              {pageItems.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center text-muted-foreground py-6">
+                    No vouchers found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                pageItems.map((v) => {
+                  const cfg = voucherStatusConfig[v.linkedRfStatus];
+                  return (
+                    <TableRow key={v.id}>
+                      <TableCell className="font-medium">{v.pcfNo}</TableCell>
+                      <TableCell className="text-muted-foreground">{formatDate(v.date)}</TableCell>
+                      <TableCell className="font-medium">{v.linkedRf.rfNo}</TableCell>
+                      <TableCell>{v.linkedRf.requestedBy}</TableCell>
+                      <TableCell>{v.category}</TableCell>
+                      <TableCell className="text-right font-medium">{formatPHP(v.amount)}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className={cfg.color}>
+                          {cfg.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <RowActions onView={() => onViewVoucher?.(v)} />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="md:hidden -mx-4 divide-y border-t">
+          {pageItems.length === 0 ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              No vouchers found.
+            </div>
+          ) : (
+            pageItems.map((v) => {
+              const cfg = voucherStatusConfig[v.linkedRfStatus];
+              return (
+                <div key={v.id} className="px-4 py-3 space-y-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="font-medium truncate">{v.pcfNo}</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {v.linkedRf.rfNo} • {v.linkedRf.requestedBy}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
                       <Badge variant="secondary" className={cfg.color}>
                         {cfg.label}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onViewVoucher?.(v)}>
-                            <Eye className="h-4 w-4" /> View details
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
+                      <RowActions onView={() => onViewVoucher?.(v)} />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground truncate">
+                      {formatDate(v.date)} • {v.category}
+                    </span>
+                    <span className="font-medium tabular-nums shrink-0">{formatPHP(v.amount)}</span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </CardContent>
 
-      <CardFooter className="flex items-center justify-between border-t py-3">
-        <p className="text-xs text-muted-foreground">
+      <CardFooter className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 border-t py-3">
+        <p className="hidden sm:block text-xs text-muted-foreground">
           Showing {filtered.length === 0 ? 0 : pageStart + 1}–
           {Math.min(pageStart + PAGE_SIZE, filtered.length)} of {filtered.length}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
