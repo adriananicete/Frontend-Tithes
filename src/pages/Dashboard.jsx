@@ -4,15 +4,19 @@ import { ChartAreaGradient } from "@/components/dashboard-components/ChartAreaGr
 import { ChartBarExpense } from "@/components/dashboard-components/ChartBarExpense";
 import { RecentActivity } from "@/components/dashboard-components/RecentActivity";
 import { SummaryStats } from "@/components/dashboard-components/SummaryStats";
+import { useAuth } from "@/hooks/useAuth";
 
 function Dashboard() {
+  const { user } = useAuth();
+  const firstName = user?.name?.split(" ")[0] ?? "there";
+
   return (
     <div
-      className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto"
+      className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1"
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <p className="text-xl md:text-[25px] font-[600]">Welcome, Admin 👋</p>
+          <p className="text-xl md:text-[25px] font-[600]">Welcome, {firstName} 👋</p>
           <p className="text-gray-600 text-sm">
             Let's Rock today. We have 2 Pending Tasks and 5 New Records.
           </p>
@@ -36,7 +40,7 @@ function Dashboard() {
         </div>
       </div>
 
-      <div className="w-full h-[28rem] md:flex-1 md:min-h-0">
+      <div className="w-full h-[28rem] md:h-[36rem]">
         <RecentActivity />
       </div>
     </div>
