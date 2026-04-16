@@ -44,6 +44,44 @@ import {
 
 const PAGE_SIZE = 10;
 
+function RowActions({ u, onView, onEdit, onToggleActive, onDelete }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={onView}>
+          <Eye className="h-4 w-4" /> View details
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onEdit}>
+          <Pencil className="h-4 w-4" /> Edit
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onToggleActive}>
+          {u.isActive ? (
+            <>
+              <UserX className="h-4 w-4" /> Deactivate
+            </>
+          ) : (
+            <>
+              <UserCheck className="h-4 w-4" /> Activate
+            </>
+          )}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={onDelete}
+          className="text-red-600 focus:text-red-700"
+        >
+          <Trash2 className="h-4 w-4" /> Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function UsersTable({
   className,
   onViewUser,
@@ -85,7 +123,7 @@ export function UsersTable({
           <CardTitle>Users</CardTitle>
           <CardDescription>Manage accounts, roles, and activation status</CardDescription>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
           <Input
             placeholder="Search name or email..."
             value={search}
@@ -93,7 +131,7 @@ export function UsersTable({
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-64"
+            className="w-full sm:w-64"
           />
           <Select
             value={role}
@@ -102,7 +140,7 @@ export function UsersTable({
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="w-full sm:w-44">
               <SelectValue placeholder="Role" />
             </SelectTrigger>
             <SelectContent>
@@ -121,7 +159,7 @@ export function UsersTable({
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-full sm:w-40">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -134,99 +172,123 @@ export function UsersTable({
       </CardHeader>
 
       <CardContent className="flex-1 min-h-0 overflow-auto">
-        <Table>
-          <TableHeader className="sticky top-0 bg-background z-10">
-            <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pageItems.length === 0 ? (
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
-                  No users found.
-                </TableCell>
+                <TableHead>User</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              pageItems.map((u) => {
-                const rcfg = roleConfig[u.role];
-                const scfg = u.isActive ? statusConfig.active : statusConfig.inactive;
-                return (
-                  <TableRow key={u.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground">
-                          {getInitials(u.name)}
+            </TableHeader>
+            <TableBody>
+              {pageItems.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
+                    No users found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                pageItems.map((u) => {
+                  const rcfg = roleConfig[u.role];
+                  const scfg = u.isActive ? statusConfig.active : statusConfig.inactive;
+                  return (
+                    <TableRow key={u.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground">
+                            {getInitials(u.name)}
+                          </div>
+                          <div className="font-medium">{u.name}</div>
                         </div>
-                        <div className="font-medium">{u.name}</div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{u.email}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className={rcfg.color}>
+                          {rcfg.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className={scfg.color}>
+                          {scfg.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">{formatDate(u.createdAt)}</TableCell>
+                      <TableCell className="text-right">
+                        <RowActions
+                          u={u}
+                          onView={() => onViewUser?.(u)}
+                          onEdit={() => onEditUser?.(u)}
+                          onToggleActive={() => onToggleActive?.(u)}
+                          onDelete={() => onDeleteUser?.(u)}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        <div className="md:hidden -mx-4 divide-y border-t">
+          {pageItems.length === 0 ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              No users found.
+            </div>
+          ) : (
+            pageItems.map((u) => {
+              const rcfg = roleConfig[u.role];
+              const scfg = u.isActive ? statusConfig.active : statusConfig.inactive;
+              return (
+                <div key={u.id} className="px-4 py-3 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground shrink-0">
+                        {getInitials(u.name)}
                       </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{u.email}</TableCell>
-                    <TableCell>
+                      <div className="min-w-0">
+                        <div className="font-medium truncate">{u.name}</div>
+                        <div className="text-xs text-muted-foreground truncate">{u.email}</div>
+                      </div>
+                    </div>
+                    <RowActions
+                      u={u}
+                      onView={() => onViewUser?.(u)}
+                      onEdit={() => onEditUser?.(u)}
+                      onToggleActive={() => onToggleActive?.(u)}
+                      onDelete={() => onDeleteUser?.(u)}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <Badge variant="secondary" className={rcfg.color}>
                         {rcfg.label}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
                       <Badge variant="secondary" className={scfg.color}>
                         {scfg.label}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{formatDate(u.createdAt)}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => onViewUser?.(u)}>
-                            <Eye className="h-4 w-4" /> View details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onEditUser?.(u)}>
-                            <Pencil className="h-4 w-4" /> Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => onToggleActive?.(u)}>
-                            {u.isActive ? (
-                              <>
-                                <UserX className="h-4 w-4" /> Deactivate
-                              </>
-                            ) : (
-                              <>
-                                <UserCheck className="h-4 w-4" /> Activate
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => onDeleteUser?.(u)}
-                            className="text-red-600 focus:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" /> Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
+                    </div>
+                    <span className="text-xs text-muted-foreground shrink-0">
+                      {formatDate(u.createdAt)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </CardContent>
 
-      <CardFooter className="flex items-center justify-between border-t py-3">
-        <p className="text-xs text-muted-foreground">
+      <CardFooter className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-2 border-t py-3">
+        <p className="hidden sm:block text-xs text-muted-foreground">
           Showing {filtered.length === 0 ? 0 : pageStart + 1}–
           {Math.min(pageStart + PAGE_SIZE, filtered.length)} of {filtered.length}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
