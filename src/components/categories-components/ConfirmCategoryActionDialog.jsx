@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +11,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-export function ConfirmCategoryActionDialog({ category, action, open, onOpenChange }) {
+export function ConfirmCategoryActionDialog({
+  category,
+  action,
+  open,
+  onOpenChange,
+  onConfirm,
+}) {
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (open) setError("");
+  }, [open]);
+
   if (!category || !action) return null;
 
   const config = {
@@ -18,33 +32,40 @@ export function ConfirmCategoryActionDialog({ category, action, open, onOpenChan
       title: "Archive category?",
       description: `"${category.name}" will be hidden from new entries but existing records remain linked.`,
       confirmLabel: "Archive",
+      pendingLabel: "Archiving…",
       destructive: false,
-      endpoint: `PATCH /api/admin/categories/${category.id} (isActive: false)`,
     },
     restore: {
       title: "Restore category?",
       description: `"${category.name}" will be available for selection again on new entries.`,
       confirmLabel: "Restore",
+      pendingLabel: "Restoring…",
       destructive: false,
-      endpoint: `PATCH /api/admin/categories/${category.id} (isActive: true)`,
     },
     delete: {
       title: "Delete category?",
-      description:
-        category.usageCount > 0
-          ? `"${category.name}" is used in ${category.usageCount} entries. Deleting would break those references — archive instead.`
-          : `"${category.name}" will be permanently removed. This cannot be undone.`,
+      description: `"${category.name}" will be permanently removed. This cannot be undone.`,
       confirmLabel: "Delete permanently",
+      pendingLabel: "Deleting…",
       destructive: true,
-      disabled: category.usageCount > 0,
-      endpoint: `DELETE /api/admin/categories/${category.id}`,
     },
   }[action];
 
-  const handleConfirm = () => {
-    // TODO: call endpoint
-    console.log(`${action} category (mock):`, config.endpoint);
-    onOpenChange?.(false);
+  const handleConfirm = async () => {
+    if (!onConfirm) {
+      onOpenChange?.(false);
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    try {
+      await onConfirm();
+      onOpenChange?.(false);
+    } catch (err) {
+      setError(err.message || "Action failed");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -58,21 +79,23 @@ export function ConfirmCategoryActionDialog({ category, action, open, onOpenChan
           <DialogDescription>{config.description}</DialogDescription>
         </DialogHeader>
 
+        {error && <p className="text-xs text-red-600">{error}</p>}
+
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="outline">
+            <Button type="button" variant="outline" disabled={submitting}>
               Cancel
             </Button>
           </DialogClose>
           <Button
             type="button"
             onClick={handleConfirm}
-            disabled={config.disabled}
+            disabled={submitting}
             className={
               config.destructive ? "bg-red-600 hover:bg-red-700 text-white" : ""
             }
           >
-            {config.confirmLabel}
+            {submitting ? config.pendingLabel : config.confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

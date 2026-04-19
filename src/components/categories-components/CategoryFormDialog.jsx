@@ -22,11 +22,13 @@ import {
 import { COLOR_PALETTE, TYPES } from "./mockData";
 
 // Combined create + edit dialog. `category` prop present = edit mode.
-export function CategoryFormDialog({ category, open, onOpenChange }) {
+export function CategoryFormDialog({ category, open, onOpenChange, onSubmit }) {
   const isEdit = !!category;
   const [name, setName] = useState("");
   const [type, setType] = useState("");
   const [color, setColor] = useState(COLOR_PALETTE[0].value);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (category) {
@@ -38,21 +40,28 @@ export function CategoryFormDialog({ category, open, onOpenChange }) {
       setType("");
       setColor(COLOR_PALETTE[0].value);
     }
+    if (open) setError("");
   }, [category, open]);
 
-  const canSubmit = name.trim() && type && color;
+  const canSubmit = name.trim() && type && color && !submitting;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = { name: name.trim(), type, color };
-    if (isEdit) {
-      // TODO: PATCH /api/admin/categories/:id
-      console.log("Update category (mock):", { id: category.id, ...payload });
-    } else {
-      // TODO: POST /api/admin/categories
-      console.log("Create category (mock):", payload);
+    if (!onSubmit) {
+      onOpenChange?.(false);
+      return;
     }
-    onOpenChange?.(false);
+    const payload = { name: name.trim(), type, color };
+    setSubmitting(true);
+    setError("");
+    try {
+      await onSubmit(payload);
+      onOpenChange?.(false);
+    } catch (err) {
+      setError(err.message || "Failed to save category");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -131,14 +140,20 @@ export function CategoryFormDialog({ category, open, onOpenChange }) {
             </div>
           </div>
 
+          {error && (
+            <p className="text-xs text-red-600">{error}</p>
+          )}
+
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" disabled={submitting}>
                 Cancel
               </Button>
             </DialogClose>
             <Button type="submit" disabled={!canSubmit}>
-              {isEdit ? "Save Changes" : "Create Category"}
+              {submitting
+                ? isEdit ? "Saving…" : "Creating…"
+                : isEdit ? "Save Changes" : "Create Category"}
             </Button>
           </DialogFooter>
         </form>
