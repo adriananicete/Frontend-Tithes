@@ -35,7 +35,6 @@ import {
 } from "@/components/ui/table";
 import {
   formatDate,
-  mockCategories,
   statusConfig,
   typeConfig,
   TYPES,
@@ -70,7 +69,6 @@ function RowActions({ c, onEdit, onToggleActive, onDelete }) {
         <DropdownMenuItem
           onClick={onDelete}
           className="text-red-600 focus:text-red-700"
-          disabled={c.usageCount > 0}
         >
           <Trash2 className="h-4 w-4" /> Delete
         </DropdownMenuItem>
@@ -81,6 +79,9 @@ function RowActions({ c, onEdit, onToggleActive, onDelete }) {
 
 export function CategoriesTable({
   className,
+  categories = [],
+  loading = false,
+  error = "",
   onEditCategory,
   onToggleActive,
   onDeleteCategory,
@@ -91,19 +92,25 @@ export function CategoriesTable({
   const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
-    return mockCategories.filter((c) => {
+    return categories.filter((c) => {
       if (type !== "All" && c.type !== type) return false;
       if (status === "active" && !c.isActive) return false;
       if (status === "inactive" && c.isActive) return false;
       if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [search, type, status]);
+  }, [categories, search, type, status]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageStart = (currentPage - 1) * PAGE_SIZE;
   const pageItems = filtered.slice(pageStart, pageStart + PAGE_SIZE);
+
+  const emptyMessage = loading
+    ? "Loading categories…"
+    : error
+    ? error
+    : "No categories found.";
 
   return (
     <Card className={`w-full h-full flex flex-col ${className ?? ""}`}>
@@ -168,7 +175,6 @@ export function CategoriesTable({
                 <TableHead>Name</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Usage</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -176,8 +182,13 @@ export function CategoriesTable({
             <TableBody>
               {pageItems.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
-                    No categories found.
+                  <TableCell
+                    colSpan={5}
+                    className={`text-center py-6 ${
+                      error ? "text-red-600" : "text-muted-foreground"
+                    }`}
+                  >
+                    {emptyMessage}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -185,7 +196,7 @@ export function CategoriesTable({
                   const tcfg = typeConfig[c.type];
                   const scfg = c.isActive ? statusConfig.active : statusConfig.inactive;
                   return (
-                    <TableRow key={c.id}>
+                    <TableRow key={c._id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <span
@@ -204,9 +215,6 @@ export function CategoriesTable({
                         <Badge variant="secondary" className={scfg.color}>
                           {scfg.label}
                         </Badge>
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums text-muted-foreground">
-                        {c.usageCount} entries
                       </TableCell>
                       <TableCell className="text-muted-foreground">{formatDate(c.createdAt)}</TableCell>
                       <TableCell className="text-right">
@@ -227,15 +235,19 @@ export function CategoriesTable({
 
         <div className="md:hidden -mx-4 divide-y border-t">
           {pageItems.length === 0 ? (
-            <div className="py-10 text-center text-sm text-muted-foreground">
-              No categories found.
+            <div
+              className={`py-10 text-center text-sm ${
+                error ? "text-red-600" : "text-muted-foreground"
+              }`}
+            >
+              {emptyMessage}
             </div>
           ) : (
             pageItems.map((c) => {
               const tcfg = typeConfig[c.type];
               const scfg = c.isActive ? statusConfig.active : statusConfig.inactive;
               return (
-                <div key={c.id} className="px-4 py-3 space-y-2">
+                <div key={c._id} className="px-4 py-3 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">
                       <span
@@ -245,7 +257,7 @@ export function CategoriesTable({
                       <div className="min-w-0">
                         <div className="font-medium truncate">{c.name}</div>
                         <div className="text-xs text-muted-foreground">
-                          {c.usageCount} entries • {formatDate(c.createdAt)}
+                          {formatDate(c.createdAt)}
                         </div>
                       </div>
                     </div>
