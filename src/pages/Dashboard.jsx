@@ -11,6 +11,7 @@ import { SummaryStats } from "@/components/dashboard-components/SummaryStats";
 import { SubmitTithesDialog } from "@/components/tithes-components/SubmitTithesDialog";
 import { CreateVoucherDialog } from "@/components/voucher-components/CreateVoucherDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { apiFetch } from "@/services/api";
 
 // Quick-action buttons per role. Mirrors the backend ACL in CLAUDE.md:
 // admin can do everything; validator can create vouchers + submit tithes;
@@ -38,6 +39,12 @@ function Dashboard() {
   const firstName = user?.name?.split(" ")[0] ?? "there";
   const actions = QUICK_ACTIONS_BY_ROLE[user?.role] ?? [];
 
+  const createCategory = (payload) =>
+    apiFetch("/admin/categories", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [voucherOpen, setVoucherOpen] = useState(false);
   const [tithesOpen, setTithesOpen] = useState(false);
@@ -61,7 +68,11 @@ function Dashboard() {
           </p>
         </div>
         {actions.length > 0 && (
-          <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2">
+          <div
+            className={`w-full sm:w-auto grid sm:flex sm:flex-row gap-2 ${
+              actions.length > 1 ? "grid-cols-2" : "grid-cols-1"
+            }`}
+          >
             {actions.map((a) => (
               <div
                 key={a.key}
@@ -93,7 +104,11 @@ function Dashboard() {
         <RecentActivity />
       </div>
 
-      <CategoryFormDialog open={categoryOpen} onOpenChange={setCategoryOpen} />
+      <CategoryFormDialog
+        open={categoryOpen}
+        onOpenChange={setCategoryOpen}
+        onSubmit={createCategory}
+      />
       <CreateVoucherDialog open={voucherOpen} onOpenChange={setVoucherOpen} />
       <SubmitTithesDialog open={tithesOpen} onOpenChange={setTithesOpen} />
     </div>
