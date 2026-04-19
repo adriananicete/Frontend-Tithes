@@ -22,11 +22,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatDate, mockApprovedRfs } from "./mockData";
+import { apiFetch } from "@/services/api";
+import { formatDate } from "./mockData";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function CreateVoucherDialog({ preselectedRfId, open: controlledOpen, onOpenChange }) {
+const MAX_FILES = 5;
+const MAX_SIZE_BYTES = 10 * 1024 * 1024;
+const ACCEPT = "image/jpeg,image/jpg,image/png,image/webp";
+
+export function CreateVoucherDialog({
+  preselectedRfId,
+  open: controlledOpen,
+  onOpenChange,
+  onSubmit,
+}) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
@@ -35,58 +45,112 @@ export function CreateVoucherDialog({ preselectedRfId, open: controlledOpen, onO
     else setInternalOpen(v);
   };
 
-  const preselectedRfNo = preselectedRfId
-    ? mockApprovedRfs.find((r) => r.id === preselectedRfId)?.rfNo ?? ""
-    : "";
+  const [approvedRfs, setApprovedRfs] = useState([]);
+  const [rfsLoading, setRfsLoading] = useState(false);
+  const [rfsError, setRfsError] = useState("");
 
-  const [rfNo, setRfNo] = useState(preselectedRfNo);
+  const [rfId, setRfId] = useState("");
   const [date, setDate] = useState(today());
   const [amount, setAmount] = useState("");
   const [remarks, setRemarks] = useState("");
   const [receipts, setReceipts] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const selectedRf = mockApprovedRfs.find((r) => r.rfNo === rfNo);
-
-  useEffect(() => {
-    if (selectedRf) setAmount(selectedRf.estimatedAmount.toString());
-  }, [rfNo]);
+  const selectedRf = approvedRfs.find((r) => r._id === rfId);
 
   useEffect(() => {
-    if (open && preselectedRfNo) setRfNo(preselectedRfNo);
-  }, [open, preselectedRfNo]);
+    if (!open) return;
+    let cancelled = false;
+    (async () => {
+      setRfsLoading(true);
+      setRfsError("");
+      try {
+        const res = await apiFetch("/request-form?status=approved");
+        if (cancelled) return;
+        const list = Array.isArray(res?.data) ? res.data : [];
+        setApprovedRfs(list.filter((rf) => !rf.voucherId));
+      } catch (err) {
+        if (cancelled) return;
+        setApprovedRfs([]);
+        setRfsError(err.message || "Failed to load approved RFs");
+      } finally {
+        if (!cancelled) setRfsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (open && preselectedRfId) setRfId(preselectedRfId);
+  }, [open, preselectedRfId]);
+
+  useEffect(() => {
+    if (selectedRf) setAmount(selectedRf.estimatedAmount?.toString() ?? "");
+  }, [rfId]);
 
   const reset = () => {
-    setRfNo("");
+    setRfId("");
     setDate(today());
     setAmount("");
     setRemarks("");
     setReceipts([]);
+    setError("");
   };
 
   const handleFiles = (e) => {
     const picked = Array.from(e.target.files || []);
-    if (picked.length) setReceipts((prev) => [...prev, ...picked]);
+    const valid = [];
+    let sizeErr = "";
+    for (const file of picked) {
+      if (file.size > MAX_SIZE_BYTES) {
+        sizeErr = `${file.name} exceeds 10MB`;
+        continue;
+      }
+      valid.push(file);
+    }
+    setReceipts((prev) => {
+      const merged = [...prev, ...valid].slice(0, MAX_FILES);
+      if (prev.length + valid.length > MAX_FILES)
+        setError(`Only ${MAX_FILES} files allowed — extras were ignored`);
+      else if (sizeErr) setError(sizeErr);
+      else setError("");
+      return merged;
+    });
     e.target.value = "";
   };
 
   const removeReceipt = (i) =>
     setReceipts((prev) => prev.filter((_, idx) => idx !== i));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedRf) return;
-    const payload = {
-      rfId: selectedRf.id,
-      date,
-      category: selectedRf.category,
-      amount: Number(amount) || 0,
-      remarks,
-      receipts,
-    };
-    // TODO: multipart POST /api/vouchers — upload receipts to Cloudinary
-    console.log("Create Voucher (mock):", payload);
-    setOpen(false);
-    reset();
+    if (!selectedRf || !onSubmit) return;
+    const formData = new FormData();
+    formData.append("rfId", selectedRf._id);
+    formData.append(
+      "category",
+      typeof selectedRf.category === "object"
+        ? selectedRf.category._id
+        : selectedRf.category
+    );
+    formData.append("amount", String(Number(amount) || 0));
+    if (remarks.trim()) formData.append("remarks", remarks.trim());
+    receipts.forEach((file) => formData.append("receipts", file));
+
+    setSubmitting(true);
+    setError("");
+    try {
+      await onSubmit(formData);
+      setOpen(false);
+      reset();
+    } catch (err) {
+      setError(err.message || "Failed to create voucher");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -115,29 +179,44 @@ export function CreateVoucherDialog({ preselectedRfId, open: controlledOpen, onO
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label>Approved Request Form</Label>
-              <Select value={rfNo} onValueChange={setRfNo}>
+              <Select value={rfId} onValueChange={setRfId} disabled={rfsLoading}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select an approved RF..." />
+                  <SelectValue
+                    placeholder={
+                      rfsLoading
+                        ? "Loading approved RFs…"
+                        : approvedRfs.length === 0
+                        ? "No approved RFs available"
+                        : "Select an approved RF..."
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockApprovedRfs.map((rf) => (
-                    <SelectItem key={rf.rfNo} value={rf.rfNo}>
-                      {rf.rfNo} · Submitted {formatDate(rf.submittedAt)}
+                  {approvedRfs.map((rf) => (
+                    <SelectItem key={rf._id} value={rf._id}>
+                      {rf.rfNo} · Approved {formatDate(rf.approvedAt ?? rf.createdAt)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {rfsError && (
+                <p className="text-xs text-red-600">{rfsError}</p>
+              )}
             </div>
 
             {selectedRf && (
               <div className="rounded-md border bg-muted/30 p-3 text-sm space-y-1">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Requester</span>
-                  <span className="font-medium">{selectedRf.requestedBy}</span>
+                  <span className="font-medium">
+                    {selectedRf.requestedBy?.name ?? "—"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Category</span>
-                  <span className="font-medium">{selectedRf.category}</span>
+                  <span className="font-medium">
+                    {selectedRf.category?.name ?? "—"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Remarks</span>
@@ -179,13 +258,13 @@ export function CreateVoucherDialog({ preselectedRfId, open: controlledOpen, onO
                 <Upload className="h-5 w-5 text-muted-foreground" />
                 <span className="text-sm font-medium">Click to upload receipts</span>
                 <span className="text-xs text-muted-foreground">
-                  PDF, JPG, PNG — you can select multiple files
+                  JPG, PNG, WebP — up to 5 files, 10MB each
                 </span>
                 <input
                   id="receiptFiles"
                   type="file"
                   multiple
-                  accept=".pdf,image/*"
+                  accept={ACCEPT}
                   className="hidden"
                   onChange={handleFiles}
                 />
@@ -209,6 +288,7 @@ export function CreateVoucherDialog({ preselectedRfId, open: controlledOpen, onO
                         variant="ghost"
                         size="icon"
                         onClick={() => removeReceipt(i)}
+                        disabled={submitting}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -229,12 +309,19 @@ export function CreateVoucherDialog({ preselectedRfId, open: controlledOpen, onO
               />
             </div>
 
+            {error && <p className="text-xs text-red-600">{error}</p>}
+
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="outline">Cancel</Button>
+                <Button type="button" variant="outline" disabled={submitting}>
+                  Cancel
+                </Button>
               </DialogClose>
-              <Button type="submit" disabled={!selectedRf || !amount}>
-                Create Voucher
+              <Button
+                type="submit"
+                disabled={!selectedRf || !amount || submitting}
+              >
+                {submitting ? "Creating…" : "Create Voucher"}
               </Button>
             </DialogFooter>
           </form>
