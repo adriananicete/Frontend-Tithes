@@ -6,23 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatPHP, mockApprovedRfs, mockVouchers } from "./mockData";
-
-const computeStats = () => {
-  const total = mockVouchers;
-  const pending = mockVouchers.filter((v) => v.linkedRfStatus === "voucher_created");
-  const disbursed = mockVouchers.filter((v) => v.linkedRfStatus === "disbursed");
-  const awaiting = mockApprovedRfs;
-
-  const sum = (arr, key = "amount") => arr.reduce((a, c) => a + c[key], 0);
-
-  return {
-    total: { count: total.length, amount: sum(total) },
-    pending: { count: pending.length, amount: sum(pending) },
-    disbursed: { count: disbursed.length, amount: sum(disbursed) },
-    awaiting: { count: awaiting.length, amount: sum(awaiting, "estimatedAmount") },
-  };
-};
+import { formatPHP } from "./mockData";
 
 function StatTile({ label, amount, count, unit, icon: Icon, accent }) {
   return (
@@ -39,8 +23,35 @@ function StatTile({ label, amount, count, unit, icon: Icon, accent }) {
   );
 }
 
-export function VoucherSummaryStats({ className }) {
-  const stats = computeStats();
+export function VoucherSummaryStats({
+  className,
+  vouchers = [],
+  approvedRfs = [],
+}) {
+  const pending = vouchers.filter((v) => v.rfId?.status === "voucher_created");
+  const disbursed = vouchers.filter((v) => v.rfId?.status === "disbursed");
+
+  const sum = (arr, getter) => arr.reduce((a, c) => a + (getter(c) || 0), 0);
+
+  const stats = {
+    total: {
+      count: vouchers.length,
+      amount: sum(vouchers, (v) => v.amount),
+    },
+    pending: {
+      count: pending.length,
+      amount: sum(pending, (v) => v.amount),
+    },
+    disbursed: {
+      count: disbursed.length,
+      amount: sum(disbursed, (v) => v.amount),
+    },
+    awaiting: {
+      count: approvedRfs.length,
+      amount: sum(approvedRfs, (r) => r.estimatedAmount),
+    },
+  };
+
   return (
     <Card className={`w-full ${className ?? ""}`}>
       <CardHeader>

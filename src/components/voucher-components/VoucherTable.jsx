@@ -32,13 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  formatDate,
-  formatPHP,
-  mockCategories,
-  mockVouchers,
-  voucherStatusConfig,
-} from "./mockData";
+import { formatDate, formatPHP, voucherStatusConfig } from "./mockData";
 
 const PAGE_SIZE = 10;
 const statusOptions = ["All", "voucher_created", "disbursed"];
@@ -60,33 +54,58 @@ function RowActions({ onView }) {
   );
 }
 
-export function VoucherTable({ className, onViewVoucher }) {
+export function VoucherTable({
+  className,
+  vouchers = [],
+  loading = false,
+  error = "",
+  onViewVoucher,
+}) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [category, setCategory] = useState("All");
   const [page, setPage] = useState(1);
 
+  const categoryOptions = useMemo(() => {
+    const names = new Set();
+    vouchers.forEach((v) => {
+      if (v.category?.name) names.add(v.category.name);
+    });
+    return Array.from(names).sort();
+  }, [vouchers]);
+
   const filtered = useMemo(() => {
-    return mockVouchers.filter((v) => {
-      if (status !== "All" && v.linkedRfStatus !== status) return false;
-      if (category !== "All" && v.category !== category) return false;
+    return vouchers.filter((v) => {
+      const rfStatus = v.rfId?.status;
+      if (status !== "All" && rfStatus !== status) return false;
+      if (category !== "All" && v.category?.name !== category) return false;
       if (search) {
         const q = search.toLowerCase();
-        if (
-          !v.pcfNo.toLowerCase().includes(q) &&
-          !v.linkedRf.rfNo.toLowerCase().includes(q) &&
-          !v.linkedRf.requestedBy.toLowerCase().includes(q)
-        )
-          return false;
+        const hay = [
+          v.pcfNo,
+          v.rfId?.rfNo,
+          v.category?.name,
+          v.createdBy?.name,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        if (!hay.includes(q)) return false;
       }
       return true;
     });
-  }, [search, status, category]);
+  }, [vouchers, search, status, category]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageStart = (currentPage - 1) * PAGE_SIZE;
   const pageItems = filtered.slice(pageStart, pageStart + PAGE_SIZE);
+
+  const emptyMessage = loading
+    ? "Loading vouchers…"
+    : error
+    ? error
+    : "No vouchers found.";
 
   return (
     <Card className={`w-full h-full flex flex-col ${className ?? ""}`}>
@@ -97,7 +116,7 @@ export function VoucherTable({ className, onViewVoucher }) {
         </div>
         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
           <Input
-            placeholder="Search PCF no, RF no, requester..."
+            placeholder="Search PCF no, RF no, category..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -135,7 +154,7 @@ export function VoucherTable({ className, onViewVoucher }) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="All">All Categories</SelectItem>
-              {mockCategories.map((c) => (
+              {categoryOptions.map((c) => (
                 <SelectItem key={c} value={c}>
                   {c}
                 </SelectItem>
@@ -153,8 +172,8 @@ export function VoucherTable({ className, onViewVoucher }) {
                 <TableHead>PCF No</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Linked RF</TableHead>
-                <TableHead>Requester</TableHead>
                 <TableHead>Category</TableHead>
+                <TableHead>Created By</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -164,19 +183,22 @@ export function VoucherTable({ className, onViewVoucher }) {
               {pageItems.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center text-muted-foreground py-6">
-                    No vouchers found.
+                    {emptyMessage}
                   </TableCell>
                 </TableRow>
               ) : (
                 pageItems.map((v) => {
-                  const cfg = voucherStatusConfig[v.linkedRfStatus];
+                  const cfg = voucherStatusConfig[v.rfId?.status] ?? {
+                    label: v.rfId?.status ?? "—",
+                    color: "bg-muted text-muted-foreground",
+                  };
                   return (
-                    <TableRow key={v.id}>
+                    <TableRow key={v._id}>
                       <TableCell className="font-medium">{v.pcfNo}</TableCell>
                       <TableCell className="text-muted-foreground">{formatDate(v.date)}</TableCell>
-                      <TableCell className="font-medium">{v.linkedRf.rfNo}</TableCell>
-                      <TableCell>{v.linkedRf.requestedBy}</TableCell>
-                      <TableCell>{v.category}</TableCell>
+                      <TableCell className="font-medium">{v.rfId?.rfNo ?? "—"}</TableCell>
+                      <TableCell>{v.category?.name ?? "—"}</TableCell>
+                      <TableCell>{v.createdBy?.name ?? "—"}</TableCell>
                       <TableCell className="text-right font-medium">{formatPHP(v.amount)}</TableCell>
                       <TableCell>
                         <Badge variant="secondary" className={cfg.color}>
@@ -197,18 +219,21 @@ export function VoucherTable({ className, onViewVoucher }) {
         <div className="md:hidden -mx-4 divide-y border-t">
           {pageItems.length === 0 ? (
             <div className="py-10 text-center text-sm text-muted-foreground">
-              No vouchers found.
+              {emptyMessage}
             </div>
           ) : (
             pageItems.map((v) => {
-              const cfg = voucherStatusConfig[v.linkedRfStatus];
+              const cfg = voucherStatusConfig[v.rfId?.status] ?? {
+                label: v.rfId?.status ?? "—",
+                color: "bg-muted text-muted-foreground",
+              };
               return (
-                <div key={v.id} className="px-4 py-3 space-y-1.5">
+                <div key={v._id} className="px-4 py-3 space-y-1.5">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="font-medium truncate">{v.pcfNo}</div>
                       <div className="text-xs text-muted-foreground truncate">
-                        {v.linkedRf.rfNo} • {v.linkedRf.requestedBy}
+                        {v.rfId?.rfNo ?? "—"} • {v.createdBy?.name ?? "—"}
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
@@ -220,7 +245,7 @@ export function VoucherTable({ className, onViewVoucher }) {
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground truncate">
-                      {formatDate(v.date)} • {v.category}
+                      {formatDate(v.date)} • {v.category?.name ?? "—"}
                     </span>
                     <span className="font-medium tabular-nums shrink-0">{formatPHP(v.amount)}</span>
                   </div>
