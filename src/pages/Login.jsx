@@ -82,8 +82,8 @@ function Login() {
           />
           <LoginInput
             icon={RiLockPasswordLine}
-            icon2={LuEyeClosed}
-            icon3={LuEye}
+            icon2={LuEye}
+            icon3={LuEyeClosed}
             inputType="password"
             placeholder="Enter your password"
             name="password"
