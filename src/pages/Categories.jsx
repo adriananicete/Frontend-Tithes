@@ -5,8 +5,18 @@ import { CategoriesSummaryStats } from "@/components/categories-components/Categ
 import { CategoriesTable } from "@/components/categories-components/CategoriesTable";
 import { CategoryFormDialog } from "@/components/categories-components/CategoryFormDialog";
 import { ConfirmCategoryActionDialog } from "@/components/categories-components/ConfirmCategoryActionDialog";
+import { useCategories } from "@/hooks/useCategories";
 
 function Categories() {
+  const {
+    categories,
+    loading,
+    error,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+  } = useCategories();
+
   const [createOpen, setCreateOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [confirm, setConfirm] = useState(null); // { category, action }
@@ -20,6 +30,18 @@ function Categories() {
 
   const handleDelete = (category) => {
     setConfirm({ category, action: "delete" });
+  };
+
+  const handleConfirmAction = async () => {
+    if (!confirm) return;
+    const { category, action } = confirm;
+    if (action === "archive") {
+      await updateCategory(category._id, { isActive: false });
+    } else if (action === "restore") {
+      await updateCategory(category._id, { isActive: true });
+    } else if (action === "delete") {
+      await deleteCategory(category._id);
+    }
   };
 
   return (
@@ -37,30 +59,41 @@ function Categories() {
       </div>
 
       <div className="shrink-0">
-        <CategoriesSummaryStats />
+        <CategoriesSummaryStats categories={categories} />
       </div>
 
       <div className="h-[24rem] md:h-[32rem] shrink-0">
         <CategoriesTable
+          categories={categories}
+          loading={loading}
+          error={error}
           onEditCategory={setEditingCategory}
           onToggleActive={handleToggleActive}
           onDeleteCategory={handleDelete}
         />
       </div>
 
-      <CategoryFormDialog open={createOpen} onOpenChange={setCreateOpen} />
-
       <CategoryFormDialog
-        category={editingCategory}
-        open={!!editingCategory}
-        onOpenChange={(v) => !v && setEditingCategory(null)}
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSubmit={createCategory}
       />
+
+      {editingCategory && (
+        <CategoryFormDialog
+          category={editingCategory}
+          open
+          onOpenChange={(v) => !v && setEditingCategory(null)}
+          onSubmit={(payload) => updateCategory(editingCategory._id, payload)}
+        />
+      )}
 
       <ConfirmCategoryActionDialog
         category={confirm?.category}
         action={confirm?.action}
         open={!!confirm}
         onOpenChange={(v) => !v && setConfirm(null)}
+        onConfirm={handleConfirmAction}
       />
     </div>
   );

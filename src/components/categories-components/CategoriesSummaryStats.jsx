@@ -6,13 +6,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { mockCategories } from "./mockData";
 
-const computeStats = () => {
-  const total    = mockCategories.length;
-  const rf       = mockCategories.filter((c) => c.type === "rf").length;
-  const expense  = mockCategories.filter((c) => c.type === "expense").length;
-  const active   = mockCategories.filter((c) => c.isActive).length;
+const computeStats = (categories) => {
+  const total    = categories.length;
+  const rf       = categories.filter((c) => c.type === "rf").length;
+  const expense  = categories.filter((c) => c.type === "expense").length;
+  const active   = categories.filter((c) => c.isActive).length;
   const inactive = total - active;
   return { total, rf, expense, active, inactive };
 };
@@ -30,8 +29,8 @@ function StatTile({ label, value, sub, icon: Icon, accent }) {
   );
 }
 
-export function CategoriesSummaryStats({ className }) {
-  const stats = computeStats();
+export function CategoriesSummaryStats({ className, categories = [] }) {
+  const stats = computeStats(categories);
   return (
     <Card className={`w-full ${className ?? ""}`}>
       <CardHeader>
