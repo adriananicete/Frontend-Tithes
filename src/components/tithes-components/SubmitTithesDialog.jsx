@@ -39,8 +39,14 @@ const formatPHP = (n) =>
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function SubmitTithesDialog() {
-  const [open, setOpen] = useState(false);
+export function SubmitTithesDialog({ open: controlledOpen, onOpenChange }) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = (v) => {
+    if (isControlled) onOpenChange?.(v);
+    else setInternalOpen(v);
+  };
   const [entryDate, setEntryDate] = useState(today());
   const [serviceType, setServiceType] = useState(serviceTypes[0]);
   const [remarks, setRemarks] = useState("");
@@ -75,9 +81,11 @@ export function SubmitTithesDialog() {
 
   return (
     <>
-      <div className="w-full sm:w-40" onClick={() => setOpen(true)}>
-        <CustomButton titleName="Submit New Tithes" icon={GoPlus} />
-      </div>
+      {!isControlled && (
+        <div className="w-full sm:w-40" onClick={() => setOpen(true)}>
+          <CustomButton titleName="Submit New Tithes" icon={GoPlus} />
+        </div>
+      )}
 
       <Dialog
         open={open}
