@@ -1,6 +1,5 @@
 import { ArrowRight, FileClock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,11 +7,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatDate, formatPHP, mockApprovedRfs } from "./mockData";
+import { formatDate, formatPHP } from "./mockData";
 
-export function PendingRfsCard({ className, onCreateVoucher }) {
-  const rfs = mockApprovedRfs;
-
+export function PendingRfsCard({
+  className,
+  rfs = [],
+  loading = false,
+  error = "",
+  onCreateVoucher,
+}) {
   return (
     <Card className={`w-full ${className ?? ""}`}>
       <CardHeader>
@@ -32,7 +35,15 @@ export function PendingRfsCard({ className, onCreateVoucher }) {
         </div>
       </CardHeader>
       <CardContent className="overflow-x-auto">
-        {rfs.length === 0 ? (
+        {loading ? (
+          <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+            Loading approved RFs…
+          </div>
+        ) : error ? (
+          <div className="rounded-md border border-dashed p-6 text-center text-sm text-red-600">
+            {error}
+          </div>
+        ) : rfs.length === 0 ? (
           <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
             No approved RFs awaiting voucher. You're all caught up.
           </div>
@@ -40,9 +51,9 @@ export function PendingRfsCard({ className, onCreateVoucher }) {
           <div className="flex gap-3">
             {rfs.map((rf) => (
               <button
-                key={rf.id}
+                key={rf._id}
                 type="button"
-                onClick={() => onCreateVoucher?.(rf.id)}
+                onClick={() => onCreateVoucher?.(rf._id)}
                 className="group text-left rounded-lg border p-3 hover:bg-muted/50 hover:border-purple-300 transition flex flex-col gap-2 shrink-0 w-72"
               >
                 <div className="flex items-center justify-between gap-2">
@@ -52,11 +63,12 @@ export function PendingRfsCard({ className, onCreateVoucher }) {
                   </span>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {rf.requestedBy} · {rf.category} · {rf.remarks || "—"}
+                  {rf.requestedBy?.name ?? "—"} · {rf.category?.name ?? "—"} ·{" "}
+                  {rf.remarks || "—"}
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs text-muted-foreground">
-                    Approved {formatDate(rf.approvedAt)}
+                    Approved {formatDate(rf.approvedAt ?? rf.createdAt)}
                   </span>
                   <span className="flex items-center gap-1 text-xs font-medium text-purple-700 opacity-0 group-hover:opacity-100 transition">
                     Create Voucher <ArrowRight className="h-3 w-3" />
