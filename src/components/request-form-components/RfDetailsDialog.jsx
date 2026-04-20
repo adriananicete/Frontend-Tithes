@@ -1,9 +1,4 @@
-import {
-  Check,
-  CircleDot,
-  FileText,
-  XCircle,
-} from "lucide-react";
+import { Check, CircleDot, FileText, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
@@ -14,39 +9,47 @@ import {
 } from "@/components/ui/dialog";
 import { formatDate, formatDateTime, formatPHP, statusConfig } from "./mockData";
 
+// Backend doesn't stamp submittedAt / voucherCreatedAt / receivedAt — only
+// validatedAt, approvedAt, rejectedAt are real. The other stages are derived
+// from the current status order.
 const stages = [
-  { key: "createdAt",         label: "Created",         byKey: "requestedBy" },
-  { key: "submittedAt",       label: "Submitted",       byKey: "requestedBy" },
-  { key: "validatedAt",       label: "Validated",       byKey: "validatedBy" },
-  { key: "approvedAt",        label: "Approved",        byKey: "approvedBy" },
-  { key: "voucherCreatedAt",  label: "Voucher Created", byKey: "voucherCreatedBy" },
-  { key: "receivedAt",        label: "Disbursed",       byKey: "requestedBy" },
+  { key: "draft",           label: "Created",         timestampField: "createdAt", byField: "requestedBy" },
+  { key: "submitted",       label: "Submitted",       timestampField: null,        byField: "requestedBy" },
+  { key: "for_approval",    label: "Validated",       timestampField: "validatedAt", byField: "validatedBy" },
+  { key: "approved",        label: "Approved",        timestampField: "approvedAt",  byField: "approvedBy" },
+  { key: "voucher_created", label: "Voucher Created", timestampField: null,          byField: null },
+  { key: "disbursed",       label: "Disbursed",       timestampField: null,          byField: "requestedBy" },
 ];
 
-function TimelineItem({ label, timestamp, by, state }) {
-  const Icon = state === "rejected" ? XCircle : state === "current" ? CircleDot : Check;
+const personName = (val) =>
+  val && typeof val === "object" ? val.name : null;
+
+function TimelineItem({ label, timestamp, by, state, isLast }) {
+  const Icon =
+    state === "rejected" ? XCircle : state === "current" ? CircleDot : Check;
   const iconColor =
     state === "done"
       ? "text-green-600"
       : state === "current"
-      ? "text-blue-600 animate-pulse"
-      : state === "rejected"
-      ? "text-red-600"
-      : "text-gray-300";
+        ? "text-blue-600 animate-pulse"
+        : state === "rejected"
+          ? "text-red-600"
+          : "text-gray-300";
   const textColor = state === "upcoming" ? "text-muted-foreground/60" : "";
 
   return (
     <div className="flex gap-3">
       <div className="flex flex-col items-center">
         <Icon className={`h-5 w-5 ${iconColor}`} />
-        <div className="flex-1 w-px bg-border my-1" />
+        {!isLast && <div className="flex-1 w-px bg-border my-1" />}
       </div>
       <div className={`pb-4 flex-1 ${textColor}`}>
         <div className="text-sm font-medium">{label}</div>
-        {timestamp && (
+        {(timestamp || by) && (
           <div className="text-xs text-muted-foreground">
-            {formatDateTime(timestamp)}
-            {by && ` · by ${by}`}
+            {timestamp ? formatDateTime(timestamp) : ""}
+            {timestamp && by ? " · " : ""}
+            {by ? `by ${by}` : ""}
           </div>
         )}
       </div>
@@ -57,16 +60,21 @@ function TimelineItem({ label, timestamp, by, state }) {
 export function RfDetailsDialog({ rf, open, onOpenChange }) {
   if (!rf) return null;
 
-  const cfg = statusConfig[rf.status];
-  const t = rf.timeline || {};
+  const cfg = statusConfig[rf.status] ?? statusConfig.draft;
   const isRejected = rf.status === "rejected";
+  const currentOrder = cfg.order;
+  const requesterName = personName(rf.requestedBy) || "—";
+  const categoryLabel =
+    typeof rf.category === "string" ? rf.category : rf.category?.name || "—";
+  const voucherLabel = rf.voucherId?.pcfNo || rf.voucherNo;
 
-  const getState = (stageKey) => {
-    if (isRejected && t[stageKey]) return "done";
-    if (isRejected && !t[stageKey]) return "upcoming";
-    if (t[stageKey]) return "done";
-    const currentStageIdx = stages.findIndex((s) => !t[s.key]);
-    if (stages[currentStageIdx]?.key === stageKey) return "current";
+  // For non-rejected RFs: stage is "done" if its order < current, "current" if
+  // it equals current. Once rejected, stages reached before rejection stay
+  // "done" and the rest are "upcoming".
+  const stageState = (stageOrder) => {
+    if (isRejected) return stageOrder <= currentOrder ? "done" : "upcoming";
+    if (stageOrder < currentOrder) return "done";
+    if (stageOrder === currentOrder) return "current";
     return "upcoming";
   };
 
@@ -81,7 +89,7 @@ export function RfDetailsDialog({ rf, open, onOpenChange }) {
             </Badge>
           </div>
           <DialogDescription>
-            {rf.category} · {formatDate(rf.entryDate)}
+            {categoryLabel} · {formatDate(rf.entryDate)}
           </DialogDescription>
         </DialogHeader>
 
@@ -89,7 +97,7 @@ export function RfDetailsDialog({ rf, open, onOpenChange }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <div className="text-xs text-muted-foreground">Requester</div>
-              <div className="font-medium">{rf.requestedBy}</div>
+              <div className="font-medium">{requesterName}</div>
             </div>
             <div>
               <div className="text-xs text-muted-foreground">Estimated Amount</div>
@@ -99,11 +107,11 @@ export function RfDetailsDialog({ rf, open, onOpenChange }) {
               <div className="text-xs text-muted-foreground">Remarks</div>
               <div>{rf.remarks || "—"}</div>
             </div>
-            {rf.voucherNo && (
+            {voucherLabel && (
               <div className="sm:col-span-2">
                 <div className="text-xs text-muted-foreground">Voucher</div>
                 <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-                  {rf.voucherNo}
+                  {voucherLabel}
                 </Badge>
               </div>
             )}
@@ -130,30 +138,41 @@ export function RfDetailsDialog({ rf, open, onOpenChange }) {
           )}
 
           <div>
-            <div className="text-xs text-muted-foreground mb-3">Approval Timeline</div>
+            <div className="text-xs text-muted-foreground mb-3">
+              Approval Timeline
+            </div>
             <div>
-              {stages.map((s) => (
-                <TimelineItem
-                  key={s.key}
-                  label={s.label}
-                  timestamp={t[s.key]}
-                  by={t[s.byKey] || (s.byKey === "requestedBy" ? rf.requestedBy : null)}
-                  state={getState(s.key)}
-                />
-              ))}
+              {stages.map((s, idx) => {
+                const cfgStage = statusConfig[s.key];
+                const timestamp = s.timestampField ? rf[s.timestampField] : null;
+                const by = s.byField ? personName(rf[s.byField]) : null;
+                return (
+                  <TimelineItem
+                    key={s.key}
+                    label={s.label}
+                    timestamp={timestamp}
+                    by={by}
+                    state={stageState(cfgStage.order)}
+                    isLast={!isRejected && idx === stages.length - 1}
+                  />
+                );
+              })}
               {isRejected && (
                 <TimelineItem
                   label="Rejected"
-                  timestamp={t.rejectedAt}
-                  by={t.rejectedBy}
+                  timestamp={rf.rejectedAt}
+                  by={personName(rf.rejectedBy)}
                   state="rejected"
+                  isLast
                 />
               )}
             </div>
 
             {isRejected && rf.rejectionNote && (
               <div className="mt-3 p-3 rounded-md bg-red-50 border border-red-200 text-sm">
-                <div className="text-xs font-medium text-red-700 mb-1">Rejection Note</div>
+                <div className="text-xs font-medium text-red-700 mb-1">
+                  Rejection Note
+                </div>
                 <div className="text-red-900">{rf.rejectionNote}</div>
               </div>
             )}
