@@ -22,23 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// ============================================================
-// MOCK DATA — palitan ng API fetch
-// Suggested: GET /api/reports/tithes?range=30d&serviceType=Sunday
-// ============================================================
-const mockDaily = Array.from({ length: 365 }).map((_, i) => {
-  const d = new Date();
-  d.setDate(d.getDate() - (364 - i));
-  const base = 1500 + Math.sin(i / 14) * 800 + Math.random() * 1200;
-  return {
-    date: d.toISOString().slice(0, 10),
-    Sunday:   Math.round(base * 1.8),
-    Prayer:   Math.round(base * 0.6),
-    Youth:    Math.round(base * 0.4),
-    Special:  Math.round(base * 0.3),
-  };
-});
+import { formatPHP, formatShortDate, SERVICE_TYPES } from "./tithesUtils";
 
 const rangePresets = [
   { label: "7D",  days: 7 },
@@ -48,11 +32,8 @@ const rangePresets = [
 ];
 
 const serviceOptions = [
-  { value: "all",     label: "All Services" },
-  { value: "Sunday",  label: "Sunday Service" },
-  { value: "Prayer",  label: "Prayer Meeting" },
-  { value: "Youth",   label: "Youth Service" },
-  { value: "Special", label: "Special Offering" },
+  { value: "all", label: "All Services" },
+  ...SERVICE_TYPES.map((s) => ({ value: s, label: s })),
 ];
 
 const chartConfig = {
@@ -62,41 +43,54 @@ const chartConfig = {
   },
 };
 
-const formatPHP = (n) =>
-  new Intl.NumberFormat("en-PH", {
-    style: "currency",
-    currency: "PHP",
-    maximumFractionDigits: 0,
-  }).format(n);
+const toDayKey = (d) => new Date(d).toISOString().slice(0, 10);
 
-const formatShortDate = (d) =>
-  new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+const buildSeries = (tithes, rangeDays, service) => {
+  const filtered = tithes.filter((t) => {
+    if (t.status === "rejected") return false;
+    if (service !== "all" && t.serviceType !== service) return false;
+    return true;
+  });
 
-export function TithesTrendChart({ className }) {
+  const totals = new Map();
+  for (const t of filtered) {
+    const key = toDayKey(t.entryDate);
+    totals.set(key, (totals.get(key) || 0) + (t.total || 0));
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const series = [];
+  for (let i = rangeDays - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    series.push({ date: key, total: totals.get(key) || 0 });
+  }
+  return series;
+};
+
+export function TithesTrendChart({ tithes = [], className }) {
   const [rangeDays, setRangeDays] = useState(30);
   const [service, setService] = useState("all");
 
-  const chartData = useMemo(() => {
-    const sliced = mockDaily.slice(-rangeDays);
-    return sliced.map((row) => {
-      const total =
-        service === "all"
-          ? row.Sunday + row.Prayer + row.Youth + row.Special
-          : row[service];
-      return { date: row.date, total };
-    });
-  }, [rangeDays, service]);
+  const chartData = useMemo(
+    () => buildSeries(tithes, rangeDays, service),
+    [tithes, rangeDays, service]
+  );
 
   const stats = useMemo(() => {
     if (chartData.length === 0) return { sum: 0, avg: 0, best: null, trend: 0 };
     const sum = chartData.reduce((a, c) => a + c.total, 0);
-    const avg = Math.round(sum / chartData.length);
+    const avg = sum > 0 ? Math.round(sum / chartData.length) : 0;
     const best = chartData.reduce((a, c) => (c.total > a.total ? c : a), chartData[0]);
     const half = Math.floor(chartData.length / 2);
-    const firstHalf = chartData.slice(0, half).reduce((a, c) => a + c.total, 0) || 1;
+    const firstHalf = chartData.slice(0, half).reduce((a, c) => a + c.total, 0);
     const secondHalf = chartData.slice(half).reduce((a, c) => a + c.total, 0);
-    const trend = Math.round(((secondHalf - firstHalf) / firstHalf) * 100);
-    return { sum, avg, best, trend };
+    const trend = firstHalf > 0
+      ? Math.round(((secondHalf - firstHalf) / firstHalf) * 100)
+      : (secondHalf > 0 ? 100 : 0);
+    return { sum, avg, best: best.total > 0 ? best : null, trend };
   }, [chartData]);
 
   return (
