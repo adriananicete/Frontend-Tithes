@@ -6,16 +6,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { mockUsers } from "./mockData";
 
 const OFFICER_ROLES = ["admin", "do", "validator", "pastor", "auditor"];
 
-const computeStats = () => {
-  const total    = mockUsers.length;
-  const active   = mockUsers.filter((u) => u.isActive).length;
+const computeStats = (users) => {
+  const total    = users.length;
+  const active   = users.filter((u) => u.isActive).length;
   const inactive = total - active;
-  const officers = mockUsers.filter((u) => OFFICER_ROLES.includes(u.role)).length;
-  const members  = mockUsers.filter((u) => u.role === "member").length;
+  const officers = users.filter((u) => OFFICER_ROLES.includes(u.role)).length;
+  const members  = users.filter((u) => u.role === "member").length;
   return { total, active, inactive, officers, members };
 };
 
@@ -32,8 +31,8 @@ function StatTile({ label, value, sub, icon: Icon, accent }) {
   );
 }
 
-export function UsersSummaryStats({ className }) {
-  const stats = computeStats();
+export function UsersSummaryStats({ users = [], className }) {
+  const stats = computeStats(users);
   return (
     <Card className={`w-full ${className ?? ""}`}>
       <CardHeader>
