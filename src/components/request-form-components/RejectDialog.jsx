@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,27 +14,42 @@ import { Textarea } from "@/components/ui/textarea";
 
 export function RejectDialog({ rf, open, onOpenChange, onConfirm }) {
   const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleConfirm = () => {
+  useEffect(() => {
+    if (open) {
+      setNote("");
+      setError("");
+      setSubmitting(false);
+    }
+  }, [open]);
+
+  const handleConfirm = async () => {
     if (!note.trim()) return;
-    onConfirm?.(note.trim());
-    setNote("");
-    onOpenChange?.(false);
+    setError("");
+    setSubmitting(true);
+    try {
+      await onConfirm?.(note.trim());
+      onOpenChange?.(false);
+    } catch (err) {
+      setError(err.message || "Failed to reject");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  const categoryName =
+    typeof rf?.category === "string" ? rf.category : rf?.category?.name;
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(v) => {
-        onOpenChange?.(v);
-        if (!v) setNote("");
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Reject Request Form</DialogTitle>
           <DialogDescription>
-            {rf ? `Reject ${rf.rfNo} — ${rf.category}.` : ""} Please provide a reason.
+            {rf ? `Reject ${rf.rfNo}${categoryName ? ` — ${categoryName}` : ""}.` : ""}{" "}
+            Please provide a reason.
           </DialogDescription>
         </DialogHeader>
 
@@ -49,17 +64,21 @@ export function RejectDialog({ rf, open, onOpenChange, onConfirm }) {
           />
         </div>
 
+        {error && <p className="text-sm text-red-600">{error}</p>}
+
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="outline">Cancel</Button>
+            <Button type="button" variant="outline" disabled={submitting}>
+              Cancel
+            </Button>
           </DialogClose>
           <Button
             type="button"
             variant="destructive"
             onClick={handleConfirm}
-            disabled={!note.trim()}
+            disabled={!note.trim() || submitting}
           >
-            Confirm Rejection
+            {submitting ? "Rejecting..." : "Confirm Rejection"}
           </Button>
         </DialogFooter>
       </DialogContent>
