@@ -36,7 +36,6 @@ import {
 import {
   formatDate,
   getInitials,
-  mockUsers,
   ROLES,
   roleConfig,
   statusConfig,
@@ -83,6 +82,9 @@ function RowActions({ u, onView, onEdit, onToggleActive, onDelete }) {
 }
 
 export function UsersTable({
+  users = [],
+  loading = false,
+  error = "",
   className,
   onViewUser,
   onEditUser,
@@ -95,7 +97,7 @@ export function UsersTable({
   const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => {
-    return mockUsers.filter((u) => {
+    return users.filter((u) => {
       if (role !== "All" && u.role !== role) return false;
       if (status === "active" && !u.isActive) return false;
       if (status === "inactive" && u.isActive) return false;
@@ -109,7 +111,7 @@ export function UsersTable({
       }
       return true;
     });
-  }, [search, role, status]);
+  }, [users, search, role, status]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -185,7 +187,19 @@ export function UsersTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pageItems.length === 0 ? (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
+                    Loading users…
+                  </TableCell>
+                </TableRow>
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-red-600 py-6">
+                    {error}
+                  </TableCell>
+                </TableRow>
+              ) : pageItems.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
                     No users found.
@@ -196,7 +210,7 @@ export function UsersTable({
                   const rcfg = roleConfig[u.role];
                   const scfg = u.isActive ? statusConfig.active : statusConfig.inactive;
                   return (
-                    <TableRow key={u.id}>
+                    <TableRow key={u._id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground">
@@ -235,7 +249,15 @@ export function UsersTable({
         </div>
 
         <div className="md:hidden -mx-4 divide-y border-t">
-          {pageItems.length === 0 ? (
+          {loading ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              Loading users…
+            </div>
+          ) : error ? (
+            <div className="py-10 text-center text-sm text-red-600">
+              {error}
+            </div>
+          ) : pageItems.length === 0 ? (
             <div className="py-10 text-center text-sm text-muted-foreground">
               No users found.
             </div>
@@ -244,7 +266,7 @@ export function UsersTable({
               const rcfg = roleConfig[u.role];
               const scfg = u.isActive ? statusConfig.active : statusConfig.inactive;
               return (
-                <div key={u.id} className="px-4 py-3 space-y-2">
+                <div key={u._id} className="px-4 py-3 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground shrink-0">
