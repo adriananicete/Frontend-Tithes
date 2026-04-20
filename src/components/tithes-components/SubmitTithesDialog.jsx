@@ -20,26 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const DENOMINATIONS = [1000, 500, 200, 100, 50, 20, 10, 5, 1];
-
-const serviceTypes = [
-  "Sunday Service",
-  "Prayer Meeting",
-  "Youth Service",
-  "Special Offering",
-];
-
-const formatPHP = (n) =>
-  new Intl.NumberFormat("en-PH", {
-    style: "currency",
-    currency: "PHP",
-    maximumFractionDigits: 0,
-  }).format(n);
+import { DENOMINATIONS, formatPHP, SERVICE_TYPES } from "./tithesUtils";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function SubmitTithesDialog({ open: controlledOpen, onOpenChange }) {
+export function SubmitTithesDialog({ open: controlledOpen, onOpenChange, onSubmit }) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
@@ -48,11 +33,13 @@ export function SubmitTithesDialog({ open: controlledOpen, onOpenChange }) {
     else setInternalOpen(v);
   };
   const [entryDate, setEntryDate] = useState(today());
-  const [serviceType, setServiceType] = useState(serviceTypes[0]);
+  const [serviceType, setServiceType] = useState(SERVICE_TYPES[0]);
   const [remarks, setRemarks] = useState("");
   const [qtys, setQtys] = useState(() =>
     Object.fromEntries(DENOMINATIONS.map((b) => [b, 0]))
   );
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const total = useMemo(
     () => DENOMINATIONS.reduce((sum, b) => sum + b * (qtys[b] || 0), 0),
@@ -66,17 +53,39 @@ export function SubmitTithesDialog({ open: controlledOpen, onOpenChange }) {
 
   const reset = () => {
     setEntryDate(today());
-    setServiceType(serviceTypes[0]);
+    setServiceType(SERVICE_TYPES[0]);
     setRemarks("");
     setQtys(Object.fromEntries(DENOMINATIONS.map((b) => [b, 0])));
+    setSubmitting(false);
+    setError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: POST /api/tithes
-    console.log("Submit tithes (mock):", { entryDate, serviceType, remarks, total, qtys });
-    setOpen(false);
-    reset();
+    setSubmitting(true);
+    setError("");
+    try {
+      const denominations = DENOMINATIONS
+        .filter((bill) => (qtys[bill] || 0) > 0)
+        .map((bill) => ({
+          bill,
+          qty: qtys[bill],
+          subtotal: bill * qtys[bill],
+        }));
+      const payload = {
+        entryDate,
+        serviceType,
+        denominations,
+        total,
+        ...(remarks ? { remarks } : {}),
+      };
+      await onSubmit?.(payload);
+      setOpen(false);
+      reset();
+    } catch (err) {
+      setError(err.message || "Failed to submit tithes");
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -121,7 +130,7 @@ export function SubmitTithesDialog({ open: controlledOpen, onOpenChange }) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {serviceTypes.map((s) => (
+                  {SERVICE_TYPES.map((s) => (
                     <SelectItem key={s} value={s}>
                       {s}
                     </SelectItem>
@@ -177,14 +186,16 @@ export function SubmitTithesDialog({ open: controlledOpen, onOpenChange }) {
             />
           </div>
 
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" disabled={submitting}>
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={total === 0}>
-              Submit Tithes
+            <Button type="submit" disabled={total === 0 || submitting}>
+              {submitting ? "Submitting…" : "Submit Tithes"}
             </Button>
           </DialogFooter>
         </form>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { MoreHorizontal, Eye, Check, X, Pencil } from "lucide-react";
+import { MoreHorizontal, Eye, Check, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,8 +12,10 @@ import {
 } from "@/components/ui/card";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -40,48 +42,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/useAuth";
 import { can } from "@/utils/rolePermissions";
+import { formatDate, formatPHP, SERVICE_TYPES, statusStyles } from "./tithesUtils";
 
-// ============================================================
-// MOCK DATA — palitan ng GET /api/tithes
-// ============================================================
-const mockTithes = [
-  { id: 1,  entryDate: "2026-04-13", serviceType: "Sunday Service",   submittedBy: "Kiya",    total: 2500, status: "pending",  remarks: "Morning service", denominations: [{ bill: 1000, qty: 2 }, { bill: 500, qty: 1 }] },
-  { id: 2,  entryDate: "2026-04-13", serviceType: "Sunday Service",   submittedBy: "Lourdes", total: 3200, status: "approved", remarks: "", denominations: [{ bill: 1000, qty: 3 }, { bill: 200, qty: 1 }] },
-  { id: 3,  entryDate: "2026-04-12", serviceType: "Prayer Meeting",   submittedBy: "Berna",   total: 800,  status: "approved", remarks: "Wednesday prayer", denominations: [{ bill: 500, qty: 1 }, { bill: 100, qty: 3 }] },
-  { id: 4,  entryDate: "2026-04-11", serviceType: "Youth Service",    submittedBy: "Kiya",    total: 1500, status: "pending",  remarks: "", denominations: [{ bill: 1000, qty: 1 }, { bill: 500, qty: 1 }] },
-  { id: 5,  entryDate: "2026-04-10", serviceType: "Special Offering", submittedBy: "Adrian",  total: 5000, status: "approved", remarks: "Missions support", denominations: [{ bill: 1000, qty: 5 }] },
-  { id: 6,  entryDate: "2026-04-09", serviceType: "Sunday Service",   submittedBy: "Lourdes", total: 1200, status: "rejected", remarks: "", denominations: [{ bill: 500, qty: 2 }, { bill: 100, qty: 2 }] },
-  { id: 7,  entryDate: "2026-04-08", serviceType: "Prayer Meeting",   submittedBy: "Berna",   total: 600,  status: "approved", remarks: "", denominations: [{ bill: 500, qty: 1 }, { bill: 50, qty: 2 }] },
-  { id: 8,  entryDate: "2026-04-06", serviceType: "Sunday Service",   submittedBy: "Kiya",    total: 2000, status: "approved", remarks: "", denominations: [{ bill: 1000, qty: 2 }] },
-  { id: 9,  entryDate: "2026-04-05", serviceType: "Youth Service",    submittedBy: "Lourdes", total: 900,  status: "approved", remarks: "", denominations: [{ bill: 500, qty: 1 }, { bill: 200, qty: 2 }] },
-  { id: 10, entryDate: "2026-04-03", serviceType: "Sunday Service",   submittedBy: "Adrian",  total: 4500, status: "approved", remarks: "", denominations: [{ bill: 1000, qty: 4 }, { bill: 500, qty: 1 }] },
-  { id: 11, entryDate: "2026-04-02", serviceType: "Special Offering", submittedBy: "Berna",   total: 3500, status: "pending",  remarks: "Building fund", denominations: [{ bill: 1000, qty: 3 }, { bill: 500, qty: 1 }] },
-  { id: 12, entryDate: "2026-03-30", serviceType: "Sunday Service",   submittedBy: "Kiya",    total: 2200, status: "approved", remarks: "", denominations: [{ bill: 1000, qty: 2 }, { bill: 200, qty: 1 }] },
-];
-
-const statusStyles = {
-  pending:  "bg-amber-100 text-amber-700 hover:bg-amber-100",
-  approved: "bg-green-100 text-green-700 hover:bg-green-100",
-  rejected: "bg-red-100 text-red-700 hover:bg-red-100",
-};
-
-const serviceOptions = ["All", "Sunday Service", "Prayer Meeting", "Youth Service", "Special Offering"];
-const statusOptions = ["All", "pending", "approved", "rejected"];
 const PAGE_SIZE = 10;
+const serviceOptions = ["All", ...SERVICE_TYPES];
+const statusOptions = ["All", "pending", "approved", "rejected"];
 
-const formatPHP = (n) =>
-  new Intl.NumberFormat("en-PH", {
-    style: "currency",
-    currency: "PHP",
-    maximumFractionDigits: 0,
-  }).format(n);
+function RowActions({ row, role, userName, onView, onApprove, onReject }) {
+  const submitterName = row.submittedBy?.name;
+  const canApprove = can.approveTithes(role, submitterName, userName);
+  const canReject = can.rejectTithes(role);
+  const showSeparator = canApprove || canReject;
 
-const formatDate = (d) =>
-  new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-
-function RowActions({ row, role, userName, onView }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -93,54 +68,132 @@ function RowActions({ row, role, userName, onView }) {
         <DropdownMenuItem onClick={onView}>
           <Eye className="h-4 w-4" /> View details
         </DropdownMenuItem>
-        {(can.approveTithes(role, row.submittedBy, userName) ||
-          can.rejectTithes(role)) && <DropdownMenuSeparator />}
-        {can.approveTithes(role, row.submittedBy, userName) && (
-          <DropdownMenuItem disabled={row.status !== "pending"}>
+        {showSeparator && <DropdownMenuSeparator />}
+        {canApprove && (
+          <DropdownMenuItem
+            onClick={onApprove}
+            disabled={row.status !== "pending"}
+          >
             <Check className="h-4 w-4 text-green-600" /> Approve
           </DropdownMenuItem>
         )}
-        {can.rejectTithes(role) && (
-          <DropdownMenuItem disabled={row.status !== "pending"}>
+        {canReject && (
+          <DropdownMenuItem
+            onClick={onReject}
+            disabled={row.status !== "pending"}
+          >
             <X className="h-4 w-4 text-red-600" /> Reject
           </DropdownMenuItem>
-        )}
-        {row.submittedBy === userName && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem disabled={row.status !== "pending"}>
-              <Pencil className="h-4 w-4" /> Edit
-            </DropdownMenuItem>
-          </>
         )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-export function TithesTable({ className }) {
+function RejectDialog({ entry, open, onOpenChange, onConfirm }) {
+  const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const reset = () => {
+    setNote("");
+    setSubmitting(false);
+    setError("");
+  };
+
+  const handleConfirm = async () => {
+    if (!note.trim()) {
+      setError("A reason is required.");
+      return;
+    }
+    setSubmitting(true);
+    setError("");
+    try {
+      await onConfirm?.(note.trim());
+      onOpenChange?.(false);
+      reset();
+    } catch (err) {
+      setError(err.message || "Failed to reject entry");
+      setSubmitting(false);
+    }
+  };
+
+  if (!entry) return null;
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        onOpenChange?.(v);
+        if (!v) reset();
+      }}
+    >
+      <DialogContent className="max-w-md overflow-x-hidden">
+        <DialogHeader>
+          <DialogTitle>Reject tithes entry?</DialogTitle>
+          <DialogDescription>
+            Provide a reason. The submitter will be notified.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Textarea
+            rows={3}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="e.g., Mismatched denominations, incorrect total..."
+          />
+          {error && <p className="text-sm text-red-600">{error}</p>}
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button" variant="outline" disabled={submitting}>
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button
+            type="button"
+            onClick={handleConfirm}
+            disabled={submitting}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            {submitting ? "Rejecting…" : "Reject"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function TithesTable({
+  tithes = [],
+  loading = false,
+  error = "",
+  onApprove,
+  onReject,
+  className,
+}) {
   const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [service, setService] = useState("All");
   const [page, setPage] = useState(1);
   const [viewing, setViewing] = useState(null);
+  const [rejecting, setRejecting] = useState(null);
+  const [actionError, setActionError] = useState("");
 
   const filtered = useMemo(() => {
-    return mockTithes.filter((row) => {
+    return tithes.filter((row) => {
       if (status !== "All" && row.status !== status) return false;
       if (service !== "All" && row.serviceType !== service) return false;
       if (search) {
         const q = search.toLowerCase();
-        if (
-          !row.submittedBy.toLowerCase().includes(q) &&
-          !row.remarks.toLowerCase().includes(q)
-        )
-          return false;
+        const submitter = row.submittedBy?.name?.toLowerCase() || "";
+        const remarks = row.remarks?.toLowerCase() || "";
+        if (!submitter.includes(q) && !remarks.includes(q)) return false;
       }
       return true;
     });
-  }, [search, status, service]);
+  }, [tithes, search, status, service]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -148,6 +201,23 @@ export function TithesTable({ className }) {
   const pageItems = filtered.slice(pageStart, pageStart + PAGE_SIZE);
 
   const resetPage = () => setPage(1);
+
+  const handleApprove = async (row) => {
+    setActionError("");
+    try {
+      await onApprove?.(row._id);
+    } catch (err) {
+      setActionError(err.message || "Failed to approve entry");
+    }
+  };
+
+  const renderEmptyMessage = () => {
+    if (loading) return "Loading tithes…";
+    if (error) return error;
+    return "No tithes entries found.";
+  };
+
+  const emptyClass = error ? "text-red-600" : "text-muted-foreground";
 
   return (
     <>
@@ -206,6 +276,7 @@ export function TithesTable({ className }) {
               </SelectContent>
             </Select>
           </div>
+          {actionError && <p className="text-sm text-red-600">{actionError}</p>}
         </CardHeader>
 
         <CardContent className="flex-1 min-h-0 overflow-auto">
@@ -224,15 +295,15 @@ export function TithesTable({ className }) {
               <TableBody>
                 {pageItems.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
-                      No tithes entries found.
+                    <TableCell colSpan={6} className={`text-center py-6 ${emptyClass}`}>
+                      {renderEmptyMessage()}
                     </TableCell>
                   </TableRow>
                 ) : (
                   pageItems.map((row) => (
-                    <TableRow key={row.id}>
+                    <TableRow key={row._id}>
                       <TableCell className="text-muted-foreground">{formatDate(row.entryDate)}</TableCell>
-                      <TableCell className="font-medium">{row.submittedBy}</TableCell>
+                      <TableCell className="font-medium">{row.submittedBy?.name || "—"}</TableCell>
                       <TableCell>{row.serviceType}</TableCell>
                       <TableCell className="text-right font-medium">{formatPHP(row.total)}</TableCell>
                       <TableCell>
@@ -246,6 +317,8 @@ export function TithesTable({ className }) {
                           role={user?.role}
                           userName={user?.name}
                           onView={() => setViewing(row)}
+                          onApprove={() => handleApprove(row)}
+                          onReject={() => setRejecting(row)}
                         />
                       </TableCell>
                     </TableRow>
@@ -257,15 +330,15 @@ export function TithesTable({ className }) {
 
           <div className="md:hidden -mx-4 divide-y border-t">
             {pageItems.length === 0 ? (
-              <div className="py-10 text-center text-sm text-muted-foreground">
-                No tithes entries found.
+              <div className={`py-10 text-center text-sm ${emptyClass}`}>
+                {renderEmptyMessage()}
               </div>
             ) : (
               pageItems.map((row) => (
-                <div key={row.id} className="px-4 py-3 space-y-1.5">
+                <div key={row._id} className="px-4 py-3 space-y-1.5">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="font-medium truncate">{row.submittedBy}</div>
+                      <div className="font-medium truncate">{row.submittedBy?.name || "—"}</div>
                       <div className="text-xs text-muted-foreground truncate">{row.serviceType}</div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
@@ -277,6 +350,8 @@ export function TithesTable({ className }) {
                         role={user?.role}
                         userName={user?.name}
                         onView={() => setViewing(row)}
+                        onApprove={() => handleApprove(row)}
+                        onReject={() => setRejecting(row)}
                       />
                     </div>
                   </div>
@@ -332,7 +407,7 @@ export function TithesTable({ className }) {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <div className="text-xs text-muted-foreground">Submitter</div>
-                  <div className="font-medium">{viewing.submittedBy}</div>
+                  <div className="font-medium">{viewing.submittedBy?.name || "—"}</div>
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">Status</div>
@@ -347,7 +422,7 @@ export function TithesTable({ className }) {
                   {viewing.denominations.map((d, i) => (
                     <div key={i} className="flex justify-between px-3 py-2">
                       <span>₱{d.bill} × {d.qty}</span>
-                      <span className="font-medium">{formatPHP(d.bill * d.qty)}</span>
+                      <span className="font-medium">{formatPHP(d.subtotal ?? d.bill * d.qty)}</span>
                     </div>
                   ))}
                   <div className="flex justify-between px-3 py-2 bg-muted/50 font-semibold">
@@ -362,10 +437,25 @@ export function TithesTable({ className }) {
                   <div>{viewing.remarks}</div>
                 </div>
               )}
+              {viewing.status === "rejected" && viewing.rejectionNote && (
+                <div>
+                  <div className="text-xs text-muted-foreground">Rejection Note</div>
+                  <div className="rounded-md border border-red-200 bg-red-50 p-2 text-red-800">
+                    {viewing.rejectionNote}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
       </Dialog>
+
+      <RejectDialog
+        entry={rejecting}
+        open={!!rejecting}
+        onOpenChange={(v) => !v && setRejecting(null)}
+        onConfirm={(note) => onReject?.(rejecting._id, note)}
+      />
     </>
   );
 }

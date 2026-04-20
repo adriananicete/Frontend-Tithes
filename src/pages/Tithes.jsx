@@ -3,8 +3,18 @@ import { SubmitTithesDialog } from "@/components/tithes-components/SubmitTithesD
 import { TithesSummary } from "@/components/tithes-components/TithesSummary";
 import { TithesTable } from "@/components/tithes-components/TithesTable";
 import { TithesTrendChart } from "@/components/tithes-components/TithesTrendChart";
+import { useTithes } from "@/hooks/useTithes";
 
 function Tithes() {
+  const {
+    tithes,
+    loading,
+    error,
+    submitTithes,
+    approveTithes,
+    rejectTithes,
+  } = useTithes();
+
   return (
     <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -14,22 +24,28 @@ function Tithes() {
             Track, review, and manage all tithes submissions.
           </p>
         </div>
-        <SubmitTithesDialog />
+        <SubmitTithesDialog onSubmit={submitTithes} />
       </div>
 
       <div className="h-72 md:h-96">
-        <TithesTrendChart />
+        <TithesTrendChart tithes={tithes} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <TithesSummary />
+        <TithesSummary tithes={tithes} />
         <div className="h-72 md:h-80">
-          <ServiceTypeBreakdown />
+          <ServiceTypeBreakdown tithes={tithes} />
         </div>
       </div>
 
       <div className="h-[24rem] md:h-[32rem]">
-        <TithesTable />
+        <TithesTable
+          tithes={tithes}
+          loading={loading}
+          error={error}
+          onApprove={approveTithes}
+          onReject={rejectTithes}
+        />
       </div>
     </div>
   );
