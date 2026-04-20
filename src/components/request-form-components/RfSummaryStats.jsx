@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Activity, CheckCircle2, Clock, XCircle } from "lucide-react";
 import {
   Card,
@@ -6,19 +7,34 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatPHP, mockRfs } from "./mockData";
+import { formatPHP } from "./mockData";
 
-const computeStats = () => {
-  const active = mockRfs.filter((r) =>
-    ["draft", "submitted", "for_approval", "approved", "voucher_created"].includes(r.status)
+const isThisMonth = (d) => {
+  if (!d) return false;
+  const date = new Date(d);
+  const now = new Date();
+  return (
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth()
   );
-  const pendingDisb = mockRfs.filter((r) =>
-    ["approved", "voucher_created"].includes(r.status)
-  );
-  const approvedThisMonth = mockRfs.filter((r) => r.status === "approved");
-  const rejectedThisMonth = mockRfs.filter((r) => r.status === "rejected");
+};
 
-  const sum = (arr) => arr.reduce((a, c) => a + c.estimatedAmount, 0);
+const computeStats = (rfs) => {
+  const active = rfs.filter((r) =>
+    ["draft", "submitted", "for_approval", "approved", "voucher_created"].includes(r.status),
+  );
+  const pendingDisb = rfs.filter((r) =>
+    ["approved", "voucher_created"].includes(r.status),
+  );
+  const approvedThisMonth = rfs.filter(
+    (r) => r.status === "approved" && isThisMonth(r.approvedAt || r.updatedAt),
+  );
+  const rejectedThisMonth = rfs.filter(
+    (r) => r.status === "rejected" && isThisMonth(r.rejectedAt || r.updatedAt),
+  );
+
+  const sum = (arr) =>
+    arr.reduce((a, c) => a + (Number(c.estimatedAmount) || 0), 0);
 
   return {
     active: { count: active.length, amount: sum(active) },
@@ -41,8 +57,8 @@ function StatTile({ label, amount, count, icon: Icon, accent }) {
   );
 }
 
-export function RfSummaryStats({ className }) {
-  const stats = computeStats();
+export function RfSummaryStats({ rfs = [], className }) {
+  const stats = useMemo(() => computeStats(rfs), [rfs]);
   return (
     <Card className={`w-full h-full ${className ?? ""}`}>
       <CardHeader>
