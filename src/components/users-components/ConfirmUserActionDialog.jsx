@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +13,10 @@ import {
 
 // Generic confirmation dialog used for deactivate / activate / delete.
 // Parent controls `action` ("deactivate" | "activate" | "delete") to shape the copy.
-export function ConfirmUserActionDialog({ user, action, open, onOpenChange }) {
+export function ConfirmUserActionDialog({ user, action, open, onOpenChange, onConfirm }) {
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
   if (!user || !action) return null;
 
   const config = {
@@ -20,29 +24,35 @@ export function ConfirmUserActionDialog({ user, action, open, onOpenChange }) {
       title: "Deactivate user?",
       description: `${user.name} will not be able to sign in until reactivated. Their data is kept.`,
       confirmLabel: "Deactivate",
+      busyLabel: "Deactivating…",
       variant: "default",
-      endpoint: `PATCH /api/admin/users/${user.id}/deactivate`,
     },
     activate: {
       title: "Activate user?",
       description: `${user.name} will regain the ability to sign in.`,
       confirmLabel: "Activate",
+      busyLabel: "Activating…",
       variant: "default",
-      endpoint: `PATCH /api/admin/users/${user.id} (isActive: true)`,
     },
     delete: {
       title: "Delete user?",
       description: `${user.name} will be permanently removed. This cannot be undone.`,
       confirmLabel: "Delete permanently",
+      busyLabel: "Deleting…",
       variant: "destructive",
-      endpoint: `DELETE /api/admin/users/${user.id}`,
     },
   }[action];
 
-  const handleConfirm = () => {
-    // TODO: call endpoint
-    console.log(`${action} user (mock):`, config.endpoint);
-    onOpenChange?.(false);
+  const handleConfirm = async () => {
+    setSubmitting(true);
+    setError("");
+    try {
+      await onConfirm?.();
+      onOpenChange?.(false);
+    } catch (err) {
+      setError(err.message || "Action failed");
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -56,9 +66,11 @@ export function ConfirmUserActionDialog({ user, action, open, onOpenChange }) {
           <DialogDescription>{config.description}</DialogDescription>
         </DialogHeader>
 
+        {error && <p className="text-sm text-red-600">{error}</p>}
+
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="outline">
+            <Button type="button" variant="outline" disabled={submitting}>
               Cancel
             </Button>
           </DialogClose>
@@ -66,9 +78,10 @@ export function ConfirmUserActionDialog({ user, action, open, onOpenChange }) {
             type="button"
             variant={config.variant}
             onClick={handleConfirm}
+            disabled={submitting}
             className={action === "delete" ? "bg-red-600 hover:bg-red-700 text-white" : ""}
           >
-            {config.confirmLabel}
+            {submitting ? config.busyLabel : config.confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

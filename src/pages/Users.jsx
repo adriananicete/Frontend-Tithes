@@ -7,8 +7,20 @@ import { EditUserDialog } from "@/components/users-components/EditUserDialog";
 import { UserDetailsDialog } from "@/components/users-components/UserDetailsDialog";
 import { UsersSummaryStats } from "@/components/users-components/UsersSummaryStats";
 import { UsersTable } from "@/components/users-components/UsersTable";
+import { useUsers } from "@/hooks/useUsers";
 
 function Users() {
+  const {
+    users,
+    loading,
+    error,
+    createUser,
+    updateUser,
+    deactivateUser,
+    activateUser,
+    deleteUser,
+  } = useUsers();
+
   const [createOpen, setCreateOpen] = useState(false);
   const [viewingUser, setViewingUser] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
@@ -20,6 +32,12 @@ function Users() {
 
   const handleDelete = (user) => {
     setConfirm({ user, action: "delete" });
+  };
+
+  const handleConfirmAction = async ({ user, action }) => {
+    if (action === "deactivate") await deactivateUser(user._id);
+    else if (action === "activate") await activateUser(user._id);
+    else if (action === "delete") await deleteUser(user._id);
   };
 
   return (
@@ -37,11 +55,14 @@ function Users() {
       </div>
 
       <div className="shrink-0">
-        <UsersSummaryStats />
+        <UsersSummaryStats users={users} />
       </div>
 
       <div className="h-[24rem] md:h-[32rem] shrink-0">
         <UsersTable
+          users={users}
+          loading={loading}
+          error={error}
           onViewUser={setViewingUser}
           onEditUser={setEditingUser}
           onToggleActive={handleToggleActive}
@@ -49,7 +70,11 @@ function Users() {
         />
       </div>
 
-      <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />
+      <CreateUserDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSubmit={createUser}
+      />
 
       <UserDetailsDialog
         user={viewingUser}
@@ -57,18 +82,24 @@ function Users() {
         onOpenChange={(v) => !v && setViewingUser(null)}
       />
 
-      <EditUserDialog
-        user={editingUser}
-        open={!!editingUser}
-        onOpenChange={(v) => !v && setEditingUser(null)}
-      />
+      {editingUser && (
+        <EditUserDialog
+          user={editingUser}
+          open={!!editingUser}
+          onOpenChange={(v) => !v && setEditingUser(null)}
+          onSubmit={(payload) => updateUser(editingUser._id, payload)}
+        />
+      )}
 
-      <ConfirmUserActionDialog
-        user={confirm?.user}
-        action={confirm?.action}
-        open={!!confirm}
-        onOpenChange={(v) => !v && setConfirm(null)}
-      />
+      {confirm && (
+        <ConfirmUserActionDialog
+          user={confirm.user}
+          action={confirm.action}
+          open={!!confirm}
+          onOpenChange={(v) => !v && setConfirm(null)}
+          onConfirm={() => handleConfirmAction(confirm)}
+        />
+      )}
     </div>
   );
 }

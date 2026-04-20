@@ -21,12 +21,14 @@ import {
 } from "@/components/ui/select";
 import { ROLES } from "./mockData";
 
-export function CreateUserDialog({ open, onOpenChange }) {
+export function CreateUserDialog({ open, onOpenChange, onSubmit }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const reset = () => {
     setName("");
@@ -34,16 +36,24 @@ export function CreateUserDialog({ open, onOpenChange }) {
     setPassword("");
     setShowPassword(false);
     setRole("");
+    setSubmitting(false);
+    setError("");
   };
 
-  const canSubmit = name && email && password.length >= 6 && role;
+  const canSubmit = name && email && password.length >= 6 && role && !submitting;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: POST /api/admin/users
-    console.log("Create user (mock):", { name, email, password, role });
-    onOpenChange?.(false);
-    reset();
+    setSubmitting(true);
+    setError("");
+    try {
+      await onSubmit?.({ name, email, password, role });
+      onOpenChange?.(false);
+      reset();
+    } catch (err) {
+      setError(err.message || "Failed to create user");
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -124,14 +134,16 @@ export function CreateUserDialog({ open, onOpenChange }) {
             </Select>
           </div>
 
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" disabled={submitting}>
                 Cancel
               </Button>
             </DialogClose>
             <Button type="submit" disabled={!canSubmit}>
-              Create User
+              {submitting ? "Creating…" : "Create User"}
             </Button>
           </DialogFooter>
         </form>
