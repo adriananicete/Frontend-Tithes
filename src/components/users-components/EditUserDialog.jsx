@@ -20,28 +20,38 @@ import {
 } from "@/components/ui/select";
 import { ROLES } from "./mockData";
 
-export function EditUserDialog({ user, open, onOpenChange }) {
+export function EditUserDialog({ user, open, onOpenChange, onSubmit }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (user) {
       setName(user.name);
       setEmail(user.email);
       setRole(user.role);
+      setSubmitting(false);
+      setError("");
     }
   }, [user]);
 
   if (!user) return null;
 
-  const canSubmit = name && email && role;
+  const canSubmit = name && email && role && !submitting;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: PATCH /api/admin/users/:id
-    console.log("Update user (mock):", { id: user.id, name, email, role });
-    onOpenChange?.(false);
+    setSubmitting(true);
+    setError("");
+    try {
+      await onSubmit?.({ name, email, role });
+      onOpenChange?.(false);
+    } catch (err) {
+      setError(err.message || "Failed to update user");
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -90,14 +100,16 @@ export function EditUserDialog({ user, open, onOpenChange }) {
             </Select>
           </div>
 
+          {error && <p className="text-sm text-red-600">{error}</p>}
+
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">
+              <Button type="button" variant="outline" disabled={submitting}>
                 Cancel
               </Button>
             </DialogClose>
             <Button type="submit" disabled={!canSubmit}>
-              Save Changes
+              {submitting ? "Saving…" : "Save Changes"}
             </Button>
           </DialogFooter>
         </form>

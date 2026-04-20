@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { formatDate, formatDateTime, getInitials, roleConfig, statusConfig } from "./mockData";
+import { formatDate, getInitials, roleConfig, statusConfig } from "./mockData";
 
 export function UserDetailsDialog({ user, open, onOpenChange }) {
   if (!user) return null;
@@ -45,9 +45,9 @@ export function UserDetailsDialog({ user, open, onOpenChange }) {
               <div className="font-medium">{formatDate(user.createdAt)}</div>
             </div>
             <div>
-              <div className="text-xs text-muted-foreground">Last Login</div>
+              <div className="text-xs text-muted-foreground">Last Updated</div>
               <div className="font-medium">
-                {user.lastLogin ? formatDateTime(user.lastLogin) : "—"}
+                {user.updatedAt ? formatDate(user.updatedAt) : "—"}
               </div>
             </div>
             <div>
