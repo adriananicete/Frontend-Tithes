@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GoPlus } from "react-icons/go";
-import { Plus, Trash2 } from "lucide-react";
 import CustomButton from "@/components/Buttons";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,68 +21,113 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { mockCategories } from "./mockData";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function CreateRfDialog() {
-  const [open, setOpen] = useState(false);
+const toDateInput = (d) => {
+  if (!d) return today();
+  try {
+    return new Date(d).toISOString().slice(0, 10);
+  } catch {
+    return today();
+  }
+};
+
+export function CreateRfDialog({
+  categories = [],
+  onCreateDraft,
+  onCreateAndSubmit,
+  editingRf,
+  onUpdate,
+  open: controlledOpen,
+  onOpenChange,
+}) {
+  const isEdit = !!editingRf;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
   const [entryDate, setEntryDate] = useState(today());
-  const [category, setCategory] = useState(mockCategories[0]);
+  const [categoryId, setCategoryId] = useState("");
   const [amount, setAmount] = useState("");
   const [remarks, setRemarks] = useState("");
-  const [attachments, setAttachments] = useState([""]);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const reset = () => {
-    setEntryDate(today());
-    setCategory(mockCategories[0]);
-    setAmount("");
-    setRemarks("");
-    setAttachments([""]);
+  // Seed form when opened — both create (defaults) and edit (existing values).
+  useEffect(() => {
+    if (!open) return;
+    if (isEdit) {
+      setEntryDate(toDateInput(editingRf.entryDate));
+      setCategoryId(editingRf.category?._id || editingRf.category || "");
+      setAmount(String(editingRf.estimatedAmount ?? ""));
+      setRemarks(editingRf.remarks || "");
+    } else {
+      setEntryDate(today());
+      setCategoryId(categories[0]?._id || "");
+      setAmount("");
+      setRemarks("");
+    }
+    setError("");
+    setSubmitting(false);
+  }, [open, isEdit, editingRf, categories]);
+
+  const buildPayload = () => ({
+    entryDate,
+    category: categoryId,
+    estimatedAmount: Number(amount) || 0,
+    remarks,
+    attachments: [],
+  });
+
+  const runAction = async (action) => {
+    setError("");
+    setSubmitting(true);
+    try {
+      await action();
+      setOpen(false);
+    } catch (err) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const updateAttachment = (i, value) => {
-    setAttachments((prev) => prev.map((a, idx) => (idx === i ? value : a)));
-  };
-
-  const addAttachment = () => setAttachments((prev) => [...prev, ""]);
-  const removeAttachment = (i) =>
-    setAttachments((prev) => prev.filter((_, idx) => idx !== i));
-
-  const handleSubmit = (status) => (e) => {
+  const handleSaveDraft = (e) => {
     e.preventDefault();
-    const payload = {
-      entryDate,
-      category,
-      estimatedAmount: Number(amount) || 0,
-      remarks,
-      attachments: attachments.filter((a) => a.trim()),
-      status,
-    };
-    // TODO: POST /api/request-form (then PATCH /submit if status === "submitted")
-    console.log("Create RF (mock):", payload);
-    setOpen(false);
-    reset();
+    runAction(() => onCreateDraft?.(buildPayload()));
   };
+
+  const handleCreateAndSubmit = (e) => {
+    e.preventDefault();
+    runAction(() => onCreateAndSubmit?.(buildPayload()));
+  };
+
+  const handleUpdate = (e) => {
+    e.preventDefault();
+    runAction(() => onUpdate?.(editingRf._id, buildPayload()));
+  };
+
+  const canSubmit = !!categoryId && Number(amount) > 0 && !submitting;
 
   return (
     <>
-      <div className="w-full sm:w-40" onClick={() => setOpen(true)}>
-        <CustomButton titleName="Create Request" icon={GoPlus} />
-      </div>
+      {!isEdit && controlledOpen === undefined && (
+        <div className="w-full sm:w-40" onClick={() => setOpen(true)}>
+          <CustomButton titleName="Create Request" icon={GoPlus} />
+        </div>
+      )}
 
-      <Dialog
-        open={open}
-        onOpenChange={(v) => {
-          setOpen(v);
-          if (!v) reset();
-        }}
-      >
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
-            <DialogTitle>Create Request Form</DialogTitle>
+            <DialogTitle>
+              {isEdit ? `Edit ${editingRf.rfNo}` : "Create Request Form"}
+            </DialogTitle>
             <DialogDescription>
-              Fill out the request details. Save as draft or submit for validation.
+              {isEdit
+                ? "Update the draft. Submit it for validation when ready."
+                : "Fill out the request details. Save as draft or submit for validation."}
             </DialogDescription>
           </DialogHeader>
 
@@ -101,14 +145,18 @@ export function CreateRfDialog() {
               </div>
               <div className="space-y-1.5">
                 <Label>Category</Label>
-                <Select value={category} onValueChange={setCategory}>
+                <Select value={categoryId} onValueChange={setCategoryId}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue
+                      placeholder={
+                        categories.length ? "Select category" : "No RF categories"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockCategories.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
+                    {categories.map((c) => (
+                      <SelectItem key={c._id} value={c._id}>
+                        {c.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -117,7 +165,7 @@ export function CreateRfDialog() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="amount">Estimated Amount (₱)</Label>
+              <Label htmlFor="amount">Estimated Amount (PHP)</Label>
               <Input
                 id="amount"
                 type="number"
@@ -127,36 +175,6 @@ export function CreateRfDialog() {
                 onChange={(e) => setAmount(e.target.value)}
                 required
               />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Attachments (URLs)</Label>
-                <Button type="button" variant="ghost" size="sm" onClick={addAttachment}>
-                  <Plus className="h-3 w-3" /> Add more
-                </Button>
-              </div>
-              <div className="space-y-2">
-                {attachments.map((url, i) => (
-                  <div key={i} className="flex gap-2">
-                    <Input
-                      placeholder="https://..."
-                      value={url}
-                      onChange={(e) => updateAttachment(i, e.target.value)}
-                    />
-                    {attachments.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => removeAttachment(i)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
             </div>
 
             <div className="space-y-1.5">
@@ -170,25 +188,40 @@ export function CreateRfDialog() {
               />
             </div>
 
+            {error && (
+              <p className="text-sm text-red-600 -mb-2">{error}</p>
+            )}
+
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="outline">Cancel</Button>
+                <Button type="button" variant="outline" disabled={submitting}>
+                  Cancel
+                </Button>
               </DialogClose>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={handleSubmit("draft")}
-                disabled={!amount}
-              >
-                Save as Draft
-              </Button>
-              <Button
-                type="button"
-                onClick={handleSubmit("submitted")}
-                disabled={!amount}
-              >
-                Submit for Validation
-              </Button>
+
+              {isEdit ? (
+                <Button type="button" onClick={handleUpdate} disabled={!canSubmit}>
+                  {submitting ? "Saving..." : "Save Changes"}
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={handleSaveDraft}
+                    disabled={!canSubmit}
+                  >
+                    {submitting ? "Saving..." : "Save as Draft"}
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={handleCreateAndSubmit}
+                    disabled={!canSubmit}
+                  >
+                    {submitting ? "Submitting..." : "Submit for Validation"}
+                  </Button>
+                </>
+              )}
             </DialogFooter>
           </form>
         </DialogContent>

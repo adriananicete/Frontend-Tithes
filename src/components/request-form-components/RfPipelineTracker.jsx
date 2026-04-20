@@ -1,23 +1,30 @@
+import { useMemo } from "react";
 import { ChevronRight, XCircle } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatPHP, mockRfs, pipelineStages, statusConfig } from "./mockData";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { formatPHP, pipelineStages, statusConfig } from "./mockData";
 
-const computeStageStats = () => {
+const computeStageStats = (rfs) => {
   const stats = {};
   [...pipelineStages, "rejected"].forEach((s) => {
     stats[s] = { count: 0, amount: 0 };
   });
-  mockRfs.forEach((r) => {
+  rfs.forEach((r) => {
     if (stats[r.status]) {
       stats[r.status].count += 1;
-      stats[r.status].amount += r.estimatedAmount;
+      stats[r.status].amount += Number(r.estimatedAmount) || 0;
     }
   });
   return stats;
 };
 
-export function RfPipelineTracker({ activeStatus, onSelectStatus, className }) {
-  const stats = computeStageStats();
+export function RfPipelineTracker({ rfs = [], activeStatus, onSelectStatus, className }) {
+  const stats = useMemo(() => computeStageStats(rfs), [rfs]);
 
   return (
     <Card className={`w-full ${className ?? ""}`}>
@@ -42,7 +49,9 @@ export function RfPipelineTracker({ activeStatus, onSelectStatus, className }) {
                       : "hover:bg-muted/50"
                   }`}
                 >
-                  <div className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ${cfg.color}`}>
+                  <div
+                    className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ${cfg.color}`}
+                  >
                     {cfg.label}
                   </div>
                   <div className="mt-2 text-2xl font-semibold">{s.count}</div>
@@ -72,12 +81,16 @@ export function RfPipelineTracker({ activeStatus, onSelectStatus, className }) {
           >
             <div className="flex items-center gap-1.5">
               <XCircle className="h-3 w-3 text-red-600" />
-              <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ${statusConfig.rejected.color}`}>
+              <span
+                className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ${statusConfig.rejected.color}`}
+              >
                 Rejected
               </span>
             </div>
             <div className="mt-2 text-2xl font-semibold">{stats.rejected.count}</div>
-            <div className="text-xs text-muted-foreground">{formatPHP(stats.rejected.amount)}</div>
+            <div className="text-xs text-muted-foreground">
+              {formatPHP(stats.rejected.amount)}
+            </div>
           </button>
         </div>
       </CardContent>
