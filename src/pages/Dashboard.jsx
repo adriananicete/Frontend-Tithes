@@ -45,6 +45,14 @@ function Dashboard() {
       body: JSON.stringify(payload),
     });
 
+  // Inline rather than via useTithes — Dashboard doesn't render the list,
+  // so mounting the hook would fire a wasted GET on every render.
+  const submitTithes = (payload) =>
+    apiFetch("/tithes", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [voucherOpen, setVoucherOpen] = useState(false);
   const [tithesOpen, setTithesOpen] = useState(false);
@@ -110,7 +118,11 @@ function Dashboard() {
         onSubmit={createCategory}
       />
       <CreateVoucherDialog open={voucherOpen} onOpenChange={setVoucherOpen} />
-      <SubmitTithesDialog open={tithesOpen} onOpenChange={setTithesOpen} />
+      <SubmitTithesDialog
+        open={tithesOpen}
+        onOpenChange={setTithesOpen}
+        onSubmit={submitTithes}
+      />
     </div>
   );
 }

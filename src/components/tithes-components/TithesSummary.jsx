@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { CheckCircle2, Clock, Wallet, XCircle } from "lucide-react";
 import {
   Card,
@@ -6,24 +7,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { formatPHP } from "./tithesUtils";
 
-// ============================================================
-// MOCK DATA — palitan ng API fetch pag ready
-// Suggested: GET /api/tithes?dateRange=30d → aggregate per status
-// ============================================================
-const summary = {
-  total:    { amount: 125400, count: 28 },
-  approved: { amount: 98200,  count: 22 },
-  pending:  { amount: 12000,  count: 3 },
-  rejected: { amount: 1200,   count: 1 },
+const computeSummary = (tithes) => {
+  const acc = {
+    total:    { amount: 0, count: 0 },
+    approved: { amount: 0, count: 0 },
+    pending:  { amount: 0, count: 0 },
+    rejected: { amount: 0, count: 0 },
+  };
+  for (const t of tithes) {
+    acc.total.amount += t.total || 0;
+    acc.total.count += 1;
+    if (acc[t.status]) {
+      acc[t.status].amount += t.total || 0;
+      acc[t.status].count += 1;
+    }
+  }
+  return acc;
 };
-
-const formatPHP = (n) =>
-  new Intl.NumberFormat("en-PH", {
-    style: "currency",
-    currency: "PHP",
-    maximumFractionDigits: 0,
-  }).format(n);
 
 function StatTile({ label, amount, count, icon: Icon, accent }) {
   return (
@@ -38,12 +40,13 @@ function StatTile({ label, amount, count, icon: Icon, accent }) {
   );
 }
 
-export function TithesSummary({ className }) {
+export function TithesSummary({ tithes = [], className }) {
+  const summary = useMemo(() => computeSummary(tithes), [tithes]);
   return (
     <Card className={`w-full h-full ${className ?? ""}`}>
       <CardHeader>
         <CardTitle>Tithes Summary</CardTitle>
-        <CardDescription>Breakdown by status (this month)</CardDescription>
+        <CardDescription>Breakdown by status (all entries)</CardDescription>
       </CardHeader>
       <CardContent className="grid grid-cols-2 gap-3">
         <StatTile
