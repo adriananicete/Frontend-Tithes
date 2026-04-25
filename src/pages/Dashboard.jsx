@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { GoPlus } from "react-icons/go";
 import { LuChartBar, LuCoins, LuReceipt } from "react-icons/lu";
 import { useNavigate } from "react-router";
@@ -6,11 +6,13 @@ import Button from "@/components/Buttons";
 import { CategoryFormDialog } from "@/components/categories-components/CategoryFormDialog";
 import { ChartAreaGradient } from "@/components/dashboard-components/ChartAreaGradient";
 import { ChartBarExpense } from "@/components/dashboard-components/ChartBarExpense";
+import { buildActivity } from "@/components/dashboard-components/dashboardUtils";
 import { RecentActivity } from "@/components/dashboard-components/RecentActivity";
 import { SummaryStats } from "@/components/dashboard-components/SummaryStats";
 import { SubmitTithesDialog } from "@/components/tithes-components/SubmitTithesDialog";
 import { CreateVoucherDialog } from "@/components/voucher-components/CreateVoucherDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useDashboardData } from "@/hooks/useDashboardData";
 import { apiFetch } from "@/services/api";
 
 // Quick-action buttons per role. Mirrors the backend ACL in CLAUDE.md:
@@ -39,19 +41,37 @@ function Dashboard() {
   const firstName = user?.name?.split(" ")[0] ?? "there";
   const actions = QUICK_ACTIONS_BY_ROLE[user?.role] ?? [];
 
+  const {
+    tithes,
+    expenses,
+    rfs,
+    vouchers,
+    loading,
+    error,
+    refetch,
+    canViewExpenses,
+  } = useDashboardData(user?.role);
+
+  const activity = useMemo(
+    () => buildActivity({ tithes, rfs, vouchers }),
+    [tithes, rfs, vouchers]
+  );
+
   const createCategory = (payload) =>
     apiFetch("/admin/categories", {
       method: "POST",
       body: JSON.stringify(payload),
     });
 
-  // Inline rather than via useTithes — Dashboard doesn't render the list,
-  // so mounting the hook would fire a wasted GET on every render.
-  const submitTithes = (payload) =>
-    apiFetch("/tithes", {
+  // Inline rather than via useTithes — Dashboard uses useDashboardData for
+  // reads, so mounting useTithes here would fire a duplicate GET /tithes.
+  const submitTithes = async (payload) => {
+    await apiFetch("/tithes", {
       method: "POST",
       body: JSON.stringify(payload),
     });
+    await refetch();
+  };
 
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [voucherOpen, setVoucherOpen] = useState(false);
@@ -72,7 +92,7 @@ function Dashboard() {
         <div>
           <p className="text-xl md:text-[25px] font-[600]">Welcome, {firstName} 👋</p>
           <p className="text-gray-600 text-sm">
-            Let's Rock today. We have 2 Pending Tasks and 5 New Records.
+            Here's a snapshot of activity across the church.
           </p>
         </div>
         {actions.length > 0 && (
@@ -94,22 +114,41 @@ function Dashboard() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 w-full">
+      <div
+        className={`grid grid-cols-1 ${
+          canViewExpenses ? "lg:grid-cols-3" : "lg:grid-cols-2"
+        } gap-5 w-full`}
+      >
         <div className="min-w-0">
-          <ChartAreaGradient />
+          <ChartAreaGradient
+            tithes={tithes}
+            expenses={expenses}
+            canViewExpenses={canViewExpenses}
+          />
         </div>
 
-        <div className="min-w-0">
-          <ChartBarExpense />
-        </div>
+        {canViewExpenses && (
+          <div className="min-w-0">
+            <ChartBarExpense expenses={expenses} />
+          </div>
+        )}
 
         <div className="min-w-0 lg:h-auto">
-          <SummaryStats />
+          <SummaryStats
+            tithes={tithes}
+            expenses={expenses}
+            rfs={rfs}
+            canViewExpenses={canViewExpenses}
+          />
         </div>
       </div>
 
       <div className="w-full h-[28rem] md:h-[36rem]">
-        <RecentActivity />
+        <RecentActivity
+          activity={activity}
+          loading={loading}
+          error={error}
+        />
       </div>
 
       <CategoryFormDialog
@@ -117,7 +156,14 @@ function Dashboard() {
         onOpenChange={setCategoryOpen}
         onSubmit={createCategory}
       />
-      <CreateVoucherDialog open={voucherOpen} onOpenChange={setVoucherOpen} />
+      <CreateVoucherDialog
+        open={voucherOpen}
+        onOpenChange={setVoucherOpen}
+        onSubmit={async (formData) => {
+          await apiFetch("/vouchers", { method: "POST", body: formData });
+          await refetch();
+        }}
+      />
       <SubmitTithesDialog
         open={tithesOpen}
         onOpenChange={setTithesOpen}

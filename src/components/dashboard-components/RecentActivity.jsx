@@ -23,31 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-// ============================================================
-// MOCK DATA — palitan ng fetch sa backend pag ready na
-// Suggested endpoint: GET /api/activity (aggregate ng tithes + RF + vouchers + etc.)
-// ============================================================
-const recentActivity = [
-  { id: 1,  user: "Adrian",  role: "admin",     action: "Created",   type: "Voucher",       ref: "PCF-0003",   amount: 1500, date: "2026-04-13" },
-  { id: 2,  user: "Bernie",  role: "pastor",    action: "Approved",  type: "Request Form",  ref: "RF-0007",    amount: 5000, date: "2026-04-13" },
-  { id: 3,  user: "Kiya",    role: "member",    action: "Submitted", type: "Tithes",        ref: "Tithes #24", amount: 2000, date: "2026-04-12" },
-  { id: 4,  user: "Dani",    role: "validator", action: "Validated", type: "Request Form",  ref: "RF-0006",    amount: 3200, date: "2026-04-12" },
-  { id: 5,  user: "Jaymar",  role: "do",        action: "Rejected",  type: "Tithes",        ref: "Tithes #23", amount: 800,  date: "2026-04-11" },
-  { id: 6,  user: "Lourdes", role: "member",    action: "Submitted", type: "Request Form",  ref: "RF-0008",    amount: 2500, date: "2026-04-11" },
-  { id: 7,  user: "Roselyn", role: "auditor",   action: "Validated", type: "Request Form",  ref: "RF-0005",    amount: 4100, date: "2026-04-10" },
-  { id: 8,  user: "Berna",   role: "member",    action: "Received",  type: "Request Form",  ref: "RF-0004",    amount: 1800, date: "2026-04-10" },
-  { id: 9,  user: "Adrian",  role: "admin",     action: "Created",   type: "Category",      ref: "Utilities",  amount: 0,    date: "2026-04-10" },
-  { id: 10, user: "Adrian",  role: "admin",     action: "Created",   type: "User",          ref: "Kiya",       amount: 0,    date: "2026-04-09" },
-  { id: 11, user: "Roselyn", role: "auditor",   action: "Exported",  type: "Reports",       ref: "Tithes.xlsx",amount: 0,    date: "2026-04-09" },
-  { id: 12, user: "Dani",    role: "validator", action: "Created",   type: "Voucher",       ref: "PCF-0002",   amount: 3500, date: "2026-04-09" },
-  { id: 13, user: "Kiya",    role: "member",    action: "Submitted", type: "Tithes",        ref: "Tithes #22", amount: 1200, date: "2026-04-08" },
-  { id: 14, user: "Adrian",  role: "admin",     action: "Exported",  type: "Reports",       ref: "Expense.pdf",amount: 0,    date: "2026-04-08" },
-  { id: 15, user: "Bernie",  role: "pastor",    action: "Approved",  type: "Request Form",  ref: "RF-0003",    amount: 2800, date: "2026-04-07" },
-  { id: 16, user: "Adrian",  role: "admin",     action: "Updated",   type: "Category",      ref: "Missions",   amount: 0,    date: "2026-04-07" },
-  { id: 17, user: "Lourdes", role: "member",    action: "Submitted", type: "Tithes",        ref: "Tithes #21", amount: 1500, date: "2026-04-06" },
-  { id: 18, user: "Adrian",  role: "admin",     action: "Updated",   type: "User",          ref: "Dani",       amount: 0,    date: "2026-04-06" },
-];
+import { formatActivityAmount, formatActivityDate } from "./dashboardUtils";
 
 const actionStyles = {
   Created:   "bg-blue-100 text-blue-700",
@@ -56,8 +32,6 @@ const actionStyles = {
   Submitted: "bg-yellow-100 text-yellow-700",
   Rejected:  "bg-red-100 text-red-700",
   Received:  "bg-emerald-100 text-emerald-700",
-  Exported:  "bg-cyan-100 text-cyan-700",
-  Updated:   "bg-violet-100 text-violet-700",
 };
 
 const roleStyles = {
@@ -69,24 +43,27 @@ const roleStyles = {
   member:    "bg-gray-100 text-gray-700",
 };
 
-const typeOptions = ["All", "Tithes", "Voucher", "Request Form", "Category", "User", "Reports"];
+// Backend has no audit log, so we can only surface activity from the
+// records we actually fetch (tithes + RF + voucher). Category/User/Reports
+// activity would need a real audit-log endpoint.
+const typeOptions = ["All", "Tithes", "Voucher", "Request Form"];
 const PAGE_SIZE = 10;
 
-const formatAmount = (n) =>
-  n === 0
-    ? "—"
-    : new Intl.NumberFormat("en-PH", { style: "currency", currency: "PHP" }).format(n);
-
-const formatDate = (d) =>
-  new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-
-export function RecentActivity({ className }) {
+export function RecentActivity({
+  activity = [],
+  loading = false,
+  error = "",
+  className,
+}) {
   const [typeFilter, setTypeFilter] = useState("All");
   const [page, setPage] = useState(1);
 
   const filtered = useMemo(
-    () => (typeFilter === "All" ? recentActivity : recentActivity.filter((r) => r.type === typeFilter)),
-    [typeFilter]
+    () =>
+      typeFilter === "All"
+        ? activity
+        : activity.filter((r) => r.type === typeFilter),
+    [activity, typeFilter]
   );
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
@@ -98,6 +75,12 @@ export function RecentActivity({ className }) {
     setTypeFilter(value);
     setPage(1);
   };
+
+  const emptyText = loading
+    ? "Loading activity…"
+    : error
+    ? error
+    : "No activity found.";
 
   return (
     <Card className={`w-full h-full flex flex-col ${className ?? ""}`}>
@@ -142,7 +125,7 @@ export function RecentActivity({ className }) {
               {pageItems.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
-                    No activity found.
+                    {emptyText}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -150,19 +133,19 @@ export function RecentActivity({ className }) {
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.user}</TableCell>
                     <TableCell>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role]}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role] ?? "bg-gray-100 text-gray-700"}`}>
                         {item.role}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${actionStyles[item.action]}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${actionStyles[item.action] ?? "bg-gray-100 text-gray-700"}`}>
                         {item.action}
                       </span>
                     </TableCell>
                     <TableCell>{item.type}</TableCell>
                     <TableCell className="text-muted-foreground">{item.ref}</TableCell>
-                    <TableCell className="text-right font-medium">{formatAmount(item.amount)}</TableCell>
-                    <TableCell className="text-muted-foreground">{formatDate(item.date)}</TableCell>
+                    <TableCell className="text-right font-medium">{formatActivityAmount(item.amount)}</TableCell>
+                    <TableCell className="text-muted-foreground">{formatActivityDate(item.date)}</TableCell>
                   </TableRow>
                 ))
               )}
@@ -173,7 +156,7 @@ export function RecentActivity({ className }) {
         <div className="md:hidden -mx-4 divide-y border-t">
           {pageItems.length === 0 ? (
             <div className="py-10 text-center text-sm text-muted-foreground">
-              No activity found.
+              {emptyText}
             </div>
           ) : (
             pageItems.map((item) => (
@@ -182,11 +165,11 @@ export function RecentActivity({ className }) {
                   <div className="min-w-0">
                     <div className="font-medium truncate">{item.user}</div>
                     <div className="text-xs text-muted-foreground truncate">
-                      {item.type} · {item.ref}
+                      {item.type + " · " + item.ref}
                     </div>
                   </div>
                   <span
-                    className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${actionStyles[item.action]}`}
+                    className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${actionStyles[item.action] ?? "bg-gray-100 text-gray-700"}`}
                   >
                     {item.action}
                   </span>
@@ -194,16 +177,16 @@ export function RecentActivity({ className }) {
                 <div className="flex items-center justify-between gap-2 text-sm">
                   <div className="flex items-center gap-2 min-w-0">
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role]}`}
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role] ?? "bg-gray-100 text-gray-700"}`}
                     >
                       {item.role}
                     </span>
                     <span className="text-xs text-muted-foreground truncate">
-                      {formatDate(item.date)}
+                      {formatActivityDate(item.date)}
                     </span>
                   </div>
                   <span className="font-medium tabular-nums shrink-0">
-                    {formatAmount(item.amount)}
+                    {formatActivityAmount(item.amount)}
                   </span>
                 </div>
               </div>
