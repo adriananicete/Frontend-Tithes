@@ -15,13 +15,7 @@ export function useTithes() {
       setTithes(Array.isArray(res?.data) ? res.data : []);
       setTotalBalance(res?.totalBalance ?? 0);
     } catch (err) {
-      // Backend returns 404 { error: "Tithes is Empty" } when the collection is empty.
-      if (err.message === "Tithes is Empty") {
-        setTithes([]);
-        setTotalBalance(0);
-      } else {
-        setError(err.message || "Failed to load tithes");
-      }
+      setError(err.message || "Failed to load tithes");
     } finally {
       setLoading(false);
     }
