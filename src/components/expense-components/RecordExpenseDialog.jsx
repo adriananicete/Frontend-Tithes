@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { GoPlus } from "react-icons/go";
+import CustomButton from "@/components/Buttons";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,123 +21,161 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { mockExpenseCategories } from "./mockData";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
-export function RecordExpenseDialog({ open, onOpenChange }) {
+export function RecordExpenseDialog({
+  categories = [],
+  open: controlledOpen,
+  onOpenChange,
+  onSubmit,
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = (v) => {
+    if (isControlled) onOpenChange?.(v);
+    else setInternalOpen(v);
+  };
+
   const [entryDate, setEntryDate] = useState(today());
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [remarks, setRemarks] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const reset = () => {
     setEntryDate(today());
     setCategory("");
     setAmount("");
     setRemarks("");
+    setError("");
   };
 
   const amountNum = parseFloat(amount) || 0;
-  const canSubmit = category && amountNum > 0 && entryDate;
+  const canSubmit = category && amountNum > 0 && entryDate && !submitting;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: POST /api/expenses
-    console.log("Record manual expense (mock):", {
-      date: entryDate,
-      category,
-      amount: amountNum,
-      remarks,
-      source: "manual",
-    });
-    onOpenChange?.(false);
-    reset();
+    if (!onSubmit) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      await onSubmit({
+        date: entryDate,
+        category,
+        amount: amountNum,
+        remarks: remarks.trim() || undefined,
+      });
+      setOpen(false);
+      reset();
+    } catch (err) {
+      setError(err.message || "Failed to record expense");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(v) => {
-        onOpenChange?.(v);
-        if (!v) reset();
-      }}
-    >
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden">
-        <DialogHeader>
-          <DialogTitle>Record Manual Expense</DialogTitle>
-          <DialogDescription>
-            Admin-only entry for expenses not tied to a voucher.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      {!isControlled && (
+        <div className="w-44" onClick={() => setOpen(true)}>
+          <CustomButton titleName="Record Expense" icon={GoPlus} />
+        </div>
+      )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <Dialog
+        open={open}
+        onOpenChange={(v) => {
+          setOpen(v);
+          if (!v) reset();
+        }}
+      >
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden">
+          <DialogHeader>
+            <DialogTitle>Record Manual Expense</DialogTitle>
+            <DialogDescription>
+              Admin-only entry for expenses not tied to a voucher.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="entryDate">Date</Label>
+                <Input
+                  id="entryDate"
+                  type="date"
+                  value={entryDate}
+                  max={today()}
+                  onChange={(e) => setEntryDate(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Category</Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        categories.length === 0
+                          ? "No expense categories"
+                          : "Select category"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((c) => (
+                      <SelectItem key={c._id} value={c._id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div className="space-y-1.5">
-              <Label htmlFor="entryDate">Date</Label>
+              <Label htmlFor="amount">Amount (PHP)</Label>
               <Input
-                id="entryDate"
-                type="date"
-                value={entryDate}
-                max={today()}
-                onChange={(e) => setEntryDate(e.target.value)}
+                id="amount"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
                 required
               />
             </div>
+
             <div className="space-y-1.5">
-              <Label>Category</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mockExpenseCategories.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="remarks">Remarks</Label>
+              <Textarea
+                id="remarks"
+                rows={3}
+                placeholder="e.g., Reimbursement for volunteer transport..."
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+              />
             </div>
-          </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="amount">Amount (PHP)</Label>
-            <Input
-              id="amount"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
-            />
-          </div>
+            {error && <p className="text-xs text-red-600">{error}</p>}
 
-          <div className="space-y-1.5">
-            <Label htmlFor="remarks">Remarks</Label>
-            <Textarea
-              id="remarks"
-              rows={3}
-              placeholder="e.g., Reimbursement for volunteer transport..."
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
-            />
-          </div>
-
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="outline">
-                Cancel
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline" disabled={submitting}>
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button type="submit" disabled={!canSubmit}>
+                {submitting ? "Recording…" : "Record Expense"}
               </Button>
-            </DialogClose>
-            <Button type="submit" disabled={!canSubmit}>
-              Record Expense
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

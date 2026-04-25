@@ -32,13 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  formatDate,
-  formatPHP,
-  mockExpenseCategories,
-  mockExpenses,
-  sourceConfig,
-} from "./mockData";
+import { formatDate, formatPHP, sourceConfig } from "./mockData";
 
 const PAGE_SIZE = 10;
 const sourceOptions = ["All", "voucher", "manual"];
@@ -60,36 +54,61 @@ function RowActions({ onView }) {
   );
 }
 
-export function ExpenseTable({ className, onViewExpense }) {
+export function ExpenseTable({
+  expenses = [],
+  loading = false,
+  error = "",
+  className,
+  onViewExpense,
+}) {
   const [search, setSearch] = useState("");
   const [source, setSource] = useState("All");
   const [category, setCategory] = useState("All");
   const [page, setPage] = useState(1);
 
+  const categoryOptions = useMemo(() => {
+    const set = new Set();
+    expenses.forEach((e) => {
+      const name = e.category?.name;
+      if (name) set.add(name);
+    });
+    return Array.from(set).sort();
+  }, [expenses]);
+
   const filtered = useMemo(() => {
-    return mockExpenses
+    return expenses
       .filter((e) => {
         if (source !== "All" && e.source !== source) return false;
-        if (category !== "All" && e.category !== category) return false;
+        const catName = e.category?.name ?? "";
+        if (category !== "All" && catName !== category) return false;
         if (search) {
           const q = search.toLowerCase();
+          const recordedBy = e.recordedBy?.name ?? "";
+          const linkedRef = e.linkedId?.pcfNo ?? "";
+          const remarks = e.remarks ?? "";
           if (
-            !e.category.toLowerCase().includes(q) &&
-            !e.recordedBy.toLowerCase().includes(q) &&
-            !(e.linkedRef && e.linkedRef.toLowerCase().includes(q)) &&
-            !(e.remarks && e.remarks.toLowerCase().includes(q))
+            !catName.toLowerCase().includes(q) &&
+            !recordedBy.toLowerCase().includes(q) &&
+            !linkedRef.toLowerCase().includes(q) &&
+            !remarks.toLowerCase().includes(q)
           )
             return false;
         }
         return true;
       })
       .sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [search, source, category]);
+  }, [expenses, search, source, category]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageStart = (currentPage - 1) * PAGE_SIZE;
   const pageItems = filtered.slice(pageStart, pageStart + PAGE_SIZE);
+
+  const emptyText = loading
+    ? "Loading expenses…"
+    : error
+    ? error
+    : "No expenses found.";
 
   return (
     <Card className={`w-full h-full flex flex-col ${className ?? ""}`}>
@@ -138,7 +157,7 @@ export function ExpenseTable({ className, onViewExpense }) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="All">All Categories</SelectItem>
-              {mockExpenseCategories.map((c) => (
+              {categoryOptions.map((c) => (
                 <SelectItem key={c} value={c}>
                   {c}
                 </SelectItem>
@@ -166,26 +185,26 @@ export function ExpenseTable({ className, onViewExpense }) {
               {pageItems.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
-                    No expenses found.
+                    {emptyText}
                   </TableCell>
                 </TableRow>
               ) : (
                 pageItems.map((e) => {
-                  const cfg = sourceConfig[e.source];
+                  const cfg = sourceConfig[e.source] ?? { label: e.source, color: "" };
                   return (
-                    <TableRow key={e.id}>
+                    <TableRow key={e._id}>
                       <TableCell className="text-muted-foreground">{formatDate(e.date)}</TableCell>
                       <TableCell>
                         <Badge variant="secondary" className={cfg.color}>
                           {cfg.label}
                         </Badge>
                       </TableCell>
-                      <TableCell>{e.category}</TableCell>
-                      <TableCell className="font-medium">{e.linkedRef ?? "—"}</TableCell>
+                      <TableCell>{e.category?.name ?? "—"}</TableCell>
+                      <TableCell className="font-medium">{e.linkedId?.pcfNo ?? "—"}</TableCell>
                       <TableCell className="text-right font-medium tabular-nums">
                         {formatPHP(e.amount)}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{e.recordedBy}</TableCell>
+                      <TableCell className="text-muted-foreground">{e.recordedBy?.name ?? "—"}</TableCell>
                       <TableCell className="text-right">
                         <RowActions onView={() => onViewExpense?.(e)} />
                       </TableCell>
@@ -200,18 +219,18 @@ export function ExpenseTable({ className, onViewExpense }) {
         <div className="md:hidden -mx-4 divide-y border-t">
           {pageItems.length === 0 ? (
             <div className="py-10 text-center text-sm text-muted-foreground">
-              No expenses found.
+              {emptyText}
             </div>
           ) : (
             pageItems.map((e) => {
-              const cfg = sourceConfig[e.source];
+              const cfg = sourceConfig[e.source] ?? { label: e.source, color: "" };
               return (
-                <div key={e.id} className="px-4 py-3 space-y-1.5">
+                <div key={e._id} className="px-4 py-3 space-y-1.5">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="font-medium truncate">{e.category}</div>
+                      <div className="font-medium truncate">{e.category?.name ?? "—"}</div>
                       <div className="text-xs text-muted-foreground truncate">
-                        {e.linkedRef ?? "—"} • {e.recordedBy}
+                        {(e.linkedId?.pcfNo ?? "—") + " • " + (e.recordedBy?.name ?? "—")}
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
