@@ -22,21 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// ============================================================
-// MOCK DATA — palitan ng API fetch
-// TODO: GET /api/reports/expense?range=30d&source=voucher
-// ============================================================
-const mockDaily = Array.from({ length: 365 }).map((_, i) => {
-  const d = new Date();
-  d.setDate(d.getDate() - (364 - i));
-  const base = 800 + Math.sin(i / 10) * 500 + Math.random() * 900;
-  return {
-    date: d.toISOString().slice(0, 10),
-    voucher: Math.round(base * 1.4),
-    manual:  Math.round(base * 0.5),
-  };
-});
+import { formatPHP } from "./mockData";
 
 const rangePresets = [
   { label: "7D",  days: 7 },
@@ -58,41 +44,56 @@ const chartConfig = {
   },
 };
 
-const formatPHP = (n) =>
-  new Intl.NumberFormat("en-PH", {
-    style: "currency",
-    currency: "PHP",
-    maximumFractionDigits: 0,
-  }).format(n);
+const formatShortDate = (d) => {
+  if (!d) return "";
+  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+};
 
-const formatShortDate = (d) =>
-  new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+const toDayKey = (d) => new Date(d).toISOString().slice(0, 10);
 
-export function ExpenseTrendChart({ className }) {
+const buildSeries = (expenses, rangeDays, source) => {
+  const filtered = expenses.filter(
+    (e) => source === "all" || e.source === source
+  );
+  const totals = new Map();
+  for (const e of filtered) {
+    const key = toDayKey(e.date);
+    totals.set(key, (totals.get(key) || 0) + (Number(e.amount) || 0));
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const series = [];
+  for (let i = rangeDays - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    series.push({ date: key, total: totals.get(key) || 0 });
+  }
+  return series;
+};
+
+export function ExpenseTrendChart({ expenses = [], className }) {
   const [rangeDays, setRangeDays] = useState(30);
   const [source, setSource] = useState("all");
 
-  const chartData = useMemo(() => {
-    const sliced = mockDaily.slice(-rangeDays);
-    return sliced.map((row) => {
-      const total =
-        source === "all"
-          ? row.voucher + row.manual
-          : row[source];
-      return { date: row.date, total };
-    });
-  }, [rangeDays, source]);
+  const chartData = useMemo(
+    () => buildSeries(expenses, rangeDays, source),
+    [expenses, rangeDays, source]
+  );
 
   const stats = useMemo(() => {
     if (chartData.length === 0) return { sum: 0, avg: 0, peak: null, trend: 0 };
     const sum = chartData.reduce((a, c) => a + c.total, 0);
-    const avg = Math.round(sum / chartData.length);
+    const avg = sum > 0 ? Math.round(sum / chartData.length) : 0;
     const peak = chartData.reduce((a, c) => (c.total > a.total ? c : a), chartData[0]);
     const half = Math.floor(chartData.length / 2);
-    const firstHalf = chartData.slice(0, half).reduce((a, c) => a + c.total, 0) || 1;
+    const firstHalf = chartData.slice(0, half).reduce((a, c) => a + c.total, 0);
     const secondHalf = chartData.slice(half).reduce((a, c) => a + c.total, 0);
-    const trend = Math.round(((secondHalf - firstHalf) / firstHalf) * 100);
-    return { sum, avg, peak, trend };
+    const trend = firstHalf > 0
+      ? Math.round(((secondHalf - firstHalf) / firstHalf) * 100)
+      : (secondHalf > 0 ? 100 : 0);
+    return { sum, avg, peak: peak.total > 0 ? peak : null, trend };
   }, [chartData]);
 
   return (

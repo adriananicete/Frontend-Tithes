@@ -6,16 +6,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { formatDate, formatPHP, mockLinkedVouchers, sourceConfig } from "./mockData";
+import { formatDate, formatPHP, sourceConfig } from "./mockData";
 
 export function ExpenseDetailsDialog({ expense, open, onOpenChange }) {
   if (!expense) return null;
 
-  const cfg = sourceConfig[expense.source];
-  const linkedVoucher =
-    expense.source === "voucher" && expense.linkedRef
-      ? mockLinkedVouchers[expense.linkedRef]
-      : null;
+  const cfg = sourceConfig[expense.source] ?? { label: expense.source, color: "" };
+  const linkedRf = expense.linkedId?.rfId ?? null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -28,7 +25,7 @@ export function ExpenseDetailsDialog({ expense, open, onOpenChange }) {
             </Badge>
           </div>
           <DialogDescription>
-            {expense.category} · {formatDate(expense.date)}
+            {(expense.category?.name ?? "—") + " · " + formatDate(expense.date)}
           </DialogDescription>
         </DialogHeader>
 
@@ -36,7 +33,7 @@ export function ExpenseDetailsDialog({ expense, open, onOpenChange }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <div className="text-xs text-muted-foreground">Category</div>
-              <div className="font-medium">{expense.category}</div>
+              <div className="font-medium">{expense.category?.name ?? "—"}</div>
             </div>
             <div>
               <div className="text-xs text-muted-foreground">Date</div>
@@ -44,7 +41,7 @@ export function ExpenseDetailsDialog({ expense, open, onOpenChange }) {
             </div>
             <div>
               <div className="text-xs text-muted-foreground">Recorded By</div>
-              <div className="font-medium">{expense.recordedBy}</div>
+              <div className="font-medium">{expense.recordedBy?.name ?? "—"}</div>
             </div>
             <div>
               <div className="text-xs text-muted-foreground">Source</div>
@@ -58,25 +55,25 @@ export function ExpenseDetailsDialog({ expense, open, onOpenChange }) {
             )}
           </div>
 
-          {linkedVoucher && (
+          {expense.source === "voucher" && expense.linkedId && (
             <div className="rounded-md border bg-muted/30 p-3 space-y-2">
               <div className="text-xs font-medium text-muted-foreground">Linked Voucher</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div>
                   <div className="text-xs text-muted-foreground">PCF No</div>
-                  <div className="font-medium">{expense.linkedRef}</div>
+                  <div className="font-medium">{expense.linkedId.pcfNo ?? "—"}</div>
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">RF No</div>
-                  <div className="font-medium">{linkedVoucher.rfNo}</div>
+                  <div className="font-medium">{linkedRf?.rfNo ?? "—"}</div>
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">Requester</div>
-                  <div className="font-medium">{linkedVoucher.requestedBy}</div>
+                  <div className="font-medium">{linkedRf?.requestedBy?.name ?? "—"}</div>
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">Approved By</div>
-                  <div className="font-medium">{linkedVoucher.approvedBy}</div>
+                  <div className="font-medium">{linkedRf?.approvedBy?.name ?? "—"}</div>
                 </div>
               </div>
             </div>
