@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { BarChart3, CalendarDays, TrendingDown, Zap } from "lucide-react";
 import {
   Card,
@@ -6,33 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { formatPHP, mockExpenses } from "./mockData";
+import { formatPHP } from "./mockData";
 
 const daysBetween = (d) => (Date.now() - new Date(d).getTime()) / (1000 * 60 * 60 * 24);
-
-const computeStats = () => {
-  const thisMonth  = mockExpenses.filter((e) => daysBetween(e.date) <= 30);
-  const last3Mos   = mockExpenses.filter((e) => daysBetween(e.date) <= 90);
-  const thisYear   = mockExpenses.filter(
-    (e) => new Date(e.date).getFullYear() === new Date().getFullYear()
-  );
-  const voucher = mockExpenses.filter((e) => e.source === "voucher");
-  const manual  = mockExpenses.filter((e) => e.source === "manual");
-
-  const sum = (arr) => arr.reduce((a, c) => a + c.amount, 0);
-
-  return {
-    thisMonth: { amount: sum(thisMonth), count: thisMonth.length },
-    last3Mos:  { amount: sum(last3Mos),  count: last3Mos.length },
-    thisYear:  { amount: sum(thisYear),  count: thisYear.length },
-    split: {
-      voucherAmount: sum(voucher),
-      voucherCount:  voucher.length,
-      manualAmount:  sum(manual),
-      manualCount:   manual.length,
-    },
-  };
-};
 
 function StatTile({ label, amount, count, unit, icon: Icon, accent }) {
   return (
@@ -73,8 +50,30 @@ function SplitTile({ split }) {
   );
 }
 
-export function ExpenseSummaryStats({ className }) {
-  const stats = computeStats();
+export function ExpenseSummaryStats({ expenses = [], className }) {
+  const stats = useMemo(() => {
+    const sum = (arr) => arr.reduce((a, c) => a + (Number(c.amount) || 0), 0);
+    const thisMonth = expenses.filter((e) => daysBetween(e.date) <= 30);
+    const last3Mos = expenses.filter((e) => daysBetween(e.date) <= 90);
+    const thisYear = expenses.filter(
+      (e) => new Date(e.date).getFullYear() === new Date().getFullYear()
+    );
+    const voucher = expenses.filter((e) => e.source === "voucher");
+    const manual = expenses.filter((e) => e.source === "manual");
+
+    return {
+      thisMonth: { amount: sum(thisMonth), count: thisMonth.length },
+      last3Mos: { amount: sum(last3Mos), count: last3Mos.length },
+      thisYear: { amount: sum(thisYear), count: thisYear.length },
+      split: {
+        voucherAmount: sum(voucher),
+        voucherCount: voucher.length,
+        manualAmount: sum(manual),
+        manualCount: manual.length,
+      },
+    };
+  }, [expenses]);
+
   return (
     <Card className={`w-full ${className ?? ""}`}>
       <CardHeader>
