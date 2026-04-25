@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useMemo, useState } from "react";
 import { TrendingUp } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
@@ -17,75 +17,87 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
-// ============================================================
-// 🔄 MOCK DATA — PALITAN NG API FETCH
-// ============================================================
-// Sa totoong app, kunin mo sa backend:
-//   GET http://localhost:7001/api/reports/tithes?range=12m
-//
-// Gagawa ka ng useState + useEffect sa loob ng component:
-//   const [chartData, setChartData] = React.useState([]);
-//   React.useEffect(() => {
-//     fetch("http://localhost:7001/api/reports/tithes?range=12m")
-//       .then(res => res.json())
-//       .then(data => setChartData(data));
-//   }, []);
-//
-// Expected shape per row: { month: "string", tithes: number, expenses: number }
-// Backend dapat mag-group by month + sum ng tithes total, same sa expenses.
-// Halimbawa:
-//   { month: "January",  tithes: 45000, expenses: 32000 }
-//   { month: "February", tithes: 52000, expenses: 28000 }
-//
-// NOTE: Fixed 12 months ang ginagamit — no date range dropdown. Kung gusto mo
-// later ng year selector (e.g. 2024 vs 2025), pwede mong dagdagan.
-const chartData = [
-  { month: "January",   tithes: 45000, expenses: 32000 },
-  { month: "February",  tithes: 52000, expenses: 28000 },
-  { month: "March",     tithes: 48000, expenses: 35000 },
-  { month: "April",     tithes: 61000, expenses: 42000 },
-  { month: "May",       tithes: 55000, expenses: 31000 },
-  { month: "June",      tithes: 58000, expenses: 38000 },
-  { month: "July",      tithes: 50000, expenses: 29000 },
-  { month: "August",    tithes: 63000, expenses: 45000 },
-  { month: "September", tithes: 57000, expenses: 33000 },
-  { month: "October",   tithes: 65000, expenses: 40000 },
-  { month: "November",  tithes: 72000, expenses: 48000 },
-  { month: "December",  tithes: 85000, expenses: 55000 },
-];
-
-// ============================================================
-// 🎨 CHART CONFIG
-// ============================================================
-// Pag pinalitan mo yung field names sa API response mo, update mo rin:
-//   - chartConfig keys
-//   - <Area dataKey="..."> sa baba (2 places: tithes & expenses)
-//   - <linearGradient id="fill..."> → id must match the url(#fill...)
-//   - var(--color-...) — auto-computed based sa chartConfig keys
 const chartConfig = {
   tithes: {
     label: "Tithes",
-    color: "var(--chart-1)", // blue (from index.css: #2b7fff)
+    color: "var(--chart-1)",
   },
   expenses: {
     label: "Expenses",
-    color: "var(--chart-2)", // red (from index.css: #F87171)
+    color: "var(--chart-2)",
   },
 };
 
-export function ChartAreaGradient() {
-  // ============================================================
-  // 👁️ TOGGLE — show/hide expense line
-  // ============================================================
-  // Default: false (tithes only ang lumalabas pag-load ng page)
-  // Pag pinindot yung button, true na → expense line also shows
-  const [showExpenses, setShowExpenses] = React.useState(false);
+const MONTH_LABELS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+// Build a 12-month series ending at the current month, filling gaps with 0.
+const buildMonthlySeries = (tithes, expenses) => {
+  const tithesByMonth = new Map();
+  const expensesByMonth = new Map();
+
+  for (const t of tithes) {
+    if (t.status !== "approved") continue;
+    const d = new Date(t.reviewedAt ?? t.entryDate ?? t.createdAt);
+    if (isNaN(d)) continue;
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    tithesByMonth.set(key, (tithesByMonth.get(key) || 0) + (t.total ?? 0));
+  }
+
+  for (const e of expenses) {
+    const d = new Date(e.date ?? e.createdAt);
+    if (isNaN(d)) continue;
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    expensesByMonth.set(key, (expensesByMonth.get(key) || 0) + (Number(e.amount) || 0));
+  }
+
+  const today = new Date();
+  const series = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    series.push({
+      month: MONTH_LABELS[d.getMonth()],
+      year: d.getFullYear(),
+      tithes: tithesByMonth.get(key) || 0,
+      expenses: expensesByMonth.get(key) || 0,
+    });
+  }
+  return series;
+};
+
+export function ChartAreaGradient({
+  tithes = [],
+  expenses = [],
+  canViewExpenses = false,
+}) {
+  const [showExpenses, setShowExpenses] = useState(false);
+
+  const chartData = useMemo(
+    () => buildMonthlySeries(tithes, expenses),
+    [tithes, expenses]
+  );
+
+  // Year-over-year tithes trend, comparing the latest month to the same
+  // month a year prior. With only 12 months in the series, "previous year"
+  // is the first row and "current" is the last row.
+  const trendStats = useMemo(() => {
+    if (chartData.length === 0) return { trend: 0, periodLabel: "" };
+    const first = chartData[0];
+    const last = chartData[chartData.length - 1];
+    const trend = first.tithes > 0
+      ? Math.round(((last.tithes - first.tithes) / first.tithes) * 100)
+      : (last.tithes > 0 ? 100 : 0);
+    const periodLabel = `${first.month.slice(0, 3)} ${first.year} – ${last.month.slice(0, 3)} ${last.year}`;
+    return { trend, periodLabel };
+  }, [chartData]);
 
   return (
     <Card>
       <CardHeader className="flex items-center gap-2 space-y-0 sm:flex-row">
         <div className="grid flex-1 gap-1">
-          {/* 🔄 PALITAN: title + description dapat match sa use case */}
           <CardTitle>Tithes Trend</CardTitle>
           <CardDescription>
             {showExpenses
@@ -94,15 +106,16 @@ export function ChartAreaGradient() {
           </CardDescription>
         </div>
 
-        {/* 🔘 TOGGLE BUTTON — Tithes vs Expenses */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowExpenses((prev) => !prev)}
-          className="sm:ml-auto"
-        >
-          {showExpenses ? "Hide Expenses" : "Compare with Expenses"}
-        </Button>
+        {canViewExpenses && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowExpenses((prev) => !prev)}
+            className="sm:ml-auto"
+          >
+            {showExpenses ? "Hide Expenses" : "Compare with Expenses"}
+          </Button>
+        )}
       </CardHeader>
 
       <CardContent>
@@ -118,25 +131,22 @@ export function ChartAreaGradient() {
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) => value.slice(0, 3)} // "January" → "Jan"
+              tickFormatter={(value) => value.slice(0, 3)}
             />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
 
             <defs>
-              {/* Gradient para sa tithes area (blue fade) */}
               <linearGradient id="fillTithes" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="var(--color-tithes)" stopOpacity={0.8} />
                 <stop offset="95%" stopColor="var(--color-tithes)" stopOpacity={0.1} />
               </linearGradient>
 
-              {/* Gradient para sa expenses area (red fade) */}
               <linearGradient id="fillExpenses" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="var(--color-expenses)" stopOpacity={0.8} />
                 <stop offset="95%" stopColor="var(--color-expenses)" stopOpacity={0.1} />
               </linearGradient>
             </defs>
 
-            {/* Tithes line — laging lumalabas */}
             <Area
               dataKey="tithes"
               type="natural"
@@ -146,8 +156,7 @@ export function ChartAreaGradient() {
               strokeWidth={2}
             />
 
-            {/* Expenses line — only rendered kapag showExpenses === true */}
-            {showExpenses && (
+            {showExpenses && canViewExpenses && (
               <Area
                 dataKey="expenses"
                 type="natural"
@@ -162,20 +171,17 @@ export function ChartAreaGradient() {
       </CardContent>
 
       <CardFooter>
-        {/* ============================================================
-            🔄 FOOTER STATS — DAPAT DYNAMIC TO
-            ============================================================
-            Hardcoded muna. Sa totoong app:
-              - Compute % change from previous year
-              - Or kunin mo sa backend: /api/reports/tithes/summary?range=12m
-        */}
         <div className="flex w-full items-start gap-2 text-sm">
           <div className="grid gap-2">
             <div className="flex items-center gap-2 leading-none font-medium">
-              Trending up by 5.2% this year <TrendingUp className="h-4 w-4" />
+              {trendStats.trend >= 0 ? "Trending up" : "Trending down"} by{" "}
+              {Math.abs(trendStats.trend)}% this year{" "}
+              <TrendingUp
+                className={`h-4 w-4 ${trendStats.trend < 0 ? "rotate-180" : ""}`}
+              />
             </div>
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              January - December 2024
+              {trendStats.periodLabel}
             </div>
           </div>
         </div>
