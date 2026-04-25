@@ -13,9 +13,7 @@ export function useCategories() {
       const res = await apiFetch("/admin/categories");
       setCategories(Array.isArray(res) ? res : []);
     } catch (err) {
-      // Backend returns 404 { error: "Empty" } when the collection is empty.
-      if (err.message === "Empty") setCategories([]);
-      else setError(err.message || "Failed to load categories");
+      setError(err.message || "Failed to load categories");
     } finally {
       setLoading(false);
     }

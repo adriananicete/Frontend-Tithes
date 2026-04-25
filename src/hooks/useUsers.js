@@ -13,9 +13,7 @@ export function useUsers() {
       const res = await apiFetch("/admin/users");
       setUsers(Array.isArray(res) ? res : []);
     } catch (err) {
-      // Backend returns 404 { message: "Users Not Found!" } when the collection is empty.
-      if (err.message === "Users Not Found!") setUsers([]);
-      else setError(err.message || "Failed to load users");
+      setError(err.message || "Failed to load users");
     } finally {
       setLoading(false);
     }

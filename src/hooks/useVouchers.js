@@ -11,8 +11,7 @@ export function useVouchers() {
     setError("");
     try {
       const res = await apiFetch("/vouchers");
-      if (Array.isArray(res?.data)) setVouchers(res.data);
-      else setVouchers([]);
+      setVouchers(Array.isArray(res?.data) ? res.data : []);
     } catch (err) {
       setError(err.message || "Failed to load vouchers");
     } finally {

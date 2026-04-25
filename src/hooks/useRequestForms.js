@@ -13,9 +13,7 @@ export function useRequestForms() {
       const res = await apiFetch("/request-form");
       setRfs(Array.isArray(res?.data) ? res.data : []);
     } catch (err) {
-      // Backend returns 404 { error: "Request form empty" } when none exist.
-      if (err.message === "Request form empty") setRfs([]);
-      else setError(err.message || "Failed to load request forms");
+      setError(err.message || "Failed to load request forms");
     } finally {
       setLoading(false);
     }
