@@ -11,9 +11,7 @@ export function useExpenses() {
     setError("");
     try {
       const res = await apiFetch("/expenses");
-      // Backend returns 200 { message: "Expense Data empty" } when the collection is empty.
-      if (Array.isArray(res?.data)) setExpenses(res.data);
-      else setExpenses([]);
+      setExpenses(Array.isArray(res?.data) ? res.data : []);
     } catch (err) {
       setError(err.message || "Failed to load expenses");
     } finally {
