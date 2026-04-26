@@ -1,7 +1,8 @@
 import { CiSearch } from "react-icons/ci";
-import { IoNotificationsOutline, IoSettingsOutline } from "react-icons/io5";
+import { IoSettingsOutline } from "react-icons/io5";
 import { LuShare2 } from "react-icons/lu";
 import { FiMenu } from "react-icons/fi";
+import { NotificationsBell } from "@/components/notifications-components/NotificationsBell";
 
 const daysOfWeek = [
   "Sunday", "Monday", "Tuesday", "Wednesday",
@@ -54,9 +55,7 @@ function Header({ onOpenSidebar }) {
           >
             <CiSearch size={18} />
           </button>
-          <div className="border border-gray-300 p-2 rounded-[5px]">
-            <IoNotificationsOutline size={18} />
-          </div>
+          <NotificationsBell />
           <div className="hidden sm:block border border-gray-300 p-2 rounded-[5px]">
             <LuShare2 size={18} />
           </div>
