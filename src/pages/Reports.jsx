@@ -1,17 +1,13 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Coins, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DateRangePicker } from "@/components/reports-components/DateRangePicker";
 import { ExportBar } from "@/components/reports-components/ExportBar";
 import { ReportPreviewTable } from "@/components/reports-components/ReportPreviewTable";
 import { ReportSummary } from "@/components/reports-components/ReportSummary";
-import {
-  filterByRange,
-  mockExpenseData,
-  mockTithesData,
-  resolvePreset,
-} from "@/components/reports-components/mockData";
+import { resolvePreset } from "@/components/reports-components/mockData";
 import { useAuth } from "@/hooks/useAuth";
+import { useReports } from "@/hooks/useReports";
 import { can } from "@/utils/rolePermissions";
 
 function Reports() {
@@ -31,11 +27,14 @@ function Reports() {
 
   const effectiveTab = tab === "expense" && !canViewExpense ? "tithes" : tab;
 
-  const filteredData = useMemo(() => {
-    const dateKey = effectiveTab === "tithes" ? "entryDate" : "date";
-    const source = effectiveTab === "tithes" ? mockTithesData : mockExpenseData;
-    return filterByRange(source, dateKey, startDate, endDate);
-  }, [effectiveTab, startDate, endDate]);
+  const {
+    data,
+    loading,
+    error,
+    downloadReport,
+    downloading,
+    downloadError,
+  } = useReports(effectiveTab, startDate, endDate);
 
   return (
     <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1">
@@ -79,7 +78,7 @@ function Reports() {
       </div>
 
       <div className="shrink-0">
-        <ReportSummary tab={effectiveTab} data={filteredData} />
+        <ReportSummary tab={effectiveTab} data={data} />
       </div>
 
       <div className="shrink-0">
@@ -87,12 +86,20 @@ function Reports() {
           tab={effectiveTab}
           startDate={startDate}
           endDate={endDate}
-          rowCount={filteredData.length}
+          rowCount={data.length}
+          onDownload={downloadReport}
+          downloading={downloading}
+          downloadError={downloadError}
         />
       </div>
 
       <div className="h-[24rem] md:h-[32rem] shrink-0">
-        <ReportPreviewTable tab={effectiveTab} data={filteredData} />
+        <ReportPreviewTable
+          tab={effectiveTab}
+          data={data}
+          loading={loading}
+          error={error}
+        />
       </div>
     </div>
   );
