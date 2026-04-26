@@ -9,6 +9,7 @@ import RequestForm from "./pages/RequestForm";
 import Voucher from "./pages/Voucher";
 import Expense from "./pages/Expense";
 import Reports from "./pages/Reports";
+import Notifications from "./pages/Notifications";
 import Users from "./pages/Users";
 import Categories from "./pages/Categories";
 
@@ -24,6 +25,7 @@ function App() {
           <Route path="/tithes" element={<Tithes />} />
           <Route path="/request-form" element={<RequestForm />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/notifications" element={<Notifications />} />
 
           <Route element={<ProtectedRoute allowedRoles={["admin", "do", "validator", "auditor"]} />}>
             <Route path="/voucher" element={<Voucher />} />
