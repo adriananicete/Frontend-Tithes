@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FieldHelp } from "@/components/shared/FieldHelp";
 import { apiFetch } from "@/services/api";
 
 const MIN_LENGTH = 6;
@@ -25,6 +26,7 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   const reset = () => {
     setCurrentPassword("");
@@ -35,6 +37,7 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
     setShowConfirm(false);
     setError("");
     setSuccess("");
+    setSubmitAttempted(false);
   };
 
   const handleOpenChange = (next) => {
@@ -42,23 +45,35 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
     onOpenChange(next);
   };
 
+  const currentError =
+    submitAttempted && !currentPassword ? "Current password is required" : "";
+
+  const newError = !newPassword
+    ? submitAttempted ? "New password is required" : ""
+    : newPassword.length < MIN_LENGTH
+    ? `New password must be at least ${MIN_LENGTH} characters (${newPassword.length}/${MIN_LENGTH})`
+    : newPassword === currentPassword
+    ? "New password must be different from current"
+    : "";
+
+  const confirmError = !confirmPassword
+    ? submitAttempted ? "Please confirm your new password" : ""
+    : confirmPassword !== newPassword
+    ? "Passwords do not match"
+    : "";
+
+  const isValid =
+    !!currentPassword &&
+    newPassword.length >= MIN_LENGTH &&
+    newPassword !== currentPassword &&
+    confirmPassword === newPassword;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitAttempted(true);
     setError("");
     setSuccess("");
-
-    if (newPassword.length < MIN_LENGTH) {
-      setError(`New password must be at least ${MIN_LENGTH} characters.`);
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      setError("New password and confirmation do not match.");
-      return;
-    }
-    if (newPassword === currentPassword) {
-      setError("New password must be different from current password.");
-      return;
-    }
+    if (!isValid) return;
 
     setSubmitting(true);
     try {
@@ -70,6 +85,7 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
+      setSubmitAttempted(false);
     } catch (err) {
       setError(err.message || "Failed to change password.");
     } finally {
@@ -77,8 +93,8 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
     }
   };
 
-  const PasswordField = ({ id, label, value, onChange, show, onToggle }) => (
-    <div className="grid gap-2">
+  const PasswordField = ({ id, label, value, onChange, show, onToggle, hint, error }) => (
+    <div className="grid gap-1.5">
       <Label htmlFor={id}>{label}</Label>
       <div className="relative">
         <Input
@@ -86,9 +102,9 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
           type={show ? "text" : "password"}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          required
           className="pr-10"
           autoComplete="new-password"
+          aria-invalid={!!error}
         />
         <button
           type="button"
@@ -100,6 +116,7 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
           {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
         </button>
       </div>
+      <FieldHelp error={error}>{hint}</FieldHelp>
     </div>
   );
 
@@ -111,11 +128,11 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
             <KeyRound className="h-5 w-5" /> Change Password
           </DialogTitle>
           <DialogDescription>
-            Enter your current password and choose a new one. Minimum {MIN_LENGTH} characters.
+            Enter your current password and choose a new one.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid gap-4">
+        <form onSubmit={handleSubmit} className="grid gap-4" noValidate>
           <PasswordField
             id="current-password"
             label="Current password"
@@ -123,6 +140,8 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
             onChange={setCurrentPassword}
             show={showCurrent}
             onToggle={() => setShowCurrent((s) => !s)}
+            hint="Required"
+            error={currentError}
           />
           <PasswordField
             id="new-password"
@@ -131,6 +150,8 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
             onChange={setNewPassword}
             show={showNew}
             onToggle={() => setShowNew((s) => !s)}
+            hint={`At least ${MIN_LENGTH} characters, different from current`}
+            error={newError}
           />
           <PasswordField
             id="confirm-password"
@@ -139,6 +160,8 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
             onChange={setConfirmPassword}
             show={showConfirm}
             onToggle={() => setShowConfirm((s) => !s)}
+            hint="Must match new password"
+            error={confirmError}
           />
 
           {error && <p className="text-sm text-red-600">{error}</p>}
