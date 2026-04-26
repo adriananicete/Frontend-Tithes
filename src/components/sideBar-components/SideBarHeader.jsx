@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { FiSidebar, FiLogOut } from "react-icons/fi";
+import { LuKeyRound } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../hooks/useAuth";
 import { ROLE_LABELS } from "../../utils/rolePermissions";
+import { ChangePasswordDialog } from "./ChangePasswordDialog";
 
 function SideBarHeader() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const [pwdOpen, setPwdOpen] = useState(false);
 
     const handleLogout = () => {
         logout();
@@ -25,6 +29,14 @@ function SideBarHeader() {
                 <div className="shrink-0 flex items-center gap-2">
                     <button
                         type="button"
+                        onClick={() => setPwdOpen(true)}
+                        title="Change password"
+                        className="p-1 text-gray-600 hover:text-blue-600 cursor-pointer"
+                    >
+                        <LuKeyRound size={18} />
+                    </button>
+                    <button
+                        type="button"
                         onClick={handleLogout}
                         title="Log out"
                         className="p-1 text-gray-600 hover:text-red-600 cursor-pointer"
@@ -34,6 +46,7 @@ function SideBarHeader() {
                     <FiSidebar size={20} className="text-gray-700" />
                 </div>
             </div>
+            <ChangePasswordDialog open={pwdOpen} onOpenChange={setPwdOpen} />
         </div>
      );
 }
