@@ -32,7 +32,7 @@ const sourceColor = {
   manual:  "bg-purple-100 text-purple-700",
 };
 
-export function ReportPreviewTable({ className, tab, data }) {
+export function ReportPreviewTable({ className, tab, data, loading, error }) {
   const [page, setPage] = useState(1);
 
   const sorted = useMemo(() => {
@@ -44,6 +44,12 @@ export function ReportPreviewTable({ className, tab, data }) {
   const currentPage = Math.min(page, totalPages);
   const pageStart = (currentPage - 1) * PAGE_SIZE;
   const pageItems = sorted.slice(pageStart, pageStart + PAGE_SIZE);
+
+  const emptyText = loading
+    ? `Loading ${tab} entries…`
+    : error
+    ? error
+    : "No entries in this date range.";
 
   return (
     <Card className={`w-full h-full flex flex-col ${className ?? ""}`}>
@@ -86,17 +92,17 @@ export function ReportPreviewTable({ className, tab, data }) {
                     colSpan={tab === "tithes" ? 5 : 6}
                     className="text-center text-muted-foreground py-6"
                   >
-                    No entries in this date range.
+                    {emptyText}
                   </TableCell>
                 </TableRow>
               ) : tab === "tithes" ? (
                 pageItems.map((row) => (
-                  <TableRow key={row.id}>
+                  <TableRow key={row._id}>
                     <TableCell className="text-muted-foreground">
                       {formatDate(row.entryDate)}
                     </TableCell>
                     <TableCell>{row.serviceType}</TableCell>
-                    <TableCell>{row.submittedBy}</TableCell>
+                    <TableCell>{row.submittedBy?.name ?? "—"}</TableCell>
                     <TableCell>
                       <Badge variant="secondary" className={tithesStatusColor[row.status]}>
                         {row.status}
@@ -109,16 +115,16 @@ export function ReportPreviewTable({ className, tab, data }) {
                 ))
               ) : (
                 pageItems.map((row) => (
-                  <TableRow key={row.id}>
+                  <TableRow key={row._id}>
                     <TableCell className="text-muted-foreground">{formatDate(row.date)}</TableCell>
                     <TableCell>
                       <Badge variant="secondary" className={sourceColor[row.source]}>
                         {row.source === "voucher" ? "Voucher" : "Manual"}
                       </Badge>
                     </TableCell>
-                    <TableCell>{row.category}</TableCell>
-                    <TableCell className="font-medium">{row.linkedRef ?? "—"}</TableCell>
-                    <TableCell className="text-muted-foreground">{row.recordedBy}</TableCell>
+                    <TableCell>{row.category?.name ?? "—"}</TableCell>
+                    <TableCell className="font-medium">{row.linkedId?.pcfNo ?? "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">{row.recordedBy?.name ?? "—"}</TableCell>
                     <TableCell className="text-right font-medium tabular-nums">
                       {formatPHP(row.amount)}
                     </TableCell>
@@ -132,16 +138,16 @@ export function ReportPreviewTable({ className, tab, data }) {
         <div className="md:hidden -mx-4 divide-y border-t">
           {pageItems.length === 0 ? (
             <div className="py-10 text-center text-sm text-muted-foreground">
-              No entries in this date range.
+              {emptyText}
             </div>
           ) : tab === "tithes" ? (
             pageItems.map((row) => (
-              <div key={row.id} className="px-4 py-3 space-y-1.5">
+              <div key={row._id} className="px-4 py-3 space-y-1.5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <div className="font-medium truncate">{row.serviceType}</div>
                     <div className="text-xs text-muted-foreground truncate">
-                      {row.submittedBy}
+                      {row.submittedBy?.name ?? "—"}
                     </div>
                   </div>
                   <Badge variant="secondary" className={tithesStatusColor[row.status]}>
@@ -156,12 +162,12 @@ export function ReportPreviewTable({ className, tab, data }) {
             ))
           ) : (
             pageItems.map((row) => (
-              <div key={row.id} className="px-4 py-3 space-y-1.5">
+              <div key={row._id} className="px-4 py-3 space-y-1.5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="font-medium truncate">{row.category}</div>
+                    <div className="font-medium truncate">{row.category?.name ?? "—"}</div>
                     <div className="text-xs text-muted-foreground truncate">
-                      {row.linkedRef ?? "—"} • {row.recordedBy}
+                      {(row.linkedId?.pcfNo ?? "—")} • {row.recordedBy?.name ?? "—"}
                     </div>
                   </div>
                   <Badge variant="secondary" className={sourceColor[row.source]}>
