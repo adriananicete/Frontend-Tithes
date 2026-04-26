@@ -48,10 +48,11 @@ export function CreateUserDialog({ open, onOpenChange, onSubmit }) {
     setError("");
     try {
       await onSubmit?.({ name, email, password, role });
-      onOpenChange?.(false);
       reset();
+      onOpenChange?.(false);
     } catch (err) {
       setError(err.message || "Failed to create user");
+    } finally {
       setSubmitting(false);
     }
   };
