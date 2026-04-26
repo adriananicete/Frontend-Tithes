@@ -9,16 +9,13 @@ import {
 } from "@/components/ui/dialog";
 import { formatDate, formatDateTime, formatPHP, statusConfig } from "./mockData";
 
-// Backend doesn't stamp submittedAt / voucherCreatedAt / receivedAt — only
-// validatedAt, approvedAt, rejectedAt are real. The other stages are derived
-// from the current status order.
 const stages = [
-  { key: "draft",           label: "Created",         timestampField: "createdAt", byField: "requestedBy" },
-  { key: "submitted",       label: "Submitted",       timestampField: null,        byField: "requestedBy" },
-  { key: "for_approval",    label: "Validated",       timestampField: "validatedAt", byField: "validatedBy" },
-  { key: "approved",        label: "Approved",        timestampField: "approvedAt",  byField: "approvedBy" },
-  { key: "voucher_created", label: "Voucher Created", timestampField: null,          byField: null },
-  { key: "disbursed",       label: "Disbursed",       timestampField: null,          byField: "requestedBy" },
+  { key: "draft",           label: "Created",         timestampField: "createdAt",        byField: "requestedBy" },
+  { key: "submitted",       label: "Submitted",       timestampField: "submittedAt",      byField: "requestedBy" },
+  { key: "for_approval",    label: "Validated",       timestampField: "validatedAt",      byField: "validatedBy" },
+  { key: "approved",        label: "Approved",        timestampField: "approvedAt",       byField: "approvedBy" },
+  { key: "voucher_created", label: "Voucher Created", timestampField: "voucherCreatedAt", byField: null },
+  { key: "disbursed",       label: "Disbursed",       timestampField: "receivedAt",       byField: "requestedBy" },
 ];
 
 const personName = (val) =>
