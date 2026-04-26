@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FieldHelp } from "@/components/shared/FieldHelp";
 import { COLOR_PALETTE, TYPES } from "./mockData";
 
 // Combined create + edit dialog. `category` prop present = edit mode.
@@ -29,6 +30,7 @@ export function CategoryFormDialog({ category, open, onOpenChange, onSubmit }) {
   const [color, setColor] = useState(COLOR_PALETTE[0].value);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   useEffect(() => {
     if (category) {
@@ -40,20 +42,30 @@ export function CategoryFormDialog({ category, open, onOpenChange, onSubmit }) {
       setType("");
       setColor(COLOR_PALETTE[0].value);
     }
-    if (open) setError("");
+    if (open) {
+      setError("");
+      setSubmitAttempted(false);
+    }
   }, [category, open]);
 
-  const canSubmit = name.trim() && type && color && !submitting;
+  const trimmedName = name.trim();
+
+  const nameError = submitAttempted && !trimmedName ? "Name is required" : "";
+  const typeError = submitAttempted && !type ? "Select a type" : "";
+
+  const isValid = !!trimmedName && !!type && !!color;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitAttempted(true);
+    setError("");
+    if (!isValid) return;
     if (!onSubmit) {
       onOpenChange?.(false);
       return;
     }
-    const payload = { name: name.trim(), type, color };
+    const payload = { name: trimmedName, type, color };
     setSubmitting(true);
-    setError("");
     try {
       await onSubmit(payload);
       onOpenChange?.(false);
@@ -76,7 +88,7 @@ export function CategoryFormDialog({ category, open, onOpenChange, onSubmit }) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div className="space-y-1.5">
             <Label htmlFor="catName">Name</Label>
             <Input
@@ -84,14 +96,15 @@ export function CategoryFormDialog({ category, open, onOpenChange, onSubmit }) {
               placeholder="e.g., Youth Camp, Office Supplies"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              required
+              aria-invalid={!!nameError}
             />
+            <FieldHelp error={nameError}>Required</FieldHelp>
           </div>
 
           <div className="space-y-1.5">
             <Label>Type</Label>
             <Select value={type} onValueChange={setType} disabled={isEdit}>
-              <SelectTrigger>
+              <SelectTrigger aria-invalid={!!typeError}>
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent>
@@ -102,11 +115,9 @@ export function CategoryFormDialog({ category, open, onOpenChange, onSubmit }) {
                 ))}
               </SelectContent>
             </Select>
-            {isEdit && (
-              <p className="text-xs text-muted-foreground">
-                Type cannot be changed after creation.
-              </p>
-            )}
+            <FieldHelp error={typeError}>
+              {isEdit ? "Type cannot be changed after creation." : "Required"}
+            </FieldHelp>
           </div>
 
           <div className="space-y-2">
@@ -150,7 +161,7 @@ export function CategoryFormDialog({ category, open, onOpenChange, onSubmit }) {
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={!canSubmit}>
+            <Button type="submit" disabled={submitting}>
               {submitting
                 ? isEdit ? "Saving…" : "Creating…"
                 : isEdit ? "Save Changes" : "Create Category"}

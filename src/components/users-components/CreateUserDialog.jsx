@@ -19,7 +19,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FieldHelp } from "@/components/shared/FieldHelp";
 import { ROLES } from "./mockData";
+
+const MIN_PASSWORD = 6;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function CreateUserDialog({ open, onOpenChange, onSubmit }) {
   const [name, setName] = useState("");
@@ -29,6 +33,7 @@ export function CreateUserDialog({ open, onOpenChange, onSubmit }) {
   const [role, setRole] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   const reset = () => {
     setName("");
@@ -38,16 +43,50 @@ export function CreateUserDialog({ open, onOpenChange, onSubmit }) {
     setRole("");
     setSubmitting(false);
     setError("");
+    setSubmitAttempted(false);
   };
 
-  const canSubmit = name && email && password.length >= 6 && role && !submitting;
+  const trimmedName = name.trim();
+  const trimmedEmail = email.trim();
+
+  const nameError =
+    submitAttempted && !trimmedName ? "Name is required" : "";
+
+  const emailError = !trimmedEmail
+    ? submitAttempted ? "Email is required" : ""
+    : !EMAIL_REGEX.test(trimmedEmail)
+    ? "Enter a valid email address"
+    : "";
+
+  const passwordError = !password
+    ? submitAttempted ? "Password is required" : ""
+    : password.length < MIN_PASSWORD
+    ? `Password must be at least ${MIN_PASSWORD} characters (${password.length}/${MIN_PASSWORD})`
+    : "";
+
+  const roleError = submitAttempted && !role ? "Select a role" : "";
+
+  const isValid =
+    !!trimmedName &&
+    !!trimmedEmail &&
+    EMAIL_REGEX.test(trimmedEmail) &&
+    password.length >= MIN_PASSWORD &&
+    !!role;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitting(true);
+    setSubmitAttempted(true);
     setError("");
+    if (!isValid) return;
+
+    setSubmitting(true);
     try {
-      await onSubmit?.({ name, email, password, role });
+      await onSubmit?.({
+        name: trimmedName,
+        email: trimmedEmail,
+        password,
+        role,
+      });
       reset();
       onOpenChange?.(false);
     } catch (err) {
@@ -73,7 +112,7 @@ export function CreateUserDialog({ open, onOpenChange, onSubmit }) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div className="space-y-1.5">
             <Label htmlFor="name">Full Name</Label>
             <Input
@@ -81,48 +120,57 @@ export function CreateUserDialog({ open, onOpenChange, onSubmit }) {
               placeholder="e.g., Juan Dela Cruz"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              required
+              aria-invalid={!!nameError}
+              autoComplete="name"
             />
+            <FieldHelp error={nameError}>Required</FieldHelp>
           </div>
+
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
-              placeholder="user@joscm.org"
+              placeholder="user@joscm.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
+              aria-invalid={!!emailError}
+              autoComplete="email"
             />
+            <FieldHelp error={emailError}>Used to log in</FieldHelp>
           </div>
+
           <div className="space-y-1.5">
             <Label htmlFor="password">Temporary Password</Label>
             <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="At least 6 characters"
+                placeholder={`At least ${MIN_PASSWORD} characters`}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
+                aria-invalid={!!passwordError}
+                autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((s) => !s)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                tabIndex={-1}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              User can change this later from their profile.
-            </p>
+            <FieldHelp error={passwordError}>
+              At least {MIN_PASSWORD} characters. User can change it later.
+            </FieldHelp>
           </div>
+
           <div className="space-y-1.5">
             <Label>Role</Label>
             <Select value={role} onValueChange={setRole}>
-              <SelectTrigger>
+              <SelectTrigger aria-invalid={!!roleError}>
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
               <SelectContent>
@@ -133,6 +181,7 @@ export function CreateUserDialog({ open, onOpenChange, onSubmit }) {
                 ))}
               </SelectContent>
             </Select>
+            <FieldHelp error={roleError}>Required</FieldHelp>
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
@@ -143,7 +192,7 @@ export function CreateUserDialog({ open, onOpenChange, onSubmit }) {
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={!canSubmit}>
+            <Button type="submit" disabled={submitting}>
               {submitting ? "Creating…" : "Create User"}
             </Button>
           </DialogFooter>
