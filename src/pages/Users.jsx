@@ -70,11 +70,13 @@ function Users() {
         />
       </div>
 
-      <CreateUserDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        onSubmit={createUser}
-      />
+      {createOpen && (
+        <CreateUserDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          onSubmit={createUser}
+        />
+      )}
 
       <UserDetailsDialog
         user={viewingUser}
