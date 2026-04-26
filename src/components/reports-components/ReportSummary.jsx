@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { BarChart3, Calculator, FileBarChart, Trophy } from "lucide-react";
 import {
   Card,
@@ -22,55 +23,58 @@ function StatTile({ label, value, sub, icon: Icon, accent }) {
 }
 
 export function ReportSummary({ className, tab, data }) {
-  const amountKey = tab === "tithes" ? "total" : "amount";
-  const groupKey  = tab === "tithes" ? "serviceType" : "category";
-  const groupLabel = tab === "tithes" ? "Top Service" : "Top Category";
+  const stats = useMemo(() => {
+    const amountKey = tab === "tithes" ? "total" : "amount";
+    const groupLabel = tab === "tithes" ? "Top Service" : "Top Category";
 
-  const total = data.reduce((a, c) => a + (c[amountKey] || 0), 0);
-  const count = data.length;
-  const avg = count > 0 ? Math.round(total / count) : 0;
+    const total = data.reduce((a, c) => a + (c[amountKey] || 0), 0);
+    const count = data.length;
+    const avg = count > 0 ? Math.round(total / count) : 0;
 
-  const byGroup = {};
-  data.forEach((row) => {
-    const k = row[groupKey];
-    byGroup[k] = (byGroup[k] || 0) + (row[amountKey] || 0);
-  });
-  const topEntry = Object.entries(byGroup).sort((a, b) => b[1] - a[1])[0];
+    const byGroup = {};
+    data.forEach((row) => {
+      const k = tab === "tithes" ? row.serviceType : row.category?.name ?? "Uncategorized";
+      byGroup[k] = (byGroup[k] || 0) + (row[amountKey] || 0);
+    });
+    const topEntry = Object.entries(byGroup).sort((a, b) => b[1] - a[1])[0];
+
+    return { total, count, avg, topEntry, groupLabel };
+  }, [tab, data]);
 
   return (
     <Card className={`w-full ${className ?? ""}`}>
       <CardHeader>
         <CardTitle>Report Summary</CardTitle>
         <CardDescription>
-          Computed from {count} {tab === "tithes" ? "tithe entries" : "expense entries"} in the selected range
+          Computed from {stats.count} {tab === "tithes" ? "tithe entries" : "expense entries"} in the selected range
         </CardDescription>
       </CardHeader>
       <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatTile
           label="Total Amount"
-          value={formatPHP(total)}
-          sub={`${count} entries`}
+          value={formatPHP(stats.total)}
+          sub={`${stats.count} entries`}
           icon={FileBarChart}
           accent="bg-blue-50/50"
         />
         <StatTile
           label="Entry Count"
-          value={count.toString()}
+          value={stats.count.toString()}
           sub={tab === "tithes" ? "tithes submitted" : "expenses recorded"}
           icon={BarChart3}
           accent="bg-amber-50/50"
         />
         <StatTile
           label="Average per Entry"
-          value={formatPHP(avg)}
-          sub={count > 0 ? "mean value" : "no entries"}
+          value={formatPHP(stats.avg)}
+          sub={stats.count > 0 ? "mean value" : "no entries"}
           icon={Calculator}
           accent="bg-emerald-50/50"
         />
         <StatTile
-          label={groupLabel}
-          value={topEntry ? topEntry[0] : "—"}
-          sub={topEntry ? formatPHP(topEntry[1]) : "no data"}
+          label={stats.groupLabel}
+          value={stats.topEntry ? stats.topEntry[0] : "—"}
+          sub={stats.topEntry ? formatPHP(stats.topEntry[1]) : "no data"}
           icon={Trophy}
           accent="bg-purple-50/50"
         />
