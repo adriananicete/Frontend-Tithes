@@ -36,7 +36,7 @@ export function SubmitTithesDialog({ open: controlledOpen, onOpenChange, onSubmi
   const [serviceType, setServiceType] = useState(SERVICE_TYPES[0]);
   const [remarks, setRemarks] = useState("");
   const [qtys, setQtys] = useState(() =>
-    Object.fromEntries(DENOMINATIONS.map((b) => [b, 0]))
+    Object.fromEntries(DENOMINATIONS.map((b) => [b, ""]))
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -47,7 +47,11 @@ export function SubmitTithesDialog({ open: controlledOpen, onOpenChange, onSubmi
   );
 
   const setQty = (bill, value) => {
-    const n = Math.max(0, parseInt(value || "0", 10) || 0);
+    if (value === "") {
+      setQtys((prev) => ({ ...prev, [bill]: "" }));
+      return;
+    }
+    const n = Math.max(0, parseInt(value, 10) || 0);
     setQtys((prev) => ({ ...prev, [bill]: n }));
   };
 
@@ -55,7 +59,7 @@ export function SubmitTithesDialog({ open: controlledOpen, onOpenChange, onSubmi
     setEntryDate(today());
     setServiceType(SERVICE_TYPES[0]);
     setRemarks("");
-    setQtys(Object.fromEntries(DENOMINATIONS.map((b) => [b, 0])));
+    setQtys(Object.fromEntries(DENOMINATIONS.map((b) => [b, ""])));
     setSubmitting(false);
     setError("");
   };
@@ -149,8 +153,9 @@ export function SubmitTithesDialog({ open: controlledOpen, onOpenChange, onSubmi
                 <div className="text-right">Subtotal</div>
               </div>
               {DENOMINATIONS.map((bill) => {
-                const qty = qtys[bill] || 0;
-                const subtotal = bill * qty;
+                const qty = qtys[bill];
+                const numericQty = Number(qty) || 0;
+                const subtotal = bill * numericQty;
                 return (
                   <div key={bill} className="grid grid-cols-3 px-3 py-2 items-center">
                     <div className="font-medium">₱{bill}</div>
@@ -158,6 +163,7 @@ export function SubmitTithesDialog({ open: controlledOpen, onOpenChange, onSubmi
                       <Input
                         type="number"
                         min="0"
+                        placeholder="0"
                         value={qty}
                         onChange={(e) => setQty(bill, e.target.value)}
                         className="w-24 h-8"

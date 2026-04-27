@@ -26,7 +26,7 @@ export function NotificationsBell() {
         // Optimistic update already applied; refetch will reconcile.
       }
     }
-    navigate(pathForRef(notif.refModel));
+    navigate(pathForRef(notif.refModel, notif.refId));
   };
 
   const handleViewAll = () => {

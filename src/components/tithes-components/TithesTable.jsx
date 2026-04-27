@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MoreHorizontal, Eye, Check, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -172,6 +172,8 @@ export function TithesTable({
   onApprove,
   onReject,
   className,
+  focusId = null,
+  onFocusHandled,
 }) {
   const { user } = useAuth();
   const [search, setSearch] = useState("");
@@ -181,6 +183,12 @@ export function TithesTable({
   const [viewing, setViewing] = useState(null);
   const [rejecting, setRejecting] = useState(null);
   const [approving, setApproving] = useState(null);
+
+  useEffect(() => {
+    if (!focusId || tithes.length === 0) return;
+    const match = tithes.find((t) => t._id === focusId);
+    if (match) setViewing(match);
+  }, [focusId, tithes]);
 
   const filtered = useMemo(() => {
     return tithes.filter((row) => {
@@ -385,7 +393,15 @@ export function TithesTable({
         </CardFooter>
       </Card>
 
-      <Dialog open={!!viewing} onOpenChange={(open) => !open && setViewing(null)}>
+      <Dialog
+        open={!!viewing}
+        onOpenChange={(open) => {
+          if (!open) {
+            setViewing(null);
+            if (focusId) onFocusHandled?.();
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Tithes Entry Details</DialogTitle>
