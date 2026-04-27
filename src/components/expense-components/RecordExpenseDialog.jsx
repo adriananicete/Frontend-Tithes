@@ -123,7 +123,14 @@ export function RecordExpenseDialog({
                           ? "No expense categories"
                           : "Select category"
                       }
-                    />
+                    >
+                      {(value) =>
+                        categories.find((c) => c._id === value)?.name ||
+                        (categories.length === 0
+                          ? "No expense categories"
+                          : "Select category")
+                      }
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((c) => (
