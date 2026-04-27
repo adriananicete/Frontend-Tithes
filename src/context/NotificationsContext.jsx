@@ -48,6 +48,9 @@ export function NotificationsProvider({ children }) {
         if (prev.some((n) => n._id === notif._id)) return prev;
         return [notif, ...prev];
       });
+      // Broadcast so resource hooks (useRequestForms / useTithes / useVouchers)
+      // can refetch their list when the underlying entity changed.
+      window.dispatchEvent(new CustomEvent("notification:new", { detail: notif }));
     };
 
     const handleReconcile = () => {
