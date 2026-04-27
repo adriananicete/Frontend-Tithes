@@ -1,8 +1,7 @@
-import { createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../services/api";
+import { connectSocket, disconnectSocket } from "../services/socket";
 import { useAuth } from "../hooks/useAuth";
-
-const POLL_INTERVAL_MS = 60_000;
 
 export const NotificationsContext = createContext(null);
 
@@ -11,7 +10,6 @@ export function NotificationsProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const intervalRef = useRef(null);
 
   const refetch = useCallback(async () => {
     if (!user) {
@@ -35,20 +33,35 @@ export function NotificationsProvider({ children }) {
     if (!user) {
       setNotifications([]);
       setLoading(false);
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+      disconnectSocket();
       return;
     }
+
     setLoading(true);
     refetch();
-    intervalRef.current = setInterval(refetch, POLL_INTERVAL_MS);
+
+    const socket = connectSocket();
+    if (!socket) return;
+
+    const handleNew = (notif) => {
+      setNotifications((prev) => {
+        if (prev.some((n) => n._id === notif._id)) return prev;
+        return [notif, ...prev];
+      });
+    };
+
+    const handleReconcile = () => {
+      refetch();
+    };
+
+    socket.on("notification:new", handleNew);
+    socket.on("connect", handleReconcile);
+    window.addEventListener("focus", handleReconcile);
+
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
+      socket.off("notification:new", handleNew);
+      socket.off("connect", handleReconcile);
+      window.removeEventListener("focus", handleReconcile);
     };
   }, [user, refetch]);
 
