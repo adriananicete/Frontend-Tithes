@@ -189,7 +189,21 @@ export function CreateVoucherDialog({
                         ? "No approved RFs available"
                         : "Select an approved RF..."
                     }
-                  />
+                  >
+                    {(value) => {
+                      const rf = approvedRfs.find((r) => r._id === value);
+                      if (rf) {
+                        return `${rf.rfNo} · Approved ${formatDate(
+                          rf.approvedAt ?? rf.createdAt
+                        )}`;
+                      }
+                      return rfsLoading
+                        ? "Loading approved RFs…"
+                        : approvedRfs.length === 0
+                        ? "No approved RFs available"
+                        : "Select an approved RF...";
+                    }}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {approvedRfs.map((rf) => (
