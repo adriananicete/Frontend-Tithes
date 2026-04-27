@@ -43,6 +43,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { ConfirmActionDialog } from "@/components/shared/ConfirmActionDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { can } from "@/utils/rolePermissions";
 import { formatDate, formatPHP, SERVICE_TYPES, statusStyles } from "./tithesUtils";
@@ -179,7 +180,7 @@ export function TithesTable({
   const [page, setPage] = useState(1);
   const [viewing, setViewing] = useState(null);
   const [rejecting, setRejecting] = useState(null);
-  const [actionError, setActionError] = useState("");
+  const [approving, setApproving] = useState(null);
 
   const filtered = useMemo(() => {
     return tithes.filter((row) => {
@@ -201,15 +202,6 @@ export function TithesTable({
   const pageItems = filtered.slice(pageStart, pageStart + PAGE_SIZE);
 
   const resetPage = () => setPage(1);
-
-  const handleApprove = async (row) => {
-    setActionError("");
-    try {
-      await onApprove?.(row._id);
-    } catch (err) {
-      setActionError(err.message || "Failed to approve entry");
-    }
-  };
 
   const renderEmptyMessage = () => {
     if (loading) return "Loading tithes…";
@@ -276,7 +268,6 @@ export function TithesTable({
               </SelectContent>
             </Select>
           </div>
-          {actionError && <p className="text-sm text-red-600">{actionError}</p>}
         </CardHeader>
 
         <CardContent className="flex-1 min-h-0 overflow-auto">
@@ -317,7 +308,7 @@ export function TithesTable({
                           role={user?.role}
                           userName={user?.name}
                           onView={() => setViewing(row)}
-                          onApprove={() => handleApprove(row)}
+                          onApprove={() => setApproving(row)}
                           onReject={() => setRejecting(row)}
                         />
                       </TableCell>
@@ -350,7 +341,7 @@ export function TithesTable({
                         role={user?.role}
                         userName={user?.name}
                         onView={() => setViewing(row)}
-                        onApprove={() => handleApprove(row)}
+                        onApprove={() => setApproving(row)}
                         onReject={() => setRejecting(row)}
                       />
                     </div>
@@ -456,6 +447,21 @@ export function TithesTable({
         onOpenChange={(v) => !v && setRejecting(null)}
         onConfirm={(note) => onReject?.(rejecting._id, note)}
       />
+
+      {approving && (
+        <ConfirmActionDialog
+          open={!!approving}
+          onOpenChange={(v) => !v && setApproving(null)}
+          variant="approve"
+          title="Approve this tithes entry?"
+          description={`${formatPHP(approving.total)} from ${
+            approving.submittedBy?.name ?? "—"
+          } on ${formatDate(approving.entryDate)} will be marked approved.`}
+          confirmLabel="Yes, approve"
+          pendingLabel="Approving…"
+          onConfirm={() => onApprove?.(approving._id)}
+        />
+      )}
     </>
   );
 }
