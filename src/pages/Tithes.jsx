@@ -1,3 +1,4 @@
+import { useSearchParams } from "react-router";
 import { ServiceTypeBreakdown } from "@/components/tithes-components/ServiceTypeBreakdown";
 import { SubmitTithesDialog } from "@/components/tithes-components/SubmitTithesDialog";
 import { TithesSummary } from "@/components/tithes-components/TithesSummary";
@@ -14,6 +15,16 @@ function Tithes() {
     approveTithes,
     rejectTithes,
   } = useTithes();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const focusId = searchParams.get("focus");
+
+  const clearFocus = () => {
+    if (!focusId) return;
+    const params = new URLSearchParams(searchParams);
+    params.delete("focus");
+    setSearchParams(params, { replace: true });
+  };
 
   return (
     <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1">
@@ -45,6 +56,8 @@ function Tithes() {
           error={error}
           onApprove={approveTithes}
           onReject={rejectTithes}
+          focusId={focusId}
+          onFocusHandled={clearFocus}
         />
       </div>
     </div>
