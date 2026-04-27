@@ -25,6 +25,14 @@ export function useTithes() {
     refetch();
   }, [refetch]);
 
+  useEffect(() => {
+    const onNotif = (e) => {
+      if (e.detail?.refModel === "Tithes") refetch();
+    };
+    window.addEventListener("notification:new", onNotif);
+    return () => window.removeEventListener("notification:new", onNotif);
+  }, [refetch]);
+
   const submitTithes = async (payload) => {
     await apiFetch("/tithes", {
       method: "POST",

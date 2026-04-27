@@ -23,6 +23,14 @@ export function useRequestForms() {
     refetch();
   }, [refetch]);
 
+  useEffect(() => {
+    const onNotif = (e) => {
+      if (e.detail?.refModel === "RequestForm") refetch();
+    };
+    window.addEventListener("notification:new", onNotif);
+    return () => window.removeEventListener("notification:new", onNotif);
+  }, [refetch]);
+
   const createRf = async (payload) => {
     const res = await apiFetch("/request-form", {
       method: "POST",

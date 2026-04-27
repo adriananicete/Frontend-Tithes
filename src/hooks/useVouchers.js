@@ -23,6 +23,14 @@ export function useVouchers() {
     refetch();
   }, [refetch]);
 
+  useEffect(() => {
+    const onNotif = (e) => {
+      if (e.detail?.refModel === "Voucher") refetch();
+    };
+    window.addEventListener("notification:new", onNotif);
+    return () => window.removeEventListener("notification:new", onNotif);
+  }, [refetch]);
+
   const createVoucher = async (formData) => {
     await apiFetch("/vouchers", {
       method: "POST",
