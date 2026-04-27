@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ConfirmActionDialog } from "@/components/shared/ConfirmActionDialog";
 
 // Generic confirmation dialog used for deactivate / activate / delete.
 // Parent controls `action` ("deactivate" | "activate" | "delete") to shape the copy.
@@ -19,27 +19,33 @@ export function ConfirmUserActionDialog({ user, action, open, onOpenChange, onCo
 
   if (!user || !action) return null;
 
+  if (action === "delete") {
+    return (
+      <ConfirmActionDialog
+        open={open}
+        onOpenChange={onOpenChange}
+        variant="delete"
+        title="Delete this user?"
+        description={`${user.name} will be permanently removed. This cannot be undone.`}
+        confirmLabel="Yes, delete"
+        pendingLabel="Deleting…"
+        onConfirm={onConfirm}
+      />
+    );
+  }
+
   const config = {
     deactivate: {
       title: "Deactivate user?",
       description: `${user.name} will not be able to sign in until reactivated. Their data is kept.`,
       confirmLabel: "Deactivate",
       busyLabel: "Deactivating…",
-      variant: "default",
     },
     activate: {
       title: "Activate user?",
       description: `${user.name} will regain the ability to sign in.`,
       confirmLabel: "Activate",
       busyLabel: "Activating…",
-      variant: "default",
-    },
-    delete: {
-      title: "Delete user?",
-      description: `${user.name} will be permanently removed. This cannot be undone.`,
-      confirmLabel: "Delete permanently",
-      busyLabel: "Deleting…",
-      variant: "destructive",
     },
   }[action];
 
@@ -59,10 +65,7 @@ export function ConfirmUserActionDialog({ user, action, open, onOpenChange, onCo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md overflow-x-hidden">
         <DialogHeader>
-          <div className="flex items-center gap-2">
-            {action === "delete" && <AlertTriangle className="h-5 w-5 text-red-600" />}
-            <DialogTitle>{config.title}</DialogTitle>
-          </div>
+          <DialogTitle>{config.title}</DialogTitle>
           <DialogDescription>{config.description}</DialogDescription>
         </DialogHeader>
 
@@ -74,13 +77,7 @@ export function ConfirmUserActionDialog({ user, action, open, onOpenChange, onCo
               Cancel
             </Button>
           </DialogClose>
-          <Button
-            type="button"
-            variant={config.variant}
-            onClick={handleConfirm}
-            disabled={submitting}
-            className={action === "delete" ? "bg-red-600 hover:bg-red-700 text-white" : ""}
-          >
+          <Button type="button" onClick={handleConfirm} disabled={submitting}>
             {submitting ? config.busyLabel : config.confirmLabel}
           </Button>
         </DialogFooter>
