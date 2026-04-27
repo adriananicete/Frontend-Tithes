@@ -17,7 +17,11 @@ export const REF_PATH = {
   Voucher:     "/voucher",
 };
 
-export const pathForRef = (refModel) => REF_PATH[refModel] ?? "/dashboard";
+export const pathForRef = (refModel, refId) => {
+  const base = REF_PATH[refModel] ?? "/dashboard";
+  if (!refId || !REF_PATH[refModel]) return base;
+  return `${base}?focus=${refId}`;
+};
 
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
