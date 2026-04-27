@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router";
 import { GoPlus } from "react-icons/go";
 import CustomButton from "@/components/Buttons";
 import { CreateVoucherDialog } from "@/components/voucher-components/CreateVoucherDialog";
@@ -7,6 +8,7 @@ import { VoucherDetailsDialog } from "@/components/voucher-components/VoucherDet
 import { VoucherSummaryStats } from "@/components/voucher-components/VoucherSummaryStats";
 import { VoucherTable } from "@/components/voucher-components/VoucherTable";
 import { useAuth } from "@/hooks/useAuth";
+import { useVouchers } from "@/hooks/useVouchers";
 import { can } from "@/utils/rolePermissions";
 
 function Voucher() {
@@ -15,6 +17,27 @@ function Voucher() {
   const [viewingVoucher, setViewingVoucher] = useState(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [preselectedRfId, setPreselectedRfId] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const focusId = searchParams.get("focus");
+
+  const { vouchers, loading, error } = useVouchers();
+
+  useEffect(() => {
+    if (!focusId || !vouchers.length) return;
+    const match = vouchers.find((v) => v._id === focusId);
+    if (match) setViewingVoucher(match);
+  }, [focusId, vouchers]);
+
+  const handleViewClose = (next) => {
+    if (!next) {
+      setViewingVoucher(null);
+      if (focusId) {
+        const params = new URLSearchParams(searchParams);
+        params.delete("focus");
+        setSearchParams(params, { replace: true });
+      }
+    }
+  };
 
   const launchCreate = (rfId = null) => {
     setPreselectedRfId(rfId);
@@ -47,7 +70,7 @@ function Voucher() {
       />
 
       <div className="shrink-0">
-        <VoucherSummaryStats />
+        <VoucherSummaryStats vouchers={vouchers} />
       </div>
 
       {canCreate && (
@@ -57,13 +80,18 @@ function Voucher() {
       )}
 
       <div className="h-[24rem] md:h-[32rem] shrink-0">
-        <VoucherTable onViewVoucher={setViewingVoucher} />
+        <VoucherTable
+          vouchers={vouchers}
+          loading={loading}
+          error={error}
+          onViewVoucher={setViewingVoucher}
+        />
       </div>
 
       <VoucherDetailsDialog
         voucher={viewingVoucher}
         open={!!viewingVoucher}
-        onOpenChange={(v) => !v && setViewingVoucher(null)}
+        onOpenChange={handleViewClose}
       />
     </div>
   );

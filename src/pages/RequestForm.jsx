@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router";
 import { CreateRfDialog } from "@/components/request-form-components/CreateRfDialog";
 import { RfDetailsDialog } from "@/components/request-form-components/RfDetailsDialog";
 import { RfPipelineTracker } from "@/components/request-form-components/RfPipelineTracker";
@@ -10,6 +11,8 @@ import { useCategories } from "@/hooks/useCategories";
 function RequestForm() {
   const [activeStatus, setActiveStatus] = useState(null);
   const [viewingRf, setViewingRf] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const focusId = searchParams.get("focus");
 
   const {
     rfs,
@@ -27,6 +30,23 @@ function RequestForm() {
   } = useRequestForms();
 
   const { categories } = useCategories();
+
+  useEffect(() => {
+    if (!focusId || !rfs.length) return;
+    const match = rfs.find((rf) => rf._id === focusId);
+    if (match) setViewingRf(match);
+  }, [focusId, rfs]);
+
+  const handleViewClose = (next) => {
+    if (!next) {
+      setViewingRf(null);
+      if (focusId) {
+        const params = new URLSearchParams(searchParams);
+        params.delete("focus");
+        setSearchParams(params, { replace: true });
+      }
+    }
+  };
 
   const rfCategories = useMemo(
     () => categories.filter((c) => c.type === "rf" && c.isActive !== false),
@@ -83,7 +103,7 @@ function RequestForm() {
       <RfDetailsDialog
         rf={viewingRf}
         open={!!viewingRf}
-        onOpenChange={(v) => !v && setViewingRf(null)}
+        onOpenChange={handleViewClose}
       />
     </div>
   );
