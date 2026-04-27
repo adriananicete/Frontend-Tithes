@@ -48,6 +48,7 @@ import {
 import { formatDate, formatPHP, statusConfig } from "./mockData";
 import { RejectDialog } from "./RejectDialog";
 import { CreateRfDialog } from "./CreateRfDialog";
+import { ConfirmActionDialog } from "@/components/shared/ConfirmActionDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { can } from "@/utils/rolePermissions";
 
@@ -200,7 +201,7 @@ export function RfTable({
   const [page, setPage] = useState(1);
   const [rejectingRf, setRejectingRf] = useState(null);
   const [editingRf, setEditingRf] = useState(null);
-  const [actionError, setActionError] = useState("");
+  const [confirming, setConfirming] = useState(null);
 
   const effectiveStatus = statusFilter || status;
 
@@ -231,17 +232,56 @@ export function RfTable({
   const pageStart = (currentPage - 1) * PAGE_SIZE;
   const pageItems = filtered.slice(pageStart, pageStart + PAGE_SIZE);
 
-  // Wraps a hook mutation so backend errors surface near the table instead of
-  // crashing silently. Confirms destructive actions first.
-  const runAction = async (fn, confirmMsg) => {
-    if (confirmMsg && !window.confirm(confirmMsg)) return;
-    setActionError("");
-    try {
-      await fn();
-    } catch (err) {
-      setActionError(err.message || "Action failed");
-    }
+  const CONFIRM_CONFIG = {
+    submit: {
+      variant: "approve",
+      title: "Submit for validation?",
+      describe: (rf) => `${rf.rfNo} will be sent to the validator. You can no longer edit it after submitting.`,
+      confirmLabel: "Yes, submit",
+      pendingLabel: "Submitting…",
+      handler: (rf) => onSubmitRf?.(rf._id),
+    },
+    delete: {
+      variant: "delete",
+      title: "Delete this request form?",
+      describe: (rf) => `${rf.rfNo} will be permanently removed. This cannot be undone.`,
+      confirmLabel: "Yes, delete",
+      pendingLabel: "Deleting…",
+      handler: (rf) => onDeleteRf?.(rf._id),
+    },
+    validate: {
+      variant: "approve",
+      title: "Validate this request form?",
+      describe: (rf) => `${rf.rfNo} will move to the approval stage.`,
+      confirmLabel: "Yes, validate",
+      pendingLabel: "Validating…",
+      handler: (rf) => onValidateRf?.(rf._id),
+    },
+    approve: {
+      variant: "approve",
+      title: "Approve this request form?",
+      describe: (rf) => `${rf.rfNo} will be marked approved and ready for voucher creation.`,
+      confirmLabel: "Yes, approve",
+      pendingLabel: "Approving…",
+      handler: (rf) => onApproveRf?.(rf._id),
+    },
+    received: {
+      variant: "approve",
+      title: "Confirm receipt?",
+      describe: (rf) => `${rf.rfNo} will be marked as received and disbursed.`,
+      confirmLabel: "Yes, received",
+      pendingLabel: "Confirming…",
+      handler: (rf) => onMarkReceived?.(rf._id),
+    },
   };
+
+  const handleConfirm = async () => {
+    if (!confirming) return;
+    const cfg = CONFIRM_CONFIG[confirming.kind];
+    await cfg.handler(confirming.rf);
+  };
+
+  const askConfirm = (rf, kind) => setConfirming({ rf, kind });
 
   const renderEmptyMessage = () => {
     if (loading) return "Loading request forms...";
@@ -324,9 +364,6 @@ export function RfTable({
               </SelectContent>
             </Select>
           </div>
-          {actionError && (
-            <p className="text-sm text-red-600">{actionError}</p>
-          )}
         </CardHeader>
 
         <CardContent className="flex-1 min-h-0 overflow-auto">
@@ -379,32 +416,13 @@ export function RfTable({
                             currentUserId={user?.id}
                             onView={() => onViewRf?.(rf)}
                             onEdit={() => setEditingRf(rf)}
-                            onSubmit={() =>
-                              runAction(
-                                () => onSubmitRf?.(rf._id),
-                                `Submit ${rf.rfNo} for validation?`,
-                              )
-                            }
-                            onDelete={() =>
-                              runAction(
-                                () => onDeleteRf?.(rf._id),
-                                `Delete ${rf.rfNo}? This cannot be undone.`,
-                              )
-                            }
-                            onValidate={() =>
-                              runAction(() => onValidateRf?.(rf._id))
-                            }
-                            onApprove={() =>
-                              runAction(() => onApproveRf?.(rf._id))
-                            }
+                            onSubmit={() => askConfirm(rf, "submit")}
+                            onDelete={() => askConfirm(rf, "delete")}
+                            onValidate={() => askConfirm(rf, "validate")}
+                            onApprove={() => askConfirm(rf, "approve")}
                             onReject={() => setRejectingRf(rf)}
                             onCreateVoucher={() => navigate("/voucher")}
-                            onMarkReceived={() =>
-                              runAction(
-                                () => onMarkReceived?.(rf._id),
-                                `Confirm receipt of ${rf.rfNo}?`,
-                              )
-                            }
+                            onMarkReceived={() => askConfirm(rf, "received")}
                           />
                         </TableCell>
                       </TableRow>
@@ -442,32 +460,13 @@ export function RfTable({
                           currentUserId={user?.id}
                           onView={() => onViewRf?.(rf)}
                           onEdit={() => setEditingRf(rf)}
-                          onSubmit={() =>
-                            runAction(
-                              () => onSubmitRf?.(rf._id),
-                              `Submit ${rf.rfNo} for validation?`,
-                            )
-                          }
-                          onDelete={() =>
-                            runAction(
-                              () => onDeleteRf?.(rf._id),
-                              `Delete ${rf.rfNo}?`,
-                            )
-                          }
-                          onValidate={() =>
-                            runAction(() => onValidateRf?.(rf._id))
-                          }
-                          onApprove={() =>
-                            runAction(() => onApproveRf?.(rf._id))
-                          }
+                          onSubmit={() => askConfirm(rf, "submit")}
+                          onDelete={() => askConfirm(rf, "delete")}
+                          onValidate={() => askConfirm(rf, "validate")}
+                          onApprove={() => askConfirm(rf, "approve")}
                           onReject={() => setRejectingRf(rf)}
                           onCreateVoucher={() => navigate("/voucher")}
-                          onMarkReceived={() =>
-                            runAction(
-                              () => onMarkReceived?.(rf._id),
-                              `Confirm receipt of ${rf.rfNo}?`,
-                            )
-                          }
+                          onMarkReceived={() => askConfirm(rf, "received")}
                         />
                       </div>
                     </div>
@@ -523,6 +522,19 @@ export function RfTable({
           await onRejectRf?.(rejectingRf._id, note);
         }}
       />
+
+      {confirming && (
+        <ConfirmActionDialog
+          open={!!confirming}
+          onOpenChange={(v) => !v && setConfirming(null)}
+          variant={CONFIRM_CONFIG[confirming.kind].variant}
+          title={CONFIRM_CONFIG[confirming.kind].title}
+          description={CONFIRM_CONFIG[confirming.kind].describe(confirming.rf)}
+          confirmLabel={CONFIRM_CONFIG[confirming.kind].confirmLabel}
+          pendingLabel={CONFIRM_CONFIG[confirming.kind].pendingLabel}
+          onConfirm={handleConfirm}
+        />
+      )}
 
       {editingRf && (
         <CreateRfDialog

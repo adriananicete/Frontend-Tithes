@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ConfirmActionDialog } from "@/components/shared/ConfirmActionDialog";
 
 export function ConfirmCategoryActionDialog({
   category,
@@ -27,27 +27,33 @@ export function ConfirmCategoryActionDialog({
 
   if (!category || !action) return null;
 
+  if (action === "delete") {
+    return (
+      <ConfirmActionDialog
+        open={open}
+        onOpenChange={onOpenChange}
+        variant="delete"
+        title="Delete this category?"
+        description={`"${category.name}" will be permanently removed. This cannot be undone.`}
+        confirmLabel="Yes, delete"
+        pendingLabel="Deleting…"
+        onConfirm={onConfirm}
+      />
+    );
+  }
+
   const config = {
     archive: {
       title: "Archive category?",
       description: `"${category.name}" will be hidden from new entries but existing records remain linked.`,
       confirmLabel: "Archive",
       pendingLabel: "Archiving…",
-      destructive: false,
     },
     restore: {
       title: "Restore category?",
       description: `"${category.name}" will be available for selection again on new entries.`,
       confirmLabel: "Restore",
       pendingLabel: "Restoring…",
-      destructive: false,
-    },
-    delete: {
-      title: "Delete category?",
-      description: `"${category.name}" will be permanently removed. This cannot be undone.`,
-      confirmLabel: "Delete permanently",
-      pendingLabel: "Deleting…",
-      destructive: true,
     },
   }[action];
 
@@ -72,10 +78,7 @@ export function ConfirmCategoryActionDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md overflow-x-hidden">
         <DialogHeader>
-          <div className="flex items-center gap-2">
-            {config.destructive && <AlertTriangle className="h-5 w-5 text-red-600" />}
-            <DialogTitle>{config.title}</DialogTitle>
-          </div>
+          <DialogTitle>{config.title}</DialogTitle>
           <DialogDescription>{config.description}</DialogDescription>
         </DialogHeader>
 
@@ -87,14 +90,7 @@ export function ConfirmCategoryActionDialog({
               Cancel
             </Button>
           </DialogClose>
-          <Button
-            type="button"
-            onClick={handleConfirm}
-            disabled={submitting}
-            className={
-              config.destructive ? "bg-red-600 hover:bg-red-700 text-white" : ""
-            }
-          >
+          <Button type="button" onClick={handleConfirm} disabled={submitting}>
             {submitting ? config.pendingLabel : config.confirmLabel}
           </Button>
         </DialogFooter>
