@@ -16,6 +16,33 @@ import { apiFetch } from "@/services/api";
 
 const MIN_LENGTH = 6;
 
+const PasswordField = ({ id, label, value, onChange, show, onToggle, hint, error }) => (
+  <div className="grid gap-1.5">
+    <Label htmlFor={id}>{label}</Label>
+    <div className="relative">
+      <Input
+        id={id}
+        type={show ? "text" : "password"}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="pr-10"
+        autoComplete="new-password"
+        aria-invalid={!!error}
+      />
+      <button
+        type="button"
+        onClick={onToggle}
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+        tabIndex={-1}
+        aria-label={show ? "Hide password" : "Show password"}
+      >
+        {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      </button>
+    </div>
+    <FieldHelp error={error}>{hint}</FieldHelp>
+  </div>
+);
+
 export function ChangePasswordDialog({ open, onOpenChange }) {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -92,33 +119,6 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
       setSubmitting(false);
     }
   };
-
-  const PasswordField = ({ id, label, value, onChange, show, onToggle, hint, error }) => (
-    <div className="grid gap-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      <div className="relative">
-        <Input
-          id={id}
-          type={show ? "text" : "password"}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="pr-10"
-          autoComplete="new-password"
-          aria-invalid={!!error}
-        />
-        <button
-          type="button"
-          onClick={onToggle}
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-          tabIndex={-1}
-          aria-label={show ? "Hide password" : "Show password"}
-        >
-          {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-        </button>
-      </div>
-      <FieldHelp error={error}>{hint}</FieldHelp>
-    </div>
-  );
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
