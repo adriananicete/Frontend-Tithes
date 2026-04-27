@@ -306,7 +306,13 @@ export function RfTable({
               }}
             >
               <SelectTrigger className="w-full sm:w-44">
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder="Category">
+                  {(value) =>
+                    value === "All"
+                      ? "All Categories"
+                      : categories.find((c) => c._id === value)?.name || "Category"
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="All">All Categories</SelectItem>

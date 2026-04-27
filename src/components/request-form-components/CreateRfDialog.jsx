@@ -151,7 +151,12 @@ export function CreateRfDialog({
                       placeholder={
                         categories.length ? "Select category" : "No RF categories"
                       }
-                    />
+                    >
+                      {(value) =>
+                        categories.find((c) => c._id === value)?.name ||
+                        (categories.length ? "Select category" : "No RF categories")
+                      }
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((c) => (
