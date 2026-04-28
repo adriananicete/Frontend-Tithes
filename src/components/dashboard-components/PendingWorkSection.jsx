@@ -53,7 +53,7 @@ function PendingSection({ icon: Icon, title, hint, items, renderRow, emptyText, 
           <p className="text-[11px] text-muted-foreground">{hint}</p>
         )}
       </div>
-      <div className="flex flex-col gap-1.5 max-h-56 overflow-y-auto">
+      <div className="flex flex-col gap-1.5">
         {items.length === 0 ? (
           <p className="text-xs text-muted-foreground">{emptyText}</p>
         ) : (
@@ -163,6 +163,12 @@ export function PendingWorkSection({
 
   if (!buckets) return null;
 
+  // Hide buckets with zero items so the section only shows what actually
+  // needs attention. The auditor's stats tile (`isAudit`) is always kept.
+  const visibleBuckets = buckets.filter(
+    (b) => b.isAudit || (b.items?.length ?? 0) > 0,
+  );
+
   const totalItems = buckets.reduce(
     (acc, b) => acc + (b.isAudit ? 0 : b.items.length),
     0,
@@ -224,7 +230,7 @@ export function PendingWorkSection({
   );
 
   return (
-    <Card>
+    <Card className="shrink-0">
       <CardHeader>
         <CardTitle>Your Pending Work</CardTitle>
         <CardDescription>
@@ -243,7 +249,7 @@ export function PendingWorkSection({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {buckets.map((b) => {
+            {visibleBuckets.map((b) => {
               if (b.isAudit) {
                 return (
                   <div
