@@ -4,6 +4,7 @@ import { apiFetch } from "../services/api";
 export function useTithes() {
   const [tithes, setTithes] = useState([]);
   const [totalBalance, setTotalBalance] = useState(0);
+  const [availableBalance, setAvailableBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -14,6 +15,7 @@ export function useTithes() {
       const res = await apiFetch("/tithes");
       setTithes(Array.isArray(res?.data) ? res.data : []);
       setTotalBalance(res?.totalBalance ?? 0);
+      setAvailableBalance(res?.availableBalance ?? 0);
     } catch (err) {
       setError(err.message || "Failed to load tithes");
     } finally {
@@ -65,6 +67,7 @@ export function useTithes() {
   return {
     tithes,
     totalBalance,
+    availableBalance,
     loading,
     error,
     refetch,

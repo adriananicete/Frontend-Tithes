@@ -24,6 +24,13 @@ import { Textarea } from "@/components/ui/textarea";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+const formatPHP = (n) =>
+  new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+    maximumFractionDigits: 0,
+  }).format(Number(n) || 0);
+
 const toDateInput = (d) => {
   if (!d) return today();
   try {
@@ -35,6 +42,7 @@ const toDateInput = (d) => {
 
 export function CreateRfDialog({
   categories = [],
+  availableBalance,
   onCreateDraft,
   onCreateAndSubmit,
   editingRf,
@@ -108,7 +116,25 @@ export function CreateRfDialog({
     runAction(() => onUpdate?.(editingRf._id, buildPayload()));
   };
 
-  const canSubmit = !!categoryId && Number(amount) > 0 && !submitting;
+  // Balance gate only applies on create — for edits we trust the existing
+  // record (validator/admin catches over-balance edits at review time).
+  // `availableBalance` may be undefined when the dialog is mounted from
+  // RfTable's edit path; treat undefined as "no limit known, skip check".
+  const balanceKnown = typeof availableBalance === "number";
+  const overBalance =
+    !isEdit &&
+    balanceKnown &&
+    availableBalance > 0 &&
+    Number(amount) > availableBalance;
+  const noBalance =
+    !isEdit && balanceKnown && availableBalance <= 0;
+
+  const canSubmit =
+    !!categoryId &&
+    Number(amount) > 0 &&
+    !overBalance &&
+    !noBalance &&
+    !submitting;
 
   return (
     <>
@@ -180,6 +206,21 @@ export function CreateRfDialog({
                 onChange={(e) => setAmount(e.target.value)}
                 required
               />
+              {!isEdit && balanceKnown && (
+                <p
+                  className={`text-xs ${
+                    overBalance || noBalance
+                      ? "text-red-600"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  {noBalance
+                    ? "The church has no available tithes balance — no requests can be made right now."
+                    : overBalance
+                      ? `Amount exceeds available tithes balance (${formatPHP(availableBalance)}).`
+                      : `Available tithes balance: ${formatPHP(availableBalance)}`}
+                </p>
+              )}
             </div>
 
             <div className="space-y-1.5">
