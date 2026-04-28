@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router";
 import { CheckCheck, Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,9 +12,9 @@ import { useNotifications } from "@/hooks/useNotifications";
 import {
   formatAbsoluteTime,
   formatRelativeTime,
-  pathForRef,
   styleForType,
 } from "@/components/notifications-components/notificationsUtils";
+import { NotificationActionDialog } from "@/components/notifications-components/NotificationActionDialog";
 
 const PAGE_SIZE = 10;
 
@@ -26,11 +25,11 @@ const REF_LABEL = {
 };
 
 function Notifications() {
-  const navigate = useNavigate();
   const { notifications, loading, error, unreadCount, markAsRead, markAllAsRead } =
     useNotifications();
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(1);
+  const [activeNotif, setActiveNotif] = useState(null);
 
   const filtered = useMemo(() => {
     if (filter === "unread") return notifications.filter((n) => !n.isRead);
@@ -50,7 +49,7 @@ function Notifications() {
         // Optimistic update already applied; refetch will reconcile.
       }
     }
-    navigate(pathForRef(notif.refModel, notif.refId));
+    setActiveNotif(notif);
   };
 
   const setFilterAndReset = (next) => {
@@ -197,6 +196,12 @@ function Notifications() {
           </div>
         </CardFooter>
       </Card>
+
+      <NotificationActionDialog
+        notif={activeNotif}
+        open={!!activeNotif}
+        onOpenChange={(v) => !v && setActiveNotif(null)}
+      />
     </div>
   );
 }

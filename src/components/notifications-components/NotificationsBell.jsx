@@ -4,13 +4,15 @@ import { IoNotificationsOutline } from "react-icons/io5";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { useNotifications } from "@/hooks/useNotifications";
-import { formatRelativeTime, pathForRef, styleForType } from "./notificationsUtils";
+import { formatRelativeTime, styleForType } from "./notificationsUtils";
+import { NotificationActionDialog } from "./NotificationActionDialog";
 
 const PREVIEW_COUNT = 5;
 
 export function NotificationsBell() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [activeNotif, setActiveNotif] = useState(null);
   const { notifications, unreadCount, markAsRead, markAllAsRead, loading, error } =
     useNotifications();
 
@@ -26,7 +28,7 @@ export function NotificationsBell() {
         // Optimistic update already applied; refetch will reconcile.
       }
     }
-    navigate(pathForRef(notif.refModel, notif.refId));
+    setActiveNotif(notif);
   };
 
   const handleViewAll = () => {
@@ -105,6 +107,12 @@ export function NotificationsBell() {
           </Button>
         </div>
       </PopoverContent>
+
+      <NotificationActionDialog
+        notif={activeNotif}
+        open={!!activeNotif}
+        onOpenChange={(v) => !v && setActiveNotif(null)}
+      />
     </Popover>
   );
 }
