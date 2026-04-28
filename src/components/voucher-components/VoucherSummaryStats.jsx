@@ -28,8 +28,12 @@ export function VoucherSummaryStats({
   vouchers = [],
   approvedRfs = [],
 }) {
-  const pending = vouchers.filter((v) => v.rfId?.status === "voucher_created");
-  const disbursed = vouchers.filter((v) => v.rfId?.status === "disbursed");
+  const awaitingDisbursement = vouchers.filter(
+    (v) => v.rfId?.status === "voucher_created",
+  );
+  const pendingReceipt = vouchers.filter(
+    (v) => v.rfId?.status === "disbursed",
+  );
 
   const sum = (arr, getter) => arr.reduce((a, c) => a + (getter(c) || 0), 0);
 
@@ -38,13 +42,13 @@ export function VoucherSummaryStats({
       count: vouchers.length,
       amount: sum(vouchers, (v) => v.amount),
     },
-    pending: {
-      count: pending.length,
-      amount: sum(pending, (v) => v.amount),
+    awaitingDisbursement: {
+      count: awaitingDisbursement.length,
+      amount: sum(awaitingDisbursement, (v) => v.amount),
     },
-    disbursed: {
-      count: disbursed.length,
-      amount: sum(disbursed, (v) => v.amount),
+    pendingReceipt: {
+      count: pendingReceipt.length,
+      amount: sum(pendingReceipt, (v) => v.amount),
     },
     awaiting: {
       count: approvedRfs.length,
@@ -68,20 +72,20 @@ export function VoucherSummaryStats({
           accent="bg-blue-50/50"
         />
         <StatTile
-          label="Pending Receipt"
-          amount={stats.pending.amount}
-          count={stats.pending.count}
-          unit="awaiting confirmation"
+          label="Awaiting Disbursement"
+          amount={stats.awaitingDisbursement.amount}
+          count={stats.awaitingDisbursement.count}
+          unit="for admin/DO action"
           icon={Clock}
           accent="bg-amber-50/50"
         />
         <StatTile
-          label="Disbursed"
-          amount={stats.disbursed.amount}
-          count={stats.disbursed.count}
-          unit="completed"
+          label="Pending Receipt"
+          amount={stats.pendingReceipt.amount}
+          count={stats.pendingReceipt.count}
+          unit="awaiting requester"
           icon={CheckCircle2}
-          accent="bg-emerald-50/50"
+          accent="bg-cyan-50/50"
         />
         <StatTile
           label="RFs Awaiting Voucher"

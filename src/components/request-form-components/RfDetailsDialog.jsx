@@ -15,7 +15,8 @@ const stages = [
   { key: "for_approval",    label: "Validated",       timestampField: "validatedAt",      byField: "validatedBy" },
   { key: "approved",        label: "Approved",        timestampField: "approvedAt",       byField: "approvedBy" },
   { key: "voucher_created", label: "Voucher Created", timestampField: "voucherCreatedAt", byField: null },
-  { key: "disbursed",       label: "Disbursed",       timestampField: "receivedAt",       byField: "requestedBy" },
+  { key: "disbursed",       label: "Disbursed",       timestampField: "disbursedAt",      byField: "disbursedBy" },
+  { key: "received",        label: "Received",        timestampField: "receivedAt",       byField: "receivedBy" },
 ];
 
 const personName = (val) =>

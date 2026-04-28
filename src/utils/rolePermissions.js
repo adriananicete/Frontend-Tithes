@@ -112,7 +112,10 @@ export const can = {
   approveRf: (role) => ['pastor', 'auditor', 'admin'].includes(role),
   rejectRf: (role) => ['validator', 'pastor', 'auditor', 'admin'].includes(role),
   createVoucherFromRf: (role) => ['validator', 'admin'].includes(role),
-  markRfReceived: (role) => role === 'member',
+  // Admin/DO mark a `voucher_created` RF as `disbursed`. The requester
+  // (any role — owner check happens in the UI) then confirms `received`.
+  disburseRf: (role) => ['admin', 'do'].includes(role),
+  markRfReceived: (role) => !!role,
 
   // Voucher
   createVoucher: (role) => ['validator', 'admin'].includes(role),
