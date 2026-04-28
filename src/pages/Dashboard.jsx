@@ -7,6 +7,7 @@ import { CategoryFormDialog } from "@/components/categories-components/CategoryF
 import { ChartAreaGradient } from "@/components/dashboard-components/ChartAreaGradient";
 import { ChartBarExpense } from "@/components/dashboard-components/ChartBarExpense";
 import { buildActivity } from "@/components/dashboard-components/dashboardUtils";
+import { PendingWorkSection } from "@/components/dashboard-components/PendingWorkSection";
 import { RecentActivity } from "@/components/dashboard-components/RecentActivity";
 import { SummaryStats } from "@/components/dashboard-components/SummaryStats";
 import { SubmitTithesDialog } from "@/components/tithes-components/SubmitTithesDialog";
@@ -113,6 +114,14 @@ function Dashboard() {
           </div>
         )}
       </div>
+
+      <PendingWorkSection
+        role={user?.role}
+        userId={user?.id}
+        tithes={tithes}
+        rfs={rfs}
+        vouchers={vouchers}
+      />
 
       <div
         className={`grid grid-cols-1 ${
