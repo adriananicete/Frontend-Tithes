@@ -21,10 +21,10 @@ const isThisMonth = (d) => {
 
 const computeStats = (rfs) => {
   const active = rfs.filter((r) =>
-    ["draft", "submitted", "for_approval", "approved", "voucher_created"].includes(r.status),
+    ["draft", "submitted", "for_approval", "approved", "voucher_created", "disbursed"].includes(r.status),
   );
   const pendingDisb = rfs.filter((r) =>
-    ["approved", "voucher_created"].includes(r.status),
+    ["approved", "voucher_created", "disbursed"].includes(r.status),
   );
   const approvedThisMonth = rfs.filter(
     (r) => r.status === "approved" && isThisMonth(r.approvedAt || r.updatedAt),
