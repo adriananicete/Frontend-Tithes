@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
+  BadgeCheck,
   Check,
   Eye,
   FileCheck2,
@@ -62,6 +63,7 @@ const statusOptions = [
   "approved",
   "voucher_created",
   "disbursed",
+  "received",
   "rejected",
 ];
 
@@ -85,6 +87,7 @@ function ActionMenu({
   onApprove,
   onReject,
   onCreateVoucher,
+  onDisburse,
   onMarkReceived,
 }) {
   const status = rf.status;
@@ -142,10 +145,19 @@ function ActionMenu({
       });
     }
   } else if (status === "voucher_created") {
+    if (can.disburseRf(role)) {
+      items.push({
+        key: "disburse",
+        label: "Mark as Disbursed",
+        icon: BadgeCheck,
+        action: onDisburse,
+      });
+    }
+  } else if (status === "disbursed") {
     if (can.markRfReceived(role) && isOwner) {
       items.push({
         key: "received",
-        label: "Mark Received",
+        label: "Mark as Received",
         icon: PackageCheck,
         action: onMarkReceived,
       });
@@ -191,6 +203,7 @@ export function RfTable({
   onValidateRf,
   onApproveRf,
   onRejectRf,
+  onDisburseRf,
   onMarkReceived,
 }) {
   const { user } = useAuth();
@@ -265,10 +278,19 @@ export function RfTable({
       pendingLabel: "Approving…",
       handler: (rf) => onApproveRf?.(rf._id),
     },
+    disburse: {
+      variant: "approve",
+      title: "Mark as disbursed?",
+      describe: (rf) =>
+        `${rf.rfNo} will be marked as disbursed. The requester will be notified to confirm receipt.`,
+      confirmLabel: "Yes, disbursed",
+      pendingLabel: "Marking…",
+      handler: (rf) => onDisburseRf?.(rf._id),
+    },
     received: {
       variant: "approve",
       title: "Confirm receipt?",
-      describe: (rf) => `${rf.rfNo} will be marked as received and disbursed.`,
+      describe: (rf) => `${rf.rfNo} will be marked as received and closed.`,
       confirmLabel: "Yes, received",
       pendingLabel: "Confirming…",
       handler: (rf) => onMarkReceived?.(rf._id),
@@ -422,6 +444,7 @@ export function RfTable({
                             onApprove={() => askConfirm(rf, "approve")}
                             onReject={() => setRejectingRf(rf)}
                             onCreateVoucher={() => navigate("/voucher")}
+                            onDisburse={() => askConfirm(rf, "disburse")}
                             onMarkReceived={() => askConfirm(rf, "received")}
                           />
                         </TableCell>

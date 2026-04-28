@@ -90,6 +90,11 @@ export function useRequestForms() {
     await refetch();
   };
 
+  const disburseRf = async (id) => {
+    await apiFetch(`/request-form/${id}/disburse`, { method: "PATCH" });
+    await refetch();
+  };
+
   const markRfReceived = async (id) => {
     await apiFetch(`/request-form/${id}/received`, { method: "PATCH" });
     await refetch();
@@ -108,6 +113,7 @@ export function useRequestForms() {
     validateRf,
     approveRf,
     rejectRf,
+    disburseRf,
     markRfReceived,
   };
 }

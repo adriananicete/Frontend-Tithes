@@ -8,7 +8,8 @@ export const statusConfig = {
   for_approval:    { label: "For Approval",    color: "bg-indigo-100 text-indigo-700",   order: 3 },
   approved:        { label: "Approved",        color: "bg-green-100 text-green-700",     order: 4 },
   voucher_created: { label: "Voucher Created", color: "bg-purple-100 text-purple-700",   order: 5 },
-  disbursed:       { label: "Disbursed",       color: "bg-emerald-100 text-emerald-700", order: 6 },
+  disbursed:       { label: "Disbursed",       color: "bg-cyan-100 text-cyan-700",       order: 6 },
+  received:        { label: "Received",        color: "bg-emerald-100 text-emerald-700", order: 7 },
   rejected:        { label: "Rejected",        color: "bg-red-100 text-red-700",         order: 99 },
 };
 
@@ -19,6 +20,7 @@ export const pipelineStages = [
   "approved",
   "voucher_created",
   "disbursed",
+  "received",
 ];
 
 export const formatPHP = (n) =>

@@ -26,6 +26,7 @@ function RequestForm() {
     validateRf,
     approveRf,
     rejectRf,
+    disburseRf,
     markRfReceived,
   } = useRequestForms();
 
@@ -96,6 +97,7 @@ function RequestForm() {
           onValidateRf={validateRf}
           onApproveRf={approveRf}
           onRejectRf={rejectRf}
+          onDisburseRf={disburseRf}
           onMarkReceived={markRfReceived}
         />
       </div>

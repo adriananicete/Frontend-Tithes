@@ -111,10 +111,18 @@ export const buildActivity = ({ tithes = [], rfs = [], vouchers = [] }) => {
     } else if (rf.status === "disbursed") {
       items.push({
         ...base,
-        user: rf.requestedBy?.name ?? "—",
-        role: rf.requestedBy?.role ?? "member",
+        user: rf.disbursedBy?.name ?? "—",
+        role: rf.disbursedBy?.role ?? "do",
+        action: "Disbursed",
+        date: rf.disbursedAt ?? rf.updatedAt,
+      });
+    } else if (rf.status === "received") {
+      items.push({
+        ...base,
+        user: rf.receivedBy?.name ?? rf.requestedBy?.name ?? "—",
+        role: rf.receivedBy?.role ?? rf.requestedBy?.role ?? "member",
         action: "Received",
-        date: rf.updatedAt ?? rf.createdAt,
+        date: rf.receivedAt ?? rf.updatedAt,
       });
     }
   }

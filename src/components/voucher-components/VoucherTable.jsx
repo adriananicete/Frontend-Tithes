@@ -35,7 +35,7 @@ import {
 import { formatDate, formatPHP, voucherStatusConfig } from "./mockData";
 
 const PAGE_SIZE = 10;
-const statusOptions = ["All", "voucher_created", "disbursed"];
+const statusOptions = ["All", "voucher_created", "disbursed", "received"];
 
 function RowActions({ onView }) {
   return (
