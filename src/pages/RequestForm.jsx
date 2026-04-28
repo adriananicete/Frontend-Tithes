@@ -7,6 +7,7 @@ import { RfSummaryStats } from "@/components/request-form-components/RfSummarySt
 import { RfTable } from "@/components/request-form-components/RfTable";
 import { useRequestForms } from "@/hooks/useRequestForms";
 import { useCategories } from "@/hooks/useCategories";
+import { useTithes } from "@/hooks/useTithes";
 
 function RequestForm() {
   const [activeStatus, setActiveStatus] = useState(null);
@@ -31,6 +32,10 @@ function RequestForm() {
   } = useRequestForms();
 
   const { categories } = useCategories();
+  // Mount useTithes only to read the church's available cash-on-hand
+  // (approved tithes − all expenses). Used to gate the RF estimatedAmount
+  // input so members can't request more than the church actually has.
+  const { availableBalance } = useTithes();
 
   useEffect(() => {
     if (!focusId || !rfs.length) return;
@@ -65,6 +70,7 @@ function RequestForm() {
         </div>
         <CreateRfDialog
           categories={rfCategories}
+          availableBalance={availableBalance}
           onCreateDraft={createRf}
           onCreateAndSubmit={createAndSubmitRf}
         />
