@@ -1,29 +1,13 @@
-import { Moon, Sun } from "lucide-react";
 import SideBarHeader from "../sideBar-components/SideBarHeader";
 import { getNavItemsForRole } from "../../utils/rolePermissions.js";
 import { NavLink } from "react-router";
 import { useAuth } from "../../hooks/useAuth";
-import { useTheme } from "../../hooks/useTheme";
 import { Sheet, SheetContent, SheetTitle } from "../ui/sheet";
 
 function SidebarFooter() {
-  const { theme, toggleTheme } = useTheme();
-  const isDark = theme === "dark";
-  const Icon = isDark ? Moon : Sun;
-  const label = isDark ? "You're in Dark Mode" : "You're in Light Mode";
-
   return (
-    <div className="mt-auto flex flex-col gap-2 border-t border-gray-300 pt-3">
-      <button
-        type="button"
-        onClick={toggleTheme}
-        aria-label="Toggle dark mode"
-        className="flex items-center gap-2 rounded-md p-2 text-sm text-gray-700 hover:bg-gray-200 transition-colors"
-      >
-        <Icon className="h-4 w-4" />
-        <span>{label}</span>
-      </button>
-      <p className="px-2 text-[10px] leading-tight text-gray-500">
+    <div className="mt-auto border-t border-gray-300 pt-3 px-2">
+      <p className="text-[10px] leading-tight text-gray-500">
         Design &amp; Built by ianDev 2026, All rights reserved.
       </p>
     </div>
