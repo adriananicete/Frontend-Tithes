@@ -5,7 +5,7 @@ import { BiRightArrowAlt } from "react-icons/bi";
 import { LuEyeClosed } from "react-icons/lu";
 import OauthButton from "../components/login-components/OauthButton";
 import { LuEye } from "react-icons/lu";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { apiFetch } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
@@ -18,6 +18,20 @@ function Login() {
     const [ password, setPassword ] = useState('');
     const [ error, setError ] = useState('');
     const [ isSubmitting, setIsSubmitting ] = useState(false);
+
+    // Pre-warm the backend while the user is filling out the form.
+    // Backend lives on Render free tier and sleeps after ~15min idle — a
+    // cold boot takes 30-60s. Firing this on mount overlaps that wake-up
+    // with typing time, so by the time Login is clicked the backend is
+    // already up (or close to it). Fire-and-forget; errors ignored on
+    // purpose since the real login call surfaces any actual problem.
+    useEffect(() => {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:7001/api';
+        const root = apiUrl.replace(/\/api\/?$/, '');
+        const controller = new AbortController();
+        fetch(root, { method: 'GET', signal: controller.signal }).catch(() => {});
+        return () => controller.abort();
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
