@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   BadgeCheck,
@@ -7,11 +7,13 @@ import {
   ClipboardCheck,
   FileCheck2,
   Inbox,
+  Loader2,
   PackageCheck,
   Pencil,
   Receipt,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -20,6 +22,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { formatPHP } from "@/components/dashboard-components/dashboardUtils";
+import { can } from "@/utils/rolePermissions";
 
 const personName = (val) =>
   val && typeof val === "object" ? val.name : typeof val === "string" ? val : "—";
@@ -70,8 +73,64 @@ export function PendingWorkSection({
   tithes = [],
   rfs = [],
   vouchers = [],
+  actions = {},
 }) {
   const navigate = useNavigate();
+  const [busyId, setBusyId] = useState(null);
+  const [errorById, setErrorById] = useState({});
+
+  // Quick-action runner. Tracks the active row + per-row error so other
+  // rows stay clickable while one is in flight, and a failure surfaces
+  // inline (red text) under the row that failed instead of a global alert.
+  const runAction = async (id, fn) => {
+    setBusyId(id);
+    setErrorById((e) => ({ ...e, [id]: "" }));
+    try {
+      await fn();
+    } catch (err) {
+      setErrorById((e) => ({ ...e, [id]: err?.message || "Action failed" }));
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  // One row → one action label + handler, derived from bucket key + role.
+  // Returns null when the role/owner can't act on this row (e.g. admin
+  // viewing the member-only "Confirm Receipt" bucket — still visible for
+  // monitoring, just no button).
+  const actionForRow = (bucketKey, item) => {
+    const itemId = item._id;
+    switch (bucketKey) {
+      case "tithes":
+        return { label: "Approve", run: () => actions.approveTithes?.(itemId) };
+      case "rf-submitted":
+        return can.validateRf(role)
+          ? { label: "Validate", run: () => actions.validateRf?.(itemId) }
+          : null;
+      case "rf-for_approval":
+        return can.approveRf(role)
+          ? { label: "Approve", run: () => actions.approveRf?.(itemId) }
+          : null;
+      case "rf-approved":
+        return can.createVoucherFromRf(role)
+          ? { label: "Create Voucher", run: () => actions.onCreateVoucher?.(item) }
+          : null;
+      case "rf-voucher_created":
+        return can.disburseRf(role)
+          ? { label: "Disburse", run: () => actions.disburseRf?.(itemId) }
+          : null;
+      case "rf-disbursed": {
+        const isOwner = ownerId(item) && userId && ownerId(item) === userId;
+        return isOwner
+          ? { label: "Mark as Received", run: () => actions.markRfReceived?.(itemId) }
+          : null;
+      }
+      case "rf-draft":
+        return { label: "Submit", run: () => actions.submitRf?.(itemId) };
+      default:
+        return null;
+    }
+  };
 
   const buckets = useMemo(() => {
     if (!role) return null;
@@ -181,12 +240,52 @@ export function PendingWorkSection({
   const goToTithes = (t) =>
     navigate(`/tithes?focus=${t._id}`);
 
-  const renderRfRow = (rf) => (
-    <button
+  // Wraps the navigate button + action button in one row. The two click
+  // targets are siblings (not nested) so React doesn't warn about
+  // button-in-button and the action button doesn't trigger navigation.
+  const ActionRow = ({ id, onNavigate, children, bucketKey, item }) => {
+    const action = actionForRow(bucketKey, item);
+    const busy = busyId === id;
+    const rowError = errorById[id];
+    return (
+      <div className="flex flex-col gap-1.5 rounded-md px-2 py-1.5 hover:bg-muted/60 transition">
+        <div className="flex items-center justify-between gap-2">
+          <button
+            type="button"
+            onClick={onNavigate}
+            className="text-left flex items-center justify-between gap-2 flex-1 min-w-0 cursor-pointer"
+          >
+            {children}
+          </button>
+          {action && (
+            <Button
+              type="button"
+              size="sm"
+              disabled={busy}
+              onClick={() => runAction(id, action.run)}
+              className="shrink-0 bg-green-600 hover:bg-green-700 text-white disabled:opacity-70"
+            >
+              {busy ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : null}
+              {busy ? "Working…" : action.label}
+            </Button>
+          )}
+        </div>
+        {rowError && (
+          <p className="text-[11px] text-red-600 leading-tight">{rowError}</p>
+        )}
+      </div>
+    );
+  };
+
+  const renderRfRow = (rf, bucketKey) => (
+    <ActionRow
       key={rf._id}
-      type="button"
-      onClick={() => goToRf(rf)}
-      className="text-left flex items-center justify-between gap-2 rounded-md px-2 py-1.5 hover:bg-muted/60 transition"
+      id={rf._id}
+      item={rf}
+      bucketKey={bucketKey}
+      onNavigate={() => goToRf(rf)}
     >
       <div className="min-w-0">
         <p className="text-sm font-medium truncate">
@@ -202,15 +301,16 @@ export function PendingWorkSection({
       <span className="shrink-0 text-sm font-semibold tabular-nums">
         {formatPHP(rf.estimatedAmount)}
       </span>
-    </button>
+    </ActionRow>
   );
 
-  const renderTithesRow = (t) => (
-    <button
+  const renderTithesRow = (t, bucketKey) => (
+    <ActionRow
       key={t._id}
-      type="button"
-      onClick={() => goToTithes(t)}
-      className="text-left flex items-center justify-between gap-2 rounded-md px-2 py-1.5 hover:bg-muted/60 transition"
+      id={t._id}
+      item={t}
+      bucketKey={bucketKey}
+      onNavigate={() => goToTithes(t)}
     >
       <div className="min-w-0">
         <p className="text-sm font-medium truncate">
@@ -226,7 +326,7 @@ export function PendingWorkSection({
       <span className="shrink-0 text-sm font-semibold tabular-nums">
         {formatPHP(t.total)}
       </span>
-    </button>
+    </ActionRow>
   );
 
   return (
@@ -238,7 +338,7 @@ export function PendingWorkSection({
             ? "Oversight snapshot across the pipeline."
             : allCaughtUp
               ? "Nothing waiting on you right now."
-              : "Click a row to open it for review."}
+              : "Take quick action below, or click a row to open it for full details."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -279,7 +379,11 @@ export function PendingWorkSection({
                   icon={b.icon}
                   title={b.title}
                   items={b.items}
-                  renderRow={b.kind === "tithes" ? renderTithesRow : renderRfRow}
+                  renderRow={(item) =>
+                    b.kind === "tithes"
+                      ? renderTithesRow(item, b.key)
+                      : renderRfRow(item, b.key)
+                  }
                   emptyText="Nothing here right now."
                 />
               );
