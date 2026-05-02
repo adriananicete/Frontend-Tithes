@@ -84,12 +84,12 @@ export function SummaryStats({
   }, [tithes, expenses, rfs]);
 
   return (
-    <Card className="w-full h-full">
+    <Card className="w-full h-full flex flex-col">
       <CardHeader>
         <CardTitle>Financial Summary</CardTitle>
         <CardDescription>Snapshot of this month's activity</CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-2 gap-3">
+      <CardContent className="grid grid-cols-2 auto-rows-fr gap-3 flex-1">
         <StatTile
           label="Total Tithes"
           value={formatPHP(stats.tithesThisMonth)}
