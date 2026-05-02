@@ -76,13 +76,44 @@ function Dashboard() {
 
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [voucherOpen, setVoucherOpen] = useState(false);
+  const [voucherPreselectId, setVoucherPreselectId] = useState("");
   const [tithesOpen, setTithesOpen] = useState(false);
 
   const handleAction = (key) => {
     if (key === "add_category") setCategoryOpen(true);
-    else if (key === "create_voucher") setVoucherOpen(true);
-    else if (key === "submit_tithes") setTithesOpen(true);
+    else if (key === "create_voucher") {
+      setVoucherPreselectId("");
+      setVoucherOpen(true);
+    } else if (key === "submit_tithes") setTithesOpen(true);
     else if (key === "generate_report") navigate("/reports");
+  };
+
+  // Pending-work quick actions. Each does the PATCH then refetches the
+  // dashboard so the row disappears from the section. We also dispatch
+  // `notification:new` so the matching list page (Tithes/RF) refetches if
+  // it happens to be mounted — same pattern as NotificationActionDialog.
+  const broadcastResourceChange = (refModel) =>
+    window.dispatchEvent(
+      new CustomEvent("notification:new", { detail: { refModel } }),
+    );
+
+  const patchAndRefetch = async (path, refModel) => {
+    await apiFetch(path, { method: "PATCH" });
+    broadcastResourceChange(refModel);
+    await refetch();
+  };
+
+  const pendingActions = {
+    approveTithes: (id) => patchAndRefetch(`/tithes/${id}/approve`, "Tithes"),
+    submitRf:      (id) => patchAndRefetch(`/request-form/${id}/submit`,   "RequestForm"),
+    validateRf:    (id) => patchAndRefetch(`/request-form/${id}/validate`, "RequestForm"),
+    approveRf:     (id) => patchAndRefetch(`/request-form/${id}/approve`,  "RequestForm"),
+    disburseRf:    (id) => patchAndRefetch(`/request-form/${id}/disburse`, "RequestForm"),
+    markRfReceived:(id) => patchAndRefetch(`/request-form/${id}/received`, "RequestForm"),
+    onCreateVoucher: (rf) => {
+      setVoucherPreselectId(rf._id);
+      setVoucherOpen(true);
+    },
   };
 
   return (
@@ -121,6 +152,7 @@ function Dashboard() {
         tithes={tithes}
         rfs={rfs}
         vouchers={vouchers}
+        actions={pendingActions}
       />
 
       <div
@@ -167,7 +199,11 @@ function Dashboard() {
       />
       <CreateVoucherDialog
         open={voucherOpen}
-        onOpenChange={setVoucherOpen}
+        onOpenChange={(v) => {
+          setVoucherOpen(v);
+          if (!v) setVoucherPreselectId("");
+        }}
+        preselectedRfId={voucherPreselectId}
         onSubmit={async (formData) => {
           await apiFetch("/vouchers", { method: "POST", body: formData });
           await refetch();
