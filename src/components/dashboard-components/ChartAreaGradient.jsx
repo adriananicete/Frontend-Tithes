@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { TrendingUp } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -223,7 +223,7 @@ export function ChartAreaGradient({
             <AreaChart
               accessibilityLayer
               data={chartData}
-              margin={{ left: 12, right: 12 }}
+              margin={{ top: 16, left: 12, right: 12, bottom: 0 }}
             >
               <CartesianGrid vertical={false} />
               <XAxis
@@ -233,6 +233,7 @@ export function ChartAreaGradient({
                 tickMargin={8}
                 tickFormatter={(value) => value.slice(0, 3)}
               />
+              <YAxis hide domain={[0, "dataMax"]} />
               <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
 
               <defs>
@@ -247,23 +248,29 @@ export function ChartAreaGradient({
                 </linearGradient>
               </defs>
 
+              {/* `monotone` (not `natural`) so the spline never overshoots
+                  the data range — with few data points, natural cubic
+                  curves can dip below 0 or shoot above max, making the
+                  line look like it leaks out of the chart area. */}
               <Area
                 dataKey="tithes"
-                type="natural"
+                type="monotone"
                 fill="url(#fillTithes)"
                 fillOpacity={0.4}
                 stroke="var(--color-tithes)"
                 strokeWidth={2}
+                dot={chartData.length <= 2}
               />
 
               {showExpenses && canViewExpenses && (
                 <Area
                   dataKey="expenses"
-                  type="natural"
+                  type="monotone"
                   fill="url(#fillExpenses)"
                   fillOpacity={0.4}
                   stroke="var(--color-expenses)"
                   strokeWidth={2}
+                  dot={chartData.length <= 2}
                 />
               )}
             </AreaChart>
