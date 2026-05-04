@@ -300,7 +300,11 @@ export function TithesTable({
                   </TableRow>
                 ) : (
                   pageItems.map((row) => (
-                    <TableRow key={row._id}>
+                    <TableRow
+                      key={row._id}
+                      onClick={() => setViewing(row)}
+                      className="cursor-pointer hover:bg-muted/50"
+                    >
                       <TableCell className="text-muted-foreground">{formatDate(row.entryDate)}</TableCell>
                       <TableCell className="font-medium">{row.submittedBy?.name || "—"}</TableCell>
                       <TableCell>{row.serviceType}</TableCell>
@@ -310,7 +314,10 @@ export function TithesTable({
                           {row.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell
+                        className="text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <RowActions
                           row={row}
                           role={user?.role}
@@ -334,13 +341,20 @@ export function TithesTable({
               </div>
             ) : (
               pageItems.map((row) => (
-                <div key={row._id} className="px-4 py-3 space-y-1.5">
+                <div
+                  key={row._id}
+                  onClick={() => setViewing(row)}
+                  className="px-4 py-3 space-y-1.5 cursor-pointer active:bg-muted/40"
+                >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="font-medium truncate">{row.submittedBy?.name || "—"}</div>
                       <div className="text-xs text-muted-foreground truncate">{row.serviceType}</div>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div
+                      className="flex items-center gap-1 shrink-0"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Badge variant="secondary" className={statusStyles[row.status]}>
                         {row.status}
                       </Badge>
@@ -454,6 +468,47 @@ export function TithesTable({
               )}
             </div>
           )}
+          {viewing && viewing.status === "pending" && (() => {
+            const canApproveHere = can.approveTithes(
+              user?.role,
+              viewing.submittedBy?.name,
+              user?.name,
+            );
+            const canRejectHere = can.rejectTithes(user?.role);
+            if (!canApproveHere && !canRejectHere) return null;
+            // Closes the details dialog before opening the action dialog so
+            // we don't stack two modals — also clears the focusId param the
+            // same way the dialog's onOpenChange does.
+            const closeAndRun = (setter) => {
+              const target = viewing;
+              setViewing(null);
+              if (focusId) onFocusHandled?.();
+              setter(target);
+            };
+            return (
+              <DialogFooter>
+                {canRejectHere && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => closeAndRun(setRejecting)}
+                    className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  >
+                    <X className="h-4 w-4" /> Reject
+                  </Button>
+                )}
+                {canApproveHere && (
+                  <Button
+                    type="button"
+                    onClick={() => closeAndRun(setApproving)}
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <Check className="h-4 w-4" /> Approve
+                  </Button>
+                )}
+              </DialogFooter>
+            );
+          })()}
         </DialogContent>
       </Dialog>
 
