@@ -1,4 +1,4 @@
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, PackageCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +17,8 @@ export function VoucherDetailsDialog({
   open,
   onOpenChange,
   userRole,
-  onRequestDisburse,
+  currentUserId,
+  onRequestAction,
 }) {
   if (!voucher) return null;
 
@@ -26,8 +27,17 @@ export function VoucherDetailsDialog({
     color: "bg-muted text-muted-foreground",
   };
 
-  const canDisburseHere =
-    voucher.rfId?.status === "voucher_created" && can.disburseRf(userRole);
+  const status = voucher.rfId?.status;
+  const canDisburseHere = status === "voucher_created" && can.disburseRf(userRole);
+  // Defensive ownership check — same shape-tolerant logic as the table.
+  const requesterIdRaw = voucher.rfId?.requestedBy;
+  const requesterId =
+    typeof requesterIdRaw === "string"
+      ? requesterIdRaw
+      : requesterIdRaw?._id ?? null;
+  const isOwner = requesterId && currentUserId && requesterId === currentUserId;
+  const canMarkReceivedHere =
+    status === "disbursed" && can.markRfReceived(userRole) && isOwner;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -106,15 +116,26 @@ export function VoucherDetailsDialog({
           )}
         </div>
 
-        {canDisburseHere && (
+        {(canDisburseHere || canMarkReceivedHere) && (
           <DialogFooter>
-            <Button
-              type="button"
-              onClick={() => onRequestDisburse?.(voucher)}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              <BadgeCheck className="h-4 w-4" /> Disburse
-            </Button>
+            {canDisburseHere && (
+              <Button
+                type="button"
+                onClick={() => onRequestAction?.("disburse", voucher)}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <BadgeCheck className="h-4 w-4" /> Disburse
+              </Button>
+            )}
+            {canMarkReceivedHere && (
+              <Button
+                type="button"
+                onClick={() => onRequestAction?.("markReceived", voucher)}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <PackageCheck className="h-4 w-4" /> Mark as Received
+              </Button>
+            )}
           </DialogFooter>
         )}
       </DialogContent>
