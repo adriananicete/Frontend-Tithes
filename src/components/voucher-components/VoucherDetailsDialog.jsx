@@ -1,20 +1,33 @@
+import { BadgeCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { can } from "@/utils/rolePermissions";
 import { formatDate, formatDateTime, formatPHP, voucherStatusConfig } from "./mockData";
 
-export function VoucherDetailsDialog({ voucher, open, onOpenChange }) {
+export function VoucherDetailsDialog({
+  voucher,
+  open,
+  onOpenChange,
+  userRole,
+  onRequestDisburse,
+}) {
   if (!voucher) return null;
 
   const cfg = voucherStatusConfig[voucher.rfId?.status] ?? {
     label: voucher.rfId?.status ?? "—",
     color: "bg-muted text-muted-foreground",
   };
+
+  const canDisburseHere =
+    voucher.rfId?.status === "voucher_created" && can.disburseRf(userRole);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -92,6 +105,18 @@ export function VoucherDetailsDialog({ voucher, open, onOpenChange }) {
             </div>
           )}
         </div>
+
+        {canDisburseHere && (
+          <DialogFooter>
+            <Button
+              type="button"
+              onClick={() => onRequestDisburse?.(voucher)}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <BadgeCheck className="h-4 w-4" /> Disburse
+            </Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );
