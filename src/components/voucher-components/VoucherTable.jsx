@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Eye, MoreHorizontal } from "lucide-react";
+import { BadgeCheck, Eye, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -32,12 +33,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { can } from "@/utils/rolePermissions";
 import { formatDate, formatPHP, voucherStatusConfig } from "./mockData";
 
 const PAGE_SIZE = 10;
 const statusOptions = ["All", "voucher_created", "disbursed", "received"];
 
-function RowActions({ onView }) {
+function RowActions({ voucher, role, onView, onDisburse }) {
+  const canDisburseHere =
+    voucher.rfId?.status === "voucher_created" && can.disburseRf(role);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -49,6 +53,14 @@ function RowActions({ onView }) {
         <DropdownMenuItem onClick={onView}>
           <Eye className="h-4 w-4" /> View details
         </DropdownMenuItem>
+        {canDisburseHere && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onDisburse}>
+              <BadgeCheck className="h-4 w-4 text-green-600" /> Disburse
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -60,6 +72,8 @@ export function VoucherTable({
   loading = false,
   error = "",
   onViewVoucher,
+  userRole,
+  onRequestDisburse,
 }) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
@@ -193,7 +207,11 @@ export function VoucherTable({
                     color: "bg-muted text-muted-foreground",
                   };
                   return (
-                    <TableRow key={v._id}>
+                    <TableRow
+                      key={v._id}
+                      onClick={() => onViewVoucher?.(v)}
+                      className="cursor-pointer hover:bg-muted/50"
+                    >
                       <TableCell className="font-medium">{v.pcfNo}</TableCell>
                       <TableCell className="text-muted-foreground">{formatDate(v.date)}</TableCell>
                       <TableCell className="font-medium">{v.rfId?.rfNo ?? "—"}</TableCell>
@@ -205,8 +223,16 @@ export function VoucherTable({
                           {cfg.label}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <RowActions onView={() => onViewVoucher?.(v)} />
+                      <TableCell
+                        className="text-right"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <RowActions
+                          voucher={v}
+                          role={userRole}
+                          onView={() => onViewVoucher?.(v)}
+                          onDisburse={() => onRequestDisburse?.(v)}
+                        />
                       </TableCell>
                     </TableRow>
                   );
@@ -228,7 +254,11 @@ export function VoucherTable({
                 color: "bg-muted text-muted-foreground",
               };
               return (
-                <div key={v._id} className="px-4 py-3 space-y-1.5">
+                <div
+                  key={v._id}
+                  onClick={() => onViewVoucher?.(v)}
+                  className="px-4 py-3 space-y-1.5 cursor-pointer active:bg-muted/40"
+                >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="font-medium truncate">{v.pcfNo}</div>
@@ -236,11 +266,19 @@ export function VoucherTable({
                         {v.rfId?.rfNo ?? "—"} • {v.createdBy?.name ?? "—"}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div
+                      className="flex items-center gap-1 shrink-0"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Badge variant="secondary" className={cfg.color}>
                         {cfg.label}
                       </Badge>
-                      <RowActions onView={() => onViewVoucher?.(v)} />
+                      <RowActions
+                        voucher={v}
+                        role={userRole}
+                        onView={() => onViewVoucher?.(v)}
+                        onDisburse={() => onRequestDisburse?.(v)}
+                      />
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-sm">
