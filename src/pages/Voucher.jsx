@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { GoPlus } from "react-icons/go";
 import CustomButton from "@/components/Buttons";
@@ -9,9 +9,33 @@ import { VoucherDetailsDialog } from "@/components/voucher-components/VoucherDet
 import { VoucherSummaryStats } from "@/components/voucher-components/VoucherSummaryStats";
 import { VoucherTable } from "@/components/voucher-components/VoucherTable";
 import { useAuth } from "@/hooks/useAuth";
+import { useRequestForms } from "@/hooks/useRequestForms";
 import { useVouchers } from "@/hooks/useVouchers";
 import { apiFetch } from "@/services/api";
 import { can } from "@/utils/rolePermissions";
+
+// Confirm-dialog copy keyed by action kind. Both actions on the voucher
+// page mutate the linked RF — disburse and markReceived — so the wording
+// matches the RF page versions verbatim for consistency.
+const VOUCHER_CONFIRM_CONFIG = {
+  disburse: {
+    variant: "approve",
+    title: "Mark as disbursed?",
+    describe: (v) =>
+      `${v.rfId?.rfNo ?? "This RF"} will be marked as disbursed. The requester will be notified to confirm receipt.`,
+    confirmLabel: "Yes, disbursed",
+    pendingLabel: "Marking…",
+    endpoint: (v) => `/request-form/${v.rfId?._id}/disburse`,
+  },
+  markReceived: {
+    variant: "approve",
+    title: "Confirm receipt?",
+    describe: (v) => `${v.rfId?.rfNo ?? "This RF"} will be marked as received and closed.`,
+    confirmLabel: "Yes, received",
+    pendingLabel: "Confirming…",
+    endpoint: (v) => `/request-form/${v.rfId?._id}/received`,
+  },
+};
 
 function Voucher() {
   const { user } = useAuth();
@@ -19,11 +43,26 @@ function Voucher() {
   const [viewingVoucher, setViewingVoucher] = useState(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [preselectedRfId, setPreselectedRfId] = useState(null);
-  const [disbursing, setDisbursing] = useState(null);
+  // confirming = { voucher, kind } | null. Both VoucherTable's dropdown
+  // and VoucherDetailsDialog's footer dispatch into this via the shared
+  // requestVoucherAction helper.
+  const [confirming, setConfirming] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const focusId = searchParams.get("focus");
 
-  const { vouchers, loading, error, refetch } = useVouchers();
+  const { vouchers, loading, error, refetch, createVoucher } = useVouchers();
+  // Approved-but-no-voucher list feeds the PendingRfsCard. The hook
+  // refetches itself on `notification:new` events with refModel=RequestForm,
+  // so this stays in sync after disburse / received / new approvals.
+  const {
+    rfs: allRfs,
+    loading: rfsLoading,
+    error: rfsError,
+  } = useRequestForms();
+  const pendingApprovedRfs = useMemo(
+    () => allRfs.filter((rf) => rf.status === "approved" && !rf.voucherId),
+    [allRfs],
+  );
 
   useEffect(() => {
     if (!focusId || !vouchers.length) return;
@@ -31,15 +70,17 @@ function Voucher() {
     if (match) setViewingVoucher(match);
   }, [focusId, vouchers]);
 
-  const handleViewClose = (next) => {
-    if (!next) {
-      setViewingVoucher(null);
-      if (focusId) {
-        const params = new URLSearchParams(searchParams);
-        params.delete("focus");
-        setSearchParams(params, { replace: true });
-      }
+  const closeViewing = () => {
+    setViewingVoucher(null);
+    if (focusId) {
+      const params = new URLSearchParams(searchParams);
+      params.delete("focus");
+      setSearchParams(params, { replace: true });
     }
+  };
+
+  const handleViewClose = (next) => {
+    if (!next) closeViewing();
   };
 
   const launchCreate = (rfId = null) => {
@@ -47,25 +88,23 @@ function Voucher() {
     setCreateOpen(true);
   };
 
-  // Disburse runs against the linked RF, not the voucher itself. We close
-  // the details dialog (and clear the focus param) before showing the
-  // confirm so we never stack two modals — same pattern as TithesTable.
-  const requestDisburse = (voucher) => {
-    setViewingVoucher(null);
-    if (focusId) {
-      const params = new URLSearchParams(searchParams);
-      params.delete("focus");
-      setSearchParams(params, { replace: true });
-    }
-    setDisbursing(voucher);
+  // Single dispatcher for every voucher-row action. Both surfaces (table
+  // dropdown + details footer) call this — closes the details view first
+  // so the confirm never stacks on top of two modals.
+  const requestVoucherAction = (kind, voucher) => {
+    closeViewing();
+    setConfirming({ voucher, kind });
   };
 
-  const handleConfirmDisburse = async () => {
-    const rfId = disbursing?.rfId?._id;
-    if (!rfId) return;
-    await apiFetch(`/request-form/${rfId}/disburse`, { method: "PATCH" });
-    // Notify other mounted list pages (Dashboard, RF) and refetch the
-    // voucher list so the row's status badge flips to "Disbursed".
+  const handleConfirmVoucherAction = async () => {
+    if (!confirming) return;
+    const cfg = VOUCHER_CONFIRM_CONFIG[confirming.kind];
+    if (!cfg) return;
+    const path = cfg.endpoint(confirming.voucher);
+    await apiFetch(path, { method: "PATCH" });
+    // Both actions mutate an RF — broadcast so any mounted RF page or
+    // Dashboard refetches in lockstep, then refetch vouchers so the
+    // status badge on the row flips.
     window.dispatchEvent(
       new CustomEvent("notification:new", { detail: { refModel: "RequestForm" } }),
     );
@@ -95,6 +134,7 @@ function Voucher() {
           if (!v) setPreselectedRfId(null);
         }}
         preselectedRfId={preselectedRfId}
+        onSubmit={createVoucher}
       />
 
       <div className="shrink-0">
@@ -103,7 +143,12 @@ function Voucher() {
 
       {canCreate && (
         <div className="shrink-0">
-          <PendingRfsCard onCreateVoucher={launchCreate} />
+          <PendingRfsCard
+            rfs={pendingApprovedRfs}
+            loading={rfsLoading}
+            error={rfsError}
+            onCreateVoucher={launchCreate}
+          />
         </div>
       )}
 
@@ -114,7 +159,8 @@ function Voucher() {
           error={error}
           onViewVoucher={setViewingVoucher}
           userRole={user?.role}
-          onRequestDisburse={requestDisburse}
+          currentUserId={user?.id}
+          onRequestAction={requestVoucherAction}
         />
       </div>
 
@@ -123,21 +169,26 @@ function Voucher() {
         open={!!viewingVoucher}
         onOpenChange={handleViewClose}
         userRole={user?.role}
-        onRequestDisburse={requestDisburse}
+        currentUserId={user?.id}
+        onRequestAction={requestVoucherAction}
       />
 
-      {disbursing && (
-        <ConfirmActionDialog
-          open={!!disbursing}
-          onOpenChange={(v) => !v && setDisbursing(null)}
-          variant="approve"
-          title="Mark as disbursed?"
-          description={`${disbursing.rfId?.rfNo ?? "This RF"} will be marked as disbursed. The requester will be notified to confirm receipt.`}
-          confirmLabel="Yes, disbursed"
-          pendingLabel="Marking…"
-          onConfirm={handleConfirmDisburse}
-        />
-      )}
+      {confirming && (() => {
+        const cfg = VOUCHER_CONFIRM_CONFIG[confirming.kind];
+        if (!cfg) return null;
+        return (
+          <ConfirmActionDialog
+            open={!!confirming}
+            onOpenChange={(v) => !v && setConfirming(null)}
+            variant={cfg.variant}
+            title={cfg.title}
+            description={cfg.describe(confirming.voucher)}
+            confirmLabel={cfg.confirmLabel}
+            pendingLabel={cfg.pendingLabel}
+            onConfirm={handleConfirmVoucherAction}
+          />
+        );
+      })()}
     </div>
   );
 }

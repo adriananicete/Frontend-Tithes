@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { BadgeCheck, Eye, MoreHorizontal } from "lucide-react";
+import { BadgeCheck, Eye, MoreHorizontal, PackageCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,9 +39,22 @@ import { formatDate, formatPHP, voucherStatusConfig } from "./mockData";
 const PAGE_SIZE = 10;
 const statusOptions = ["All", "voucher_created", "disbursed", "received"];
 
-function RowActions({ voucher, role, onView, onDisburse }) {
-  const canDisburseHere =
-    voucher.rfId?.status === "voucher_created" && can.disburseRf(role);
+function RowActions({ voucher, role, currentUserId, onView, onAction }) {
+  const status = voucher.rfId?.status;
+  const canDisburseHere = status === "voucher_created" && can.disburseRf(role);
+  // Ownership check uses the requestedBy populated on rfId — defensively
+  // handle either object shape (`{ _id, name }`) or a raw ObjectId string,
+  // so the gate stays correct regardless of how the backend populates.
+  const requesterIdRaw = voucher.rfId?.requestedBy;
+  const requesterId =
+    typeof requesterIdRaw === "string"
+      ? requesterIdRaw
+      : requesterIdRaw?._id ?? null;
+  const isOwner = requesterId && currentUserId && requesterId === currentUserId;
+  const canMarkReceivedHere =
+    status === "disbursed" && can.markRfReceived(role) && isOwner;
+  const showSeparator = canDisburseHere || canMarkReceivedHere;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -53,13 +66,16 @@ function RowActions({ voucher, role, onView, onDisburse }) {
         <DropdownMenuItem onClick={onView}>
           <Eye className="h-4 w-4" /> View details
         </DropdownMenuItem>
+        {showSeparator && <DropdownMenuSeparator />}
         {canDisburseHere && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onDisburse}>
-              <BadgeCheck className="h-4 w-4 text-green-600" /> Disburse
-            </DropdownMenuItem>
-          </>
+          <DropdownMenuItem onClick={() => onAction?.("disburse", voucher)}>
+            <BadgeCheck className="h-4 w-4 text-green-600" /> Disburse
+          </DropdownMenuItem>
+        )}
+        {canMarkReceivedHere && (
+          <DropdownMenuItem onClick={() => onAction?.("markReceived", voucher)}>
+            <PackageCheck className="h-4 w-4 text-green-600" /> Mark as Received
+          </DropdownMenuItem>
         )}
       </DropdownMenuContent>
     </DropdownMenu>
@@ -73,7 +89,8 @@ export function VoucherTable({
   error = "",
   onViewVoucher,
   userRole,
-  onRequestDisburse,
+  currentUserId,
+  onRequestAction,
 }) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
@@ -230,8 +247,9 @@ export function VoucherTable({
                         <RowActions
                           voucher={v}
                           role={userRole}
+                          currentUserId={currentUserId}
                           onView={() => onViewVoucher?.(v)}
-                          onDisburse={() => onRequestDisburse?.(v)}
+                          onAction={onRequestAction}
                         />
                       </TableCell>
                     </TableRow>
@@ -276,8 +294,9 @@ export function VoucherTable({
                       <RowActions
                         voucher={v}
                         role={userRole}
+                        currentUserId={currentUserId}
                         onView={() => onViewVoucher?.(v)}
-                        onDisburse={() => onRequestDisburse?.(v)}
+                        onAction={onRequestAction}
                       />
                     </div>
                   </div>
