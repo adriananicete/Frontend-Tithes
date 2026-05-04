@@ -7,7 +7,6 @@ import {
   ClipboardCheck,
   FileCheck2,
   Inbox,
-  Loader2,
   PackageCheck,
   Pencil,
   Receipt,
@@ -21,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ConfirmActionDialog } from "@/components/shared/ConfirmActionDialog";
 import { formatPHP } from "@/components/dashboard-components/dashboardUtils";
 import { can } from "@/utils/rolePermissions";
 
@@ -67,6 +67,57 @@ function PendingSection({ icon: Icon, title, hint, items, renderRow, emptyText, 
   );
 }
 
+// Confirm dialog copy per action kind. Mirrors RfTable / TithesTable so the
+// same "Yes, approve" / "Mark as disbursed?" wording is used everywhere a
+// user can take that action. `kind` is the join key — actionForRow returns
+// it, then handleConfirm uses it to look up the actual handler.
+const CONFIRM_CONFIG = {
+  approveTithes: {
+    variant: "approve",
+    title: "Approve this tithes entry?",
+    describe: (t, helpers) =>
+      `${helpers.formatPHP(t.total)} from ${helpers.personName(t.submittedBy)} on ${helpers.formatShortDate(t.entryDate)} will be marked approved.`,
+    confirmLabel: "Yes, approve",
+    pendingLabel: "Approving…",
+  },
+  validateRf: {
+    variant: "approve",
+    title: "Validate this request form?",
+    describe: (rf) => `${rf.rfNo} will move to the approval stage.`,
+    confirmLabel: "Yes, validate",
+    pendingLabel: "Validating…",
+  },
+  approveRf: {
+    variant: "approve",
+    title: "Approve this request form?",
+    describe: (rf) => `${rf.rfNo} will be marked approved and ready for voucher creation.`,
+    confirmLabel: "Yes, approve",
+    pendingLabel: "Approving…",
+  },
+  disburseRf: {
+    variant: "approve",
+    title: "Mark as disbursed?",
+    describe: (rf) =>
+      `${rf.rfNo} will be marked as disbursed. The requester will be notified to confirm receipt.`,
+    confirmLabel: "Yes, disbursed",
+    pendingLabel: "Marking…",
+  },
+  markReceivedRf: {
+    variant: "approve",
+    title: "Confirm receipt?",
+    describe: (rf) => `${rf.rfNo} will be marked as received and closed.`,
+    confirmLabel: "Yes, received",
+    pendingLabel: "Confirming…",
+  },
+  submitRf: {
+    variant: "approve",
+    title: "Submit for validation?",
+    describe: (rf) => `${rf.rfNo} will be sent to the validator. You can no longer edit it after submitting.`,
+    confirmLabel: "Yes, submit",
+    pendingLabel: "Submitting…",
+  },
+};
+
 export function PendingWorkSection({
   role,
   userId,
@@ -76,59 +127,69 @@ export function PendingWorkSection({
   actions = {},
 }) {
   const navigate = useNavigate();
-  const [busyId, setBusyId] = useState(null);
-  const [errorById, setErrorById] = useState({});
+  // confirming = { kind, item } | null. The dialog itself owns busy +
+  // error state, so a failed action keeps the dialog open with red text
+  // instead of needing a per-row error stripe like the old direct flow.
+  const [confirming, setConfirming] = useState(null);
 
-  // Quick-action runner. Tracks the active row + per-row error so other
-  // rows stay clickable while one is in flight, and a failure surfaces
-  // inline (red text) under the row that failed instead of a global alert.
-  const runAction = async (id, fn) => {
-    setBusyId(id);
-    setErrorById((e) => ({ ...e, [id]: "" }));
-    try {
-      await fn();
-    } catch (err) {
-      setErrorById((e) => ({ ...e, [id]: err?.message || "Action failed" }));
-    } finally {
-      setBusyId(null);
-    }
-  };
-
-  // One row → one action label + handler, derived from bucket key + role.
-  // Returns null when the role/owner can't act on this row (e.g. admin
-  // viewing the member-only "Confirm Receipt" bucket — still visible for
-  // monitoring, just no button).
+  // One row → one action descriptor, derived from bucket key + role.
+  // `kind` points into CONFIRM_CONFIG for actions that need a confirm
+  // step. `direct` is used for actions that already open their own dialog
+  // (Create Voucher) — no extra confirm needed.
+  // Returns null when the role/owner can't act on this row.
   const actionForRow = (bucketKey, item) => {
-    const itemId = item._id;
     switch (bucketKey) {
       case "tithes":
-        return { label: "Approve", run: () => actions.approveTithes?.(itemId) };
+        return { label: "Approve", kind: "approveTithes" };
       case "rf-submitted":
         return can.validateRf(role)
-          ? { label: "Validate", run: () => actions.validateRf?.(itemId) }
+          ? { label: "Validate", kind: "validateRf" }
           : null;
       case "rf-for_approval":
         return can.approveRf(role)
-          ? { label: "Approve", run: () => actions.approveRf?.(itemId) }
+          ? { label: "Approve", kind: "approveRf" }
           : null;
       case "rf-approved":
         return can.createVoucherFromRf(role)
-          ? { label: "Create Voucher", run: () => actions.onCreateVoucher?.(item) }
+          ? { label: "Create Voucher", direct: () => actions.onCreateVoucher?.(item) }
           : null;
       case "rf-voucher_created":
         return can.disburseRf(role)
-          ? { label: "Disburse", run: () => actions.disburseRf?.(itemId) }
+          ? { label: "Disburse", kind: "disburseRf" }
           : null;
       case "rf-disbursed": {
         const isOwner = ownerId(item) && userId && ownerId(item) === userId;
         return isOwner
-          ? { label: "Mark as Received", run: () => actions.markRfReceived?.(itemId) }
+          ? { label: "Mark as Received", kind: "markReceivedRf" }
           : null;
       }
       case "rf-draft":
-        return { label: "Submit", run: () => actions.submitRf?.(itemId) };
+        return { label: "Submit", kind: "submitRf" };
       default:
         return null;
+    }
+  };
+
+  // Dialog onConfirm — looks up the kind's real handler and calls it.
+  // Errors propagate up so ConfirmActionDialog can surface them in red.
+  const handleConfirm = async () => {
+    if (!confirming) return;
+    const item = confirming.item;
+    switch (confirming.kind) {
+      case "approveTithes":
+        return actions.approveTithes?.(item._id);
+      case "validateRf":
+        return actions.validateRf?.(item._id);
+      case "approveRf":
+        return actions.approveRf?.(item._id);
+      case "disburseRf":
+        return actions.disburseRf?.(item._id);
+      case "markReceivedRf":
+        return actions.markRfReceived?.(item._id);
+      case "submitRf":
+        return actions.submitRf?.(item._id);
+      default:
+        return undefined;
     }
   };
 
@@ -243,37 +304,34 @@ export function PendingWorkSection({
   // Wraps the navigate button + action button in one row. The two click
   // targets are siblings (not nested) so React doesn't warn about
   // button-in-button and the action button doesn't trigger navigation.
-  const ActionRow = ({ id, onNavigate, children, bucketKey, item }) => {
+  // Tapping the action opens ConfirmActionDialog (or the direct dialog
+  // for Create Voucher) — never fires the API call straight away, to
+  // avoid accidental approvals on mobile.
+  const ActionRow = ({ onNavigate, children, bucketKey, item }) => {
     const action = actionForRow(bucketKey, item);
-    const busy = busyId === id;
-    const rowError = errorById[id];
+    const onAction = () => {
+      if (!action) return;
+      if (action.direct) action.direct();
+      else setConfirming({ kind: action.kind, item });
+    };
     return (
-      <div className="flex flex-col gap-1.5 rounded-md px-2 py-1.5 hover:bg-muted/60 transition">
-        <div className="flex items-center justify-between gap-2">
-          <button
+      <div className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 hover:bg-muted/60 transition">
+        <button
+          type="button"
+          onClick={onNavigate}
+          className="text-left flex items-center justify-between gap-2 flex-1 min-w-0 cursor-pointer"
+        >
+          {children}
+        </button>
+        {action && (
+          <Button
             type="button"
-            onClick={onNavigate}
-            className="text-left flex items-center justify-between gap-2 flex-1 min-w-0 cursor-pointer"
+            size="sm"
+            onClick={onAction}
+            className="shrink-0 bg-green-600 hover:bg-green-700 text-white"
           >
-            {children}
-          </button>
-          {action && (
-            <Button
-              type="button"
-              size="sm"
-              disabled={busy}
-              onClick={() => runAction(id, action.run)}
-              className="shrink-0 bg-green-600 hover:bg-green-700 text-white disabled:opacity-70"
-            >
-              {busy ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : null}
-              {busy ? "Working…" : action.label}
-            </Button>
-          )}
-        </div>
-        {rowError && (
-          <p className="text-[11px] text-red-600 leading-tight">{rowError}</p>
+            {action.label}
+          </Button>
         )}
       </div>
     );
@@ -282,7 +340,6 @@ export function PendingWorkSection({
   const renderRfRow = (rf, bucketKey) => (
     <ActionRow
       key={rf._id}
-      id={rf._id}
       item={rf}
       bucketKey={bucketKey}
       onNavigate={() => goToRf(rf)}
@@ -307,7 +364,6 @@ export function PendingWorkSection({
   const renderTithesRow = (t, bucketKey) => (
     <ActionRow
       key={t._id}
-      id={t._id}
       item={t}
       bucketKey={bucketKey}
       onNavigate={() => goToTithes(t)}
@@ -391,6 +447,27 @@ export function PendingWorkSection({
           </div>
         )}
       </CardContent>
+
+      {confirming && (() => {
+        const cfg = CONFIRM_CONFIG[confirming.kind];
+        if (!cfg) return null;
+        return (
+          <ConfirmActionDialog
+            open={!!confirming}
+            onOpenChange={(v) => !v && setConfirming(null)}
+            variant={cfg.variant}
+            title={cfg.title}
+            description={cfg.describe(confirming.item, {
+              formatPHP,
+              personName,
+              formatShortDate,
+            })}
+            confirmLabel={cfg.confirmLabel}
+            pendingLabel={cfg.pendingLabel}
+            onConfirm={handleConfirm}
+          />
+        );
+      })()}
     </Card>
   );
 }
