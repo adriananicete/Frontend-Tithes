@@ -1,12 +1,28 @@
-import { Check, CircleDot, FileText, XCircle } from "lucide-react";
+import {
+  BadgeCheck,
+  Check,
+  CircleDot,
+  FileCheck2,
+  FileText,
+  PackageCheck,
+  Pencil,
+  Receipt,
+  Send,
+  Trash2,
+  X,
+  XCircle,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { can } from "@/utils/rolePermissions";
 import { formatDate, formatDateTime, formatPHP, statusConfig } from "./mockData";
 
 const stages = [
@@ -55,7 +71,68 @@ function TimelineItem({ label, timestamp, by, state, isLast }) {
   );
 }
 
-export function RfDetailsDialog({ rf, open, onOpenChange }) {
+// Action buttons surfaced in the details footer, mirroring the status →
+// permission map used by RfTable's ActionMenu. Returns the list of buttons
+// to render, in the order they should appear.
+function buildFooterActions({ rf, role, currentUserId }) {
+  const status = rf.status;
+  const ownerId =
+    typeof rf.requestedBy === "string" ? null : rf.requestedBy?._id;
+  const isOwner = ownerId && currentUserId && ownerId === currentUserId;
+  const buttons = [];
+
+  if (status === "draft") {
+    if (isOwner) {
+      buttons.push({ kind: "edit", label: "Edit", icon: Pencil, variant: "outline" });
+      buttons.push({ kind: "delete", label: "Delete", icon: Trash2, variant: "outline-red" });
+      buttons.push({ kind: "submit", label: "Submit", icon: Send, variant: "primary" });
+    }
+  } else if (status === "submitted") {
+    if (can.rejectRf(role)) {
+      buttons.push({ kind: "reject", label: "Reject", icon: X, variant: "danger" });
+    }
+    if (can.validateRf(role)) {
+      buttons.push({ kind: "validate", label: "Validate", icon: FileCheck2, variant: "primary" });
+    }
+  } else if (status === "for_approval") {
+    if (can.rejectRf(role)) {
+      buttons.push({ kind: "reject", label: "Reject", icon: X, variant: "danger" });
+    }
+    if (can.approveRf(role)) {
+      buttons.push({ kind: "approve", label: "Approve", icon: Check, variant: "primary" });
+    }
+  } else if (status === "approved") {
+    if (can.createVoucherFromRf(role)) {
+      buttons.push({ kind: "createVoucher", label: "Create Voucher", icon: Receipt, variant: "primary" });
+    }
+  } else if (status === "voucher_created") {
+    if (can.disburseRf(role)) {
+      buttons.push({ kind: "disburse", label: "Mark as Disbursed", icon: BadgeCheck, variant: "primary" });
+    }
+  } else if (status === "disbursed") {
+    if (can.markRfReceived(role) && isOwner) {
+      buttons.push({ kind: "received", label: "Mark as Received", icon: PackageCheck, variant: "primary" });
+    }
+  }
+
+  return buttons;
+}
+
+const variantClass = {
+  primary: "bg-green-600 hover:bg-green-700 text-white",
+  danger: "bg-red-600 hover:bg-red-700 text-white",
+  "outline-red": "border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700",
+  outline: "",
+};
+
+export function RfDetailsDialog({
+  rf,
+  open,
+  onOpenChange,
+  userRole,
+  currentUserId,
+  onRequestAction,
+}) {
   if (!rf) return null;
 
   const cfg = statusConfig[rf.status] ?? statusConfig.draft;
@@ -65,6 +142,7 @@ export function RfDetailsDialog({ rf, open, onOpenChange }) {
   const categoryLabel =
     typeof rf.category === "string" ? rf.category : rf.category?.name || "—";
   const voucherLabel = rf.voucherId?.pcfNo || rf.voucherNo;
+  const footerButtons = buildFooterActions({ rf, role: userRole, currentUserId });
 
   // For non-rejected RFs: stage is "done" if its order < current, "current" if
   // it equals current. Once rejected, stages reached before rejection stay
@@ -176,6 +254,22 @@ export function RfDetailsDialog({ rf, open, onOpenChange }) {
             )}
           </div>
         </div>
+
+        {footerButtons.length > 0 && (
+          <DialogFooter>
+            {footerButtons.map((b) => (
+              <Button
+                key={b.kind}
+                type="button"
+                variant={b.variant === "outline" ? "outline" : undefined}
+                onClick={() => onRequestAction?.(b.kind, rf)}
+                className={variantClass[b.variant]}
+              >
+                <b.icon className="h-4 w-4" /> {b.label}
+              </Button>
+            ))}
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );
