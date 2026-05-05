@@ -132,3 +132,33 @@
     @apply font-sans;
   }
 }
+
+/* Sonner toast — countdown progress bar at the bottom edge.
+   Width animates from 100% → 0% over the toast's 4s duration; per-type
+   color matches the left-border accent (emerald/red/amber/blue). Pauses
+   while the toast is hovered so users don't lose it while reading. */
+[data-sonner-toast] {
+  position: relative;
+  overflow: hidden;
+}
+[data-sonner-toast]::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  transform-origin: left;
+  animation: toast-progress 4s linear forwards;
+  background: rgb(156 163 175); /* gray-400 — fallback for default toasts */
+}
+[data-sonner-toast][data-type="success"]::after { background: rgb(16 185 129); }   /* emerald-500 */
+[data-sonner-toast][data-type="error"]::after   { background: rgb(239 68 68); }    /* red-500 */
+[data-sonner-toast][data-type="warning"]::after { background: rgb(245 158 11); }   /* amber-500 */
+[data-sonner-toast][data-type="info"]::after    { background: rgb(59 130 246); }   /* blue-500 */
+[data-sonner-toast]:hover::after { animation-play-state: paused; }
+
+@keyframes toast-progress {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}

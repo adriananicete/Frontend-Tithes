@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FieldHelp } from "@/components/shared/FieldHelp";
 import { apiFetch } from "@/services/api";
+import { notifyAction } from "@/lib/toast";
 
 const MIN_LENGTH = 6;
 
@@ -52,7 +53,6 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
   const reset = () => {
@@ -63,7 +63,6 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
     setShowNew(false);
     setShowConfirm(false);
     setError("");
-    setSuccess("");
     setSubmitAttempted(false);
   };
 
@@ -99,7 +98,6 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
     e.preventDefault();
     setSubmitAttempted(true);
     setError("");
-    setSuccess("");
     if (!isValid) return;
 
     setSubmitting(true);
@@ -108,11 +106,8 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
         method: "PATCH",
         body: JSON.stringify({ currentPassword, newPassword }),
       });
-      setSuccess("Password changed successfully.");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setSubmitAttempted(false);
+      notifyAction("passwordChanged");
+      handleOpenChange(false);
     } catch (err) {
       setError(err.message || "Failed to change password.");
     } finally {
@@ -165,7 +160,6 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
           />
 
           {error && <p className="text-sm text-red-600">{error}</p>}
-          {success && <p className="text-sm text-emerald-600">{success}</p>}
 
           <DialogFooter>
             <Button
@@ -174,9 +168,9 @@ export function ChangePasswordDialog({ open, onOpenChange }) {
               onClick={() => handleOpenChange(false)}
               disabled={submitting}
             >
-              {success ? "Close" : "Cancel"}
+              Cancel
             </Button>
-            <Button type="submit" disabled={submitting || !!success}>
+            <Button type="submit" disabled={submitting}>
               {submitting ? "Changing…" : "Change Password"}
             </Button>
           </DialogFooter>

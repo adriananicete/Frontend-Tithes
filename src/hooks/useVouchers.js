@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
+import { notifyAction } from "@/lib/toast";
 
 export function useVouchers() {
   const [vouchers, setVouchers] = useState([]);
@@ -32,11 +33,12 @@ export function useVouchers() {
   }, [refetch]);
 
   const createVoucher = async (formData) => {
-    await apiFetch("/vouchers", {
+    const res = await apiFetch("/vouchers", {
       method: "POST",
       body: formData,
     });
     await refetch();
+    notifyAction("voucherCreated", res?.data?.pcfNo);
   };
 
   return { vouchers, loading, error, refetch, createVoucher };

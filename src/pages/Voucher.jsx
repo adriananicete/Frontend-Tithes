@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useRequestForms } from "@/hooks/useRequestForms";
 import { useVouchers } from "@/hooks/useVouchers";
 import { apiFetch } from "@/services/api";
+import { notifyAction } from "@/lib/toast";
 import { can } from "@/utils/rolePermissions";
 
 // Confirm-dialog copy keyed by action kind. Both actions on the voucher
@@ -26,6 +27,7 @@ const VOUCHER_CONFIRM_CONFIG = {
     confirmLabel: "Yes, disbursed",
     pendingLabel: "Marking…",
     endpoint: (v) => `/request-form/${v.rfId?._id}/disburse`,
+    toastKey: "rfDisbursed",
   },
   markReceived: {
     variant: "approve",
@@ -34,6 +36,7 @@ const VOUCHER_CONFIRM_CONFIG = {
     confirmLabel: "Yes, received",
     pendingLabel: "Confirming…",
     endpoint: (v) => `/request-form/${v.rfId?._id}/received`,
+    toastKey: "rfReceived",
   },
 };
 
@@ -109,6 +112,7 @@ function Voucher() {
       new CustomEvent("notification:new", { detail: { refModel: "RequestForm" } }),
     );
     await refetch();
+    notifyAction(cfg.toastKey, confirming.voucher.rfId?.rfNo);
   };
 
   return (

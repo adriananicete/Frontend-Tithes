@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
+import { notifyAction } from "@/lib/toast";
 
 export function useRequestForms() {
   const [rfs, setRfs] = useState([]);
@@ -37,6 +38,7 @@ export function useRequestForms() {
       body: JSON.stringify(payload),
     });
     await refetch();
+    notifyAction("rfDraftCreated", res?.data?.rfNo);
     return res?.data;
   };
 
@@ -52,6 +54,7 @@ export function useRequestForms() {
       await apiFetch(`/request-form/${newId}/submit`, { method: "PATCH" });
     }
     await refetch();
+    notifyAction("rfSubmitted", created?.data?.rfNo);
   };
 
   const updateRf = async (id, payload) => {
@@ -60,26 +63,31 @@ export function useRequestForms() {
       body: JSON.stringify(payload),
     });
     await refetch();
+    notifyAction("rfDraftUpdated");
   };
 
   const deleteRf = async (id) => {
     await apiFetch(`/request-form/${id}`, { method: "DELETE" });
     await refetch();
+    notifyAction("rfDraftDeleted");
   };
 
   const submitRf = async (id) => {
     await apiFetch(`/request-form/${id}/submit`, { method: "PATCH" });
     await refetch();
+    notifyAction("rfSubmitted");
   };
 
   const validateRf = async (id) => {
     await apiFetch(`/request-form/${id}/validate`, { method: "PATCH" });
     await refetch();
+    notifyAction("rfValidated");
   };
 
   const approveRf = async (id) => {
     await apiFetch(`/request-form/${id}/approve`, { method: "PATCH" });
     await refetch();
+    notifyAction("rfApproved");
   };
 
   const rejectRf = async (id, rejectionNote) => {
@@ -88,16 +96,19 @@ export function useRequestForms() {
       body: JSON.stringify({ rejectionNote }),
     });
     await refetch();
+    notifyAction("rfRejected");
   };
 
   const disburseRf = async (id) => {
     await apiFetch(`/request-form/${id}/disburse`, { method: "PATCH" });
     await refetch();
+    notifyAction("rfDisbursed");
   };
 
   const markRfReceived = async (id) => {
     await apiFetch(`/request-form/${id}/received`, { method: "PATCH" });
     await refetch();
+    notifyAction("rfReceived");
   };
 
   return {

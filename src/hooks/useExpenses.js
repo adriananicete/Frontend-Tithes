@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
+import { notifyAction } from "@/lib/toast";
 
 export function useExpenses() {
   const [expenses, setExpenses] = useState([]);
@@ -29,6 +30,7 @@ export function useExpenses() {
       body: JSON.stringify(payload),
     });
     await refetch();
+    notifyAction("expenseRecorded");
   };
 
   return { expenses, loading, error, refetch, createExpense };
