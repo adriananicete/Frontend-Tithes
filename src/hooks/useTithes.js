@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
+import { notifyAction } from "@/lib/toast";
 
 export function useTithes() {
   const [tithes, setTithes] = useState([]);
@@ -41,11 +42,13 @@ export function useTithes() {
       body: JSON.stringify(payload),
     });
     await refetch();
+    notifyAction("tithesSubmitted");
   };
 
   const approveTithes = async (id) => {
     await apiFetch(`/tithes/${id}/approve`, { method: "PATCH" });
     await refetch();
+    notifyAction("tithesApproved");
   };
 
   const rejectTithes = async (id, rejectionNote) => {
@@ -54,6 +57,7 @@ export function useTithes() {
       body: JSON.stringify({ rejectionNote }),
     });
     await refetch();
+    notifyAction("tithesRejected");
   };
 
   const updateTithes = async (id, payload) => {
@@ -62,6 +66,7 @@ export function useTithes() {
       body: JSON.stringify(payload),
     });
     await refetch();
+    notifyAction("tithesUpdated");
   };
 
   return {

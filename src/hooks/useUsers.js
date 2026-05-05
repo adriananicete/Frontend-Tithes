@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
+import { notifyAction } from "@/lib/toast";
 
 export function useUsers() {
   const [users, setUsers] = useState([]);
@@ -29,6 +30,7 @@ export function useUsers() {
       body: JSON.stringify(payload),
     });
     await refetch();
+    notifyAction("userCreated");
   };
 
   const updateUser = async (id, payload) => {
@@ -37,11 +39,13 @@ export function useUsers() {
       body: JSON.stringify(payload),
     });
     await refetch();
+    notifyAction("userUpdated");
   };
 
   const deactivateUser = async (id) => {
     await apiFetch(`/admin/users/${id}/deactivate`, { method: "PATCH" });
     await refetch();
+    notifyAction("userDeactivated");
   };
 
   const activateUser = async (id) => {
@@ -51,11 +55,13 @@ export function useUsers() {
       body: JSON.stringify({ isActive: true }),
     });
     await refetch();
+    notifyAction("userActivated");
   };
 
   const deleteUser = async (id) => {
     await apiFetch(`/admin/users/${id}`, { method: "DELETE" });
     await refetch();
+    notifyAction("userDeleted");
   };
 
   return {
