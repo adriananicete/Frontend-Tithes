@@ -264,7 +264,9 @@ export function CreateVoucherDialog({
             </div>
 
             <div className="space-y-2">
-              <Label>Receipts</Label>
+              <Label>
+                Receipts <span className="text-red-600">*</span>
+              </Label>
               <label
                 htmlFor="receiptFiles"
                 className="flex flex-col items-center justify-center gap-1 rounded-md border border-dashed p-4 cursor-pointer hover:bg-muted/50 transition"
@@ -272,7 +274,7 @@ export function CreateVoucherDialog({
                 <Upload className="h-5 w-5 text-muted-foreground" />
                 <span className="text-sm font-medium">Click to upload receipts</span>
                 <span className="text-xs text-muted-foreground">
-                  JPG, PNG, WebP — up to 5 files, 10MB each
+                  Required — JPG, PNG, WebP — 1 to 5 files, 10MB each
                 </span>
                 <input
                   id="receiptFiles"
@@ -333,7 +335,7 @@ export function CreateVoucherDialog({
               </DialogClose>
               <Button
                 type="submit"
-                disabled={!selectedRf || !amount || submitting}
+                disabled={!selectedRf || !amount || receipts.length === 0 || submitting}
               >
                 {submitting ? "Creating…" : "Create Voucher"}
               </Button>
