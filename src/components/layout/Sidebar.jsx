@@ -6,7 +6,7 @@ import { Sheet, SheetContent, SheetTitle } from "../ui/sheet";
 
 function SidebarFooter() {
   return (
-    <div className="mt-auto border-t border-gray-300 pt-3 px-2">
+    <div className="mt-auto border-t border-gray-300 pt-3 px-2 md:hidden xl:block">
       <p className="text-[10px] leading-tight text-gray-500">
         Design &amp; Built by ianDev 2026, All rights reserved.
       </p>
@@ -31,8 +31,9 @@ function SidebarBody({ onNavigate }) {
               isActive ? "bg-[#e6e6e6] text-black rounded-[3px]" : "text-gray-700"
             }
           >
-            <div className=" w-full flex justify-start items-center gap-2 p-2 text-sm">
-                {<item.icon size={20} />}{item.label}
+            <div className="w-full flex justify-start md:justify-center xl:justify-start items-center gap-2 p-2 text-sm">
+                {<item.icon size={20} />}
+                <span className="md:hidden xl:inline">{item.label}</span>
             </div>
           </NavLink>
         ))}
@@ -44,7 +45,7 @@ function SidebarBody({ onNavigate }) {
 
 function Sidebar() {
   return (
-    <div className="hidden md:flex bg-[#f6f6f6] w-96 h-full py-5 px-7 flex-col gap-4">
+    <div className="hidden md:flex bg-[#f6f6f6] w-16 xl:w-96 h-full py-5 px-2 xl:px-7 flex-col gap-4">
       <SidebarBody />
     </div>
   );
