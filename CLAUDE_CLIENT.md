@@ -405,7 +405,7 @@ Target users by device:
 Tailwind is mobile-first by syntax. Default classes = mobile. Prefix with `md:` (768px+) or `lg:` (1024px+) for larger screens.
 
 - **Tables** on desktop become **card stacks** on mobile via `md:hidden` / `hidden md:block`.
-- **Sidebar** is a permanent column on desktop, a `<Sheet />` drawer on mobile.
+- **Sidebar** is a `<Sheet />` drawer on mobile (`< md`), an **icon-only rail** on tablet (`md` to `xl`, `w-16`, labels + footer hidden, logo centered), and a **full column** on desktop (`xl+`, `w-96`, labels + name/role + footer visible). The breakpoint for the expanded form is `xl` (not `lg`) so iPad Pro portrait (1024px) and similar mid-size devices stay on the rail variant — at `lg`, `w-96` flex-shrinks awkwardly because the available main width is too narrow.
 - **Forms** stack to single column on mobile, can go two-column on desktop (`grid grid-cols-1 md:grid-cols-2`).
 
 ### 9.2 Device Testing
