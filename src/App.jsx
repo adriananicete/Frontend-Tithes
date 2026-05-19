@@ -18,7 +18,10 @@ function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
 
-      <Route path="/dev-login" element={<DevRolePicker />} />
+      {/* Dev-only role picker — excluded from production builds */}
+      {import.meta.env.DEV && (
+        <Route path="/dev-login" element={<DevRolePicker />} />
+      )}
 
       <Route element={<ProtectedRoute />}>
         <Route element={<Layout />}>

@@ -7,7 +7,7 @@ Backend repo: [Backend-Tithes](https://github.com/adriananicete/Backend-Tithes)
 ## Live
 
 - **App:** https://tithes-management-system.vercel.app
-- **Login:** seeded admin is `adrian@joscm.com` / `adrian` (change on first login)
+- **Login:** contact the administrator for access credentials
 
 > First login after the backend has been idle takes 30–60s — Render free tier sleeps the API after ~15 min.
 
