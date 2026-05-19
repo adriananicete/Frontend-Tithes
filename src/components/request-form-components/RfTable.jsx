@@ -106,10 +106,12 @@ function ActionMenu({
       });
     }
   } else if (status === "submitted") {
-    if (can.validateRf(role)) {
+    // The requester can't validate, approve, or reject their own RF —
+    // conflict of interest. Decision actions are hidden when isOwner.
+    if (can.validateRf(role) && !isOwner) {
       items.push({ key: "validate", label: "Validate", icon: FileCheck2, action: onValidate });
     }
-    if (can.rejectRf(role)) {
+    if (can.rejectRf(role) && !isOwner) {
       items.push({
         key: "reject",
         label: "Reject",
@@ -119,10 +121,10 @@ function ActionMenu({
       });
     }
   } else if (status === "for_approval") {
-    if (can.approveRf(role)) {
+    if (can.approveRf(role) && !isOwner) {
       items.push({ key: "approve", label: "Approve", icon: Check, action: onApprove });
     }
-    if (can.rejectRf(role)) {
+    if (can.rejectRf(role) && !isOwner) {
       items.push({
         key: "reject",
         label: "Reject",

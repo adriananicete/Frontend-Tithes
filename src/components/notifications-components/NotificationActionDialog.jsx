@@ -259,7 +259,8 @@ export function NotificationActionDialog({ notif, open, onOpenChange }) {
         typeof record.requestedBy === "string" ? null : record.requestedBy?._id;
       const isOwner = ownerId && userId && ownerId === userId;
 
-      if (status === "submitted" && can.validateRf(role)) {
+      // The requester can't validate/reject (or later approve) their own RF.
+      if (status === "submitted" && can.validateRf(role) && !isOwner) {
         return (
           <>
             {can.rejectRf(role) && (
@@ -282,7 +283,7 @@ export function NotificationActionDialog({ notif, open, onOpenChange }) {
           </>
         );
       }
-      if (status === "for_approval" && can.approveRf(role)) {
+      if (status === "for_approval" && can.approveRf(role) && !isOwner) {
         return (
           <>
             {can.rejectRf(role) && (
