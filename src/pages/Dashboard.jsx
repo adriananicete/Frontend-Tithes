@@ -46,6 +46,7 @@ function Dashboard() {
   const {
     tithes,
     expenses,
+    expensesByCategory,
     rfs,
     vouchers,
     loading,
@@ -165,11 +166,10 @@ function Dashboard() {
         actions={pendingActions}
       />
 
-      <div
-        className={`grid grid-cols-1 ${
-          canViewExpenses ? "lg:grid-cols-3" : "lg:grid-cols-2"
-        } gap-5 w-full`}
-      >
+      {/* Expenses-by-Category is shown to every role (aggregated, no
+          per-transaction detail) so all staff have visibility into
+          spending — hence the grid is always three columns. */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 w-full">
         <div className="min-w-0">
           <ChartAreaGradient
             tithes={tithes}
@@ -178,11 +178,9 @@ function Dashboard() {
           />
         </div>
 
-        {canViewExpenses && (
-          <div className="min-w-0">
-            <ChartBarExpense expenses={expenses} />
-          </div>
-        )}
+        <div className="min-w-0">
+          <ChartBarExpense data={expensesByCategory} />
+        </div>
 
         <div className="min-w-0 lg:h-auto">
           <SummaryStats
