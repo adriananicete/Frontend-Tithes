@@ -27,24 +27,16 @@ const chartConfig = {
   },
 };
 
-const SIX_MONTHS_MS = 1000 * 60 * 60 * 24 * 30 * 6;
-
-const buildCategorySeries = (expenses) => {
-  const cutoff = Date.now() - SIX_MONTHS_MS;
-  const byCategory = new Map();
-  for (const e of expenses) {
-    const ts = new Date(e.date ?? e.createdAt).getTime();
-    if (isNaN(ts) || ts < cutoff) continue;
-    const name = e.category?.name ?? "Uncategorized";
-    byCategory.set(name, (byCategory.get(name) || 0) + (Number(e.amount) || 0));
-  }
-  return Array.from(byCategory, ([category, amount]) => ({ category, amount }))
-    .sort((a, b) => b.amount - a.amount);
-};
-
-export function ChartBarExpense({ expenses = [] }) {
-  const chartData = useMemo(() => buildCategorySeries(expenses), [expenses]);
-  const total = chartData.reduce((a, c) => a + c.amount, 0);
+// `data` arrives pre-aggregated from GET /expenses/by-category — an array
+// of { category, amount } category totals for the last 6 months, sorted
+// amount-desc by the backend. This endpoint is open to every role, so the
+// chart can render for all of them.
+export function ChartBarExpense({ data = [] }) {
+  const chartData = data;
+  const total = useMemo(
+    () => chartData.reduce((a, c) => a + c.amount, 0),
+    [chartData],
+  );
 
   return (
     <Card>

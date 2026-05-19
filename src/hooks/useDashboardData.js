@@ -10,6 +10,7 @@ const canViewVouchers = (role) =>
 export function useDashboardData(role) {
   const [tithes, setTithes] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [expensesByCategory, setExpensesByCategory] = useState([]);
   const [rfs, setRfs] = useState([]);
   const [vouchers, setVouchers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,16 +25,21 @@ export function useDashboardData(role) {
     const showVouchers = canViewVouchers(role);
 
     try {
-      const [tRes, rRes, eRes, vRes] = await Promise.all([
+      // /expenses/by-category is aggregated (category totals only) and is
+      // open to every role, so it's fetched unconditionally — unlike the
+      // full /expenses list which stays admin/auditor-gated.
+      const [tRes, rRes, eRes, vRes, ecRes] = await Promise.all([
         apiFetch("/tithes"),
         apiFetch("/request-form"),
         showExpenses ? apiFetch("/expenses") : Promise.resolve(null),
         showVouchers ? apiFetch("/vouchers") : Promise.resolve(null),
+        apiFetch("/expenses/by-category"),
       ]);
       setTithes(Array.isArray(tRes?.data) ? tRes.data : []);
       setRfs(Array.isArray(rRes?.data) ? rRes.data : []);
       setExpenses(Array.isArray(eRes?.data) ? eRes.data : []);
       setVouchers(Array.isArray(vRes?.data) ? vRes.data : []);
+      setExpensesByCategory(Array.isArray(ecRes?.data) ? ecRes.data : []);
     } catch (err) {
       setError(err.message || "Failed to load dashboard data");
     } finally {
@@ -48,6 +54,7 @@ export function useDashboardData(role) {
   return {
     tithes,
     expenses,
+    expensesByCategory,
     rfs,
     vouchers,
     loading,

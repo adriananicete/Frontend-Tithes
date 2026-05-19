@@ -74,7 +74,7 @@ export const NAV_ITEMS = [
     label: 'Reports',
     path: '/reports',
     icon: LuChartBar,
-    roles: ['admin', 'do', 'validator', 'pastor', 'auditor', 'member'],
+    roles: ['admin', 'do', 'validator', 'pastor', 'auditor'],
   },
   {
     label: 'Users',

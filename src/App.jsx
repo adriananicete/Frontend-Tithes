@@ -25,8 +25,17 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/tithes" element={<Tithes />} />
           <Route path="/request-form" element={<RequestForm />} />
-          <Route path="/reports" element={<Reports />} />
           <Route path="/notifications" element={<Notifications />} />
+
+          <Route
+            element={
+              <ProtectedRoute
+                allowedRoles={["admin", "do", "validator", "pastor", "auditor"]}
+              />
+            }
+          >
+            <Route path="/reports" element={<Reports />} />
+          </Route>
 
           <Route element={<ProtectedRoute allowedRoles={["admin", "do", "validator", "auditor"]} />}>
             <Route path="/voucher" element={<Voucher />} />

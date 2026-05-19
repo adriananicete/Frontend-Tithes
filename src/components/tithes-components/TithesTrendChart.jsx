@@ -174,7 +174,9 @@ export function TithesTrendChart({ tithes = [], className }) {
         <div className="flex gap-6">
           <div>
             <div className="text-xs text-muted-foreground">Total</div>
-            <div className="font-semibold">{formatPHP(stats.sum)}</div>
+            <div className="text-xl font-bold leading-tight">
+              {formatPHP(stats.sum)}
+            </div>
           </div>
           <div>
             <div className="text-xs text-muted-foreground">Daily Avg</div>
