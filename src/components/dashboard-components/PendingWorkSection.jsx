@@ -141,14 +141,19 @@ export function PendingWorkSection({
     switch (bucketKey) {
       case "tithes":
         return { label: "Approve", kind: "approveTithes" };
-      case "rf-submitted":
-        return can.validateRf(role)
+      case "rf-submitted": {
+        // The requester can't validate their own RF — conflict of interest.
+        const isOwner = ownerId(item) && userId && ownerId(item) === userId;
+        return can.validateRf(role) && !isOwner
           ? { label: "Validate", kind: "validateRf" }
           : null;
-      case "rf-for_approval":
-        return can.approveRf(role)
+      }
+      case "rf-for_approval": {
+        const isOwner = ownerId(item) && userId && ownerId(item) === userId;
+        return can.approveRf(role) && !isOwner
           ? { label: "Approve", kind: "approveRf" }
           : null;
+      }
       case "rf-approved":
         return can.createVoucherFromRf(role)
           ? { label: "Create Voucher", direct: () => actions.onCreateVoucher?.(item) }

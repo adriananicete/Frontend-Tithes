@@ -88,17 +88,19 @@ function buildFooterActions({ rf, role, currentUserId }) {
       buttons.push({ kind: "submit", label: "Submit", icon: Send, variant: "primary" });
     }
   } else if (status === "submitted") {
-    if (can.rejectRf(role)) {
+    // The requester can't validate, approve, or reject their own RF —
+    // conflict of interest. Decision actions are hidden when isOwner.
+    if (can.rejectRf(role) && !isOwner) {
       buttons.push({ kind: "reject", label: "Reject", icon: X, variant: "danger" });
     }
-    if (can.validateRf(role)) {
+    if (can.validateRf(role) && !isOwner) {
       buttons.push({ kind: "validate", label: "Validate", icon: FileCheck2, variant: "primary" });
     }
   } else if (status === "for_approval") {
-    if (can.rejectRf(role)) {
+    if (can.rejectRf(role) && !isOwner) {
       buttons.push({ kind: "reject", label: "Reject", icon: X, variant: "danger" });
     }
-    if (can.approveRf(role)) {
+    if (can.approveRf(role) && !isOwner) {
       buttons.push({ kind: "approve", label: "Approve", icon: Check, variant: "primary" });
     }
   } else if (status === "approved") {
