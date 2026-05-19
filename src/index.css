@@ -142,3 +142,12 @@
     --sileo-width: calc(100vw - 2rem);
   }
 }
+
+/* Sileo toast — center the description text on desktop, where the toast
+   sits top-center. Sileo's own default is text-align: left; mobile (toast
+   pinned top-right) keeps that left alignment. */
+@media (min-width: 641px) {
+  [data-sileo-description] {
+    text-align: center;
+  }
+}

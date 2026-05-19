@@ -15,6 +15,7 @@ import { CreateVoucherDialog } from "@/components/voucher-components/CreateVouch
 import { useAuth } from "@/hooks/useAuth";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { apiFetch } from "@/services/api";
+import { notifyAction } from "@/lib/toast";
 
 // Quick-action buttons per role. Mirrors the backend ACL in CLAUDE.md:
 // admin can do everything; validator can create vouchers + submit tithes;
@@ -58,11 +59,18 @@ function Dashboard() {
     [tithes, rfs, vouchers]
   );
 
-  const createCategory = (payload) =>
-    apiFetch("/admin/categories", {
+  // Dashboard does its mutations inline via apiFetch (not the feature
+  // hooks — those would fire duplicate GETs against useDashboardData), so
+  // the success toast that the hooks normally fire has to be raised here
+  // too. Keep these notifyAction keys in sync with the hook equivalents.
+  const createCategory = async (payload) => {
+    const res = await apiFetch("/admin/categories", {
       method: "POST",
       body: JSON.stringify(payload),
     });
+    notifyAction("categoryCreated");
+    return res;
+  };
 
   // Inline rather than via useTithes — Dashboard uses useDashboardData for
   // reads, so mounting useTithes here would fire a duplicate GET /tithes.
@@ -72,6 +80,7 @@ function Dashboard() {
       body: JSON.stringify(payload),
     });
     await refetch();
+    notifyAction("tithesSubmitted");
   };
 
   const [categoryOpen, setCategoryOpen] = useState(false);
@@ -97,19 +106,20 @@ function Dashboard() {
       new CustomEvent("notification:new", { detail: { refModel } }),
     );
 
-  const patchAndRefetch = async (path, refModel) => {
+  const patchAndRefetch = async (path, refModel, toastKey) => {
     await apiFetch(path, { method: "PATCH" });
     broadcastResourceChange(refModel);
     await refetch();
+    notifyAction(toastKey);
   };
 
   const pendingActions = {
-    approveTithes: (id) => patchAndRefetch(`/tithes/${id}/approve`, "Tithes"),
-    submitRf:      (id) => patchAndRefetch(`/request-form/${id}/submit`,   "RequestForm"),
-    validateRf:    (id) => patchAndRefetch(`/request-form/${id}/validate`, "RequestForm"),
-    approveRf:     (id) => patchAndRefetch(`/request-form/${id}/approve`,  "RequestForm"),
-    disburseRf:    (id) => patchAndRefetch(`/request-form/${id}/disburse`, "RequestForm"),
-    markRfReceived:(id) => patchAndRefetch(`/request-form/${id}/received`, "RequestForm"),
+    approveTithes: (id) => patchAndRefetch(`/tithes/${id}/approve`, "Tithes", "tithesApproved"),
+    submitRf:      (id) => patchAndRefetch(`/request-form/${id}/submit`,   "RequestForm", "rfSubmitted"),
+    validateRf:    (id) => patchAndRefetch(`/request-form/${id}/validate`, "RequestForm", "rfValidated"),
+    approveRf:     (id) => patchAndRefetch(`/request-form/${id}/approve`,  "RequestForm", "rfApproved"),
+    disburseRf:    (id) => patchAndRefetch(`/request-form/${id}/disburse`, "RequestForm", "rfDisbursed"),
+    markRfReceived:(id) => patchAndRefetch(`/request-form/${id}/received`, "RequestForm", "rfReceived"),
     onCreateVoucher: (rf) => {
       setVoucherPreselectId(rf._id);
       setVoucherOpen(true);
@@ -205,8 +215,9 @@ function Dashboard() {
         }}
         preselectedRfId={voucherPreselectId}
         onSubmit={async (formData) => {
-          await apiFetch("/vouchers", { method: "POST", body: formData });
+          const res = await apiFetch("/vouchers", { method: "POST", body: formData });
           await refetch();
+          notifyAction("voucherCreated", res?.data?.pcfNo);
         }}
       />
       <SubmitTithesDialog
