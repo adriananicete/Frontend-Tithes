@@ -1,17 +1,19 @@
-import { toast } from "sonner";
+import { sileo } from "sileo";
 
-// Generic helpers — use directly when no workflow key fits.
+// Generic helpers — use directly when no workflow key fits. Sileo's toast
+// functions take a single options object ({ title, description }); a
+// missing description is simply omitted from the toast.
 export const notifySuccess = (title, description) =>
-  toast.success(title, description ? { description } : undefined);
+  sileo.success({ title, description });
 
 export const notifyError = (title, description) =>
-  toast.error(title, description ? { description } : undefined);
+  sileo.error({ title, description });
 
 export const notifyInfo = (title, description) =>
-  toast.info(title, description ? { description } : undefined);
+  sileo.info({ title, description });
 
 export const notifyWarning = (title, description) =>
-  toast.warning(title, description ? { description } : undefined);
+  sileo.warning({ title, description });
 
 // Workflow-aware: every successful mutation across the app maps to a key
 // here. Centralising the wording so the same action reads identically
