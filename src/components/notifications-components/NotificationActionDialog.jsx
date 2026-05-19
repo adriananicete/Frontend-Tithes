@@ -25,6 +25,7 @@ import { apiFetch } from "@/services/api";
 import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from "@/hooks/useNotifications";
 import { can } from "@/utils/rolePermissions";
+import { notifyAction } from "@/lib/toast";
 import {
   formatDate,
   formatPHP,
@@ -115,7 +116,10 @@ export function NotificationActionDialog({ notif, open, onOpenChange }) {
     onOpenChange?.(next);
   };
 
-  const performAction = async (path, body) => {
+  // toastKey raises the same success toast the feature hooks fire — this
+  // dialog mutates via apiFetch directly, so without it actions taken from
+  // a notification would silently succeed with no toast.
+  const performAction = async (path, body, toastKey) => {
     setBusy(true);
     setError("");
     try {
@@ -125,6 +129,7 @@ export function NotificationActionDialog({ notif, open, onOpenChange }) {
       });
       broadcastResourceChange(notif?.refModel);
       await refetchNotifs?.();
+      if (toastKey) notifyAction(toastKey);
       onOpenChange?.(false);
     } catch (err) {
       setError(err?.message || "Action failed");
@@ -275,7 +280,11 @@ export function NotificationActionDialog({ notif, open, onOpenChange }) {
             <Button
               disabled={busy}
               onClick={() =>
-                performAction(`/request-form/${record._id}/validate`)
+                performAction(
+                  `/request-form/${record._id}/validate`,
+                  undefined,
+                  "rfValidated",
+                )
               }
             >
               <FileCheck2 className="h-4 w-4" /> Validate
@@ -298,7 +307,11 @@ export function NotificationActionDialog({ notif, open, onOpenChange }) {
             <Button
               disabled={busy}
               onClick={() =>
-                performAction(`/request-form/${record._id}/approve`)
+                performAction(
+                  `/request-form/${record._id}/approve`,
+                  undefined,
+                  "rfApproved",
+                )
               }
             >
               <Check className="h-4 w-4" /> Approve
@@ -318,7 +331,11 @@ export function NotificationActionDialog({ notif, open, onOpenChange }) {
           <Button
             disabled={busy}
             onClick={() =>
-              performAction(`/request-form/${record._id}/disburse`)
+              performAction(
+                `/request-form/${record._id}/disburse`,
+                undefined,
+                "rfDisbursed",
+              )
             }
           >
             <BadgeCheck className="h-4 w-4" /> Mark as Disbursed
@@ -330,7 +347,11 @@ export function NotificationActionDialog({ notif, open, onOpenChange }) {
           <Button
             disabled={busy}
             onClick={() =>
-              performAction(`/request-form/${record._id}/received`)
+              performAction(
+                `/request-form/${record._id}/received`,
+                undefined,
+                "rfReceived",
+              )
             }
           >
             <PackageCheck className="h-4 w-4" /> Mark as Received
@@ -355,7 +376,13 @@ export function NotificationActionDialog({ notif, open, onOpenChange }) {
             </Button>
             <Button
               disabled={busy}
-              onClick={() => performAction(`/tithes/${record._id}/approve`)}
+              onClick={() =>
+                performAction(
+                  `/tithes/${record._id}/approve`,
+                  undefined,
+                  "tithesApproved",
+                )
+              }
             >
               <Check className="h-4 w-4" /> Approve
             </Button>
@@ -378,7 +405,11 @@ export function NotificationActionDialog({ notif, open, onOpenChange }) {
       notif?.refModel === "RequestForm"
         ? `/request-form/${record._id}/reject`
         : `/tithes/${record._id}/reject`;
-    await performAction(path, { rejectionNote: note });
+    await performAction(
+      path,
+      { rejectionNote: note },
+      notif?.refModel === "RequestForm" ? "rfRejected" : "tithesRejected",
+    );
   };
 
   return (
