@@ -127,6 +127,7 @@ export const voucherStatusConfig = {
   voucher_created: { label: "Awaiting Disbursement", color: "bg-amber-100 text-amber-700" },
   disbursed:       { label: "Disbursed",             color: "bg-cyan-100 text-cyan-700" },
   received:        { label: "Received",              color: "bg-emerald-100 text-emerald-700" },
+  cancelled:       { label: "Cancelled",             color: "bg-rose-100 text-rose-700" },
 };
 
 export const formatPHP = (n) =>

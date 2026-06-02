@@ -39,6 +39,7 @@ const WORKFLOW_TOASTS = {
 
   // Vouchers
   voucherCreated:    { type: "success", title: "Voucher created" },
+  voucherCancelled:  { type: "success", title: "Voucher cancelled", description: "The request form is open again." },
 
   // Users
   userCreated:       { type: "success", title: "User created" },

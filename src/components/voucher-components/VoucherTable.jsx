@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { BadgeCheck, Eye, MoreHorizontal, PackageCheck } from "lucide-react";
+import { BadgeCheck, Ban, Eye, MoreHorizontal, PackageCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,7 +37,12 @@ import { can } from "@/utils/rolePermissions";
 import { formatDate, formatPHP, voucherStatusConfig } from "./mockData";
 
 const PAGE_SIZE = 10;
-const statusOptions = ["All", "voucher_created", "disbursed", "received"];
+const statusOptions = ["All", "voucher_created", "disbursed", "received", "cancelled"];
+
+// A cancelled voucher's RF is reopened to `approved`, so the row's effective
+// status comes from the voucher itself; otherwise it tracks the linked RF.
+const effectiveVoucherStatus = (v) =>
+  v.status === "cancelled" ? "cancelled" : v.rfId?.status;
 
 function RowActions({ voucher, role, currentUserId, onView, onAction }) {
   const status = voucher.rfId?.status;
@@ -53,7 +58,18 @@ function RowActions({ voucher, role, currentUserId, onView, onAction }) {
   const isOwner = requesterId && currentUserId && requesterId === currentUserId;
   const canMarkReceivedHere =
     status === "disbursed" && can.markRfReceived(role) && isOwner;
-  const showSeparator = canDisburseHere || canMarkReceivedHere;
+  // Cancel is allowed only before disbursement, and only for the validator
+  // who created the voucher (admin can cancel any). Mirrors the backend gate.
+  const createdByRaw = voucher.createdBy;
+  const createdById =
+    typeof createdByRaw === "string" ? createdByRaw : createdByRaw?._id ?? null;
+  const isCreator = createdById && currentUserId && createdById === currentUserId;
+  const canCancelHere =
+    voucher.status !== "cancelled" &&
+    status === "voucher_created" &&
+    can.cancelVoucher(role) &&
+    (role === "admin" || isCreator);
+  const showSeparator = canDisburseHere || canMarkReceivedHere || canCancelHere;
 
   return (
     <DropdownMenu>
@@ -75,6 +91,14 @@ function RowActions({ voucher, role, currentUserId, onView, onAction }) {
         {canMarkReceivedHere && (
           <DropdownMenuItem onClick={() => onAction?.("markReceived", voucher)}>
             <PackageCheck className="h-4 w-4 text-green-600" /> Mark as Received
+          </DropdownMenuItem>
+        )}
+        {canCancelHere && (
+          <DropdownMenuItem
+            onClick={() => onAction?.("cancel", voucher)}
+            className="text-rose-600 focus:text-rose-600"
+          >
+            <Ban className="h-4 w-4" /> Cancel voucher
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>
@@ -107,8 +131,7 @@ export function VoucherTable({
 
   const filtered = useMemo(() => {
     return vouchers.filter((v) => {
-      const rfStatus = v.rfId?.status;
-      if (status !== "All" && rfStatus !== status) return false;
+      if (status !== "All" && effectiveVoucherStatus(v) !== status) return false;
       if (category !== "All" && v.category?.name !== category) return false;
       if (search) {
         const q = search.toLowerCase();
@@ -219,8 +242,8 @@ export function VoucherTable({
                 </TableRow>
               ) : (
                 pageItems.map((v) => {
-                  const cfg = voucherStatusConfig[v.rfId?.status] ?? {
-                    label: v.rfId?.status ?? "—",
+                  const cfg = voucherStatusConfig[effectiveVoucherStatus(v)] ?? {
+                    label: effectiveVoucherStatus(v) ?? "—",
                     color: "bg-muted text-muted-foreground",
                   };
                   return (
@@ -267,8 +290,8 @@ export function VoucherTable({
             </div>
           ) : (
             pageItems.map((v) => {
-              const cfg = voucherStatusConfig[v.rfId?.status] ?? {
-                label: v.rfId?.status ?? "—",
+              const cfg = voucherStatusConfig[effectiveVoucherStatus(v)] ?? {
+                label: effectiveVoucherStatus(v) ?? "—",
                 color: "bg-muted text-muted-foreground",
               };
               return (

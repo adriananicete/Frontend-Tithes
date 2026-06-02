@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiFetch } from "@/services/api";
+import { useCategories } from "@/hooks/useCategories";
 import { formatDate } from "./mockData";
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -51,11 +52,17 @@ export function CreateVoucherDialog({
 
   const [rfId, setRfId] = useState("");
   const [date, setDate] = useState(today());
+  const [categoryId, setCategoryId] = useState("");
   const [amount, setAmount] = useState("");
   const [remarks, setRemarks] = useState("");
   const [receipts, setReceipts] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const { categories } = useCategories();
+  const rfCategories = categories.filter(
+    (c) => c.type === "rf" && c.isActive !== false,
+  );
 
   const selectedRf = approvedRfs.find((r) => r._id === rfId);
 
@@ -88,12 +95,22 @@ export function CreateVoucherDialog({
   }, [open, preselectedRfId]);
 
   useEffect(() => {
-    if (selectedRf) setAmount(selectedRf.estimatedAmount?.toString() ?? "");
+    if (selectedRf) {
+      setAmount(selectedRf.estimatedAmount?.toString() ?? "");
+      // Default to the RF's approved category; the validator can change it
+      // here to correct a wrong category before the PCF is issued.
+      const rfCatId =
+        typeof selectedRf.category === "object"
+          ? selectedRf.category?._id
+          : selectedRf.category;
+      setCategoryId(rfCatId ?? "");
+    }
   }, [rfId]);
 
   const reset = () => {
     setRfId("");
     setDate(today());
+    setCategoryId("");
     setAmount("");
     setRemarks("");
     setReceipts([]);
@@ -130,12 +147,7 @@ export function CreateVoucherDialog({
     if (!selectedRf || !onSubmit) return;
     const formData = new FormData();
     formData.append("rfId", selectedRf._id);
-    formData.append(
-      "category",
-      typeof selectedRf.category === "object"
-        ? selectedRf.category._id
-        : selectedRf.category
-    );
+    formData.append("category", categoryId);
     formData.append("amount", String(Number(amount) || 0));
     if (remarks.trim()) formData.append("remarks", remarks.trim());
     receipts.forEach((file) => formData.append("receipts", file));
@@ -239,6 +251,36 @@ export function CreateVoucherDialog({
               </div>
             )}
 
+            {selectedRf && (
+              <div className="space-y-1.5">
+                <Label>Category</Label>
+                <Select value={categoryId} onValueChange={setCategoryId}>
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        rfCategories.length ? "Select category" : "No categories"
+                      }
+                    >
+                      {(value) =>
+                        rfCategories.find((c) => c._id === value)?.name ||
+                        (rfCategories.length ? "Select category" : "No categories")
+                      }
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rfCategories.map((c) => (
+                      <SelectItem key={c._id} value={c._id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Defaults to the approved category — change it here to correct a wrong category before issuing the PCF.
+                </p>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="vdate">Voucher Date</Label>
@@ -335,7 +377,9 @@ export function CreateVoucherDialog({
               </DialogClose>
               <Button
                 type="submit"
-                disabled={!selectedRf || !amount || receipts.length === 0 || submitting}
+                disabled={
+                  !selectedRf || !categoryId || !amount || receipts.length === 0 || submitting
+                }
               >
                 {submitting ? "Creating…" : "Create Voucher"}
               </Button>
