@@ -30,7 +30,7 @@ export function ExportBar({
             ? "Select a date range to enable export."
             : rowCount === 0
             ? "No entries in this range to export."
-            : `${rowCount} ${tab === "tithes" ? "tithe" : "expense"} entries · ${formatDate(startDate)} to ${formatDate(endDate)}`}
+            : `${rowCount} ${tab === "tithes" ? "tithe" : tab === "expense" ? "expense" : "tithe + expense"} entries · ${formatDate(startDate)} to ${formatDate(endDate)}`}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">

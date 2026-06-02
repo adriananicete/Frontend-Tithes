@@ -124,6 +124,7 @@ export function PendingWorkSection({
   tithes = [],
   rfs = [],
   vouchers = [],
+  expenses = [],
   actions = {},
 }) {
   const navigate = useNavigate();
@@ -255,15 +256,25 @@ export function PendingWorkSection({
     }
 
     if (role === "auditor") {
-      // Auditor's pending view is read-only oversight: counts across the
-      // pipeline. No row-level actions, no clickable items.
+      // Auditor's pending view is read-only oversight: pipeline counts +
+      // this-month financials. Tiles are clickable deep-links (no row actions).
       const startOfMonth = new Date();
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
+      const sumThisMonth = (arr, dateKey, valKey) =>
+        arr
+          .filter((x) => {
+            const d = x[dateKey];
+            return d && new Date(d) >= startOfMonth;
+          })
+          .reduce((s, x) => s + (x[valKey] || 0), 0);
       const vouchersThisMonth = vouchers.filter((v) => {
         const d = v.createdAt ?? v.date;
         return d && new Date(d) >= startOfMonth;
       });
+      const tithesThisMonth = sumThisMonth(tithes, "entryDate", "total");
+      const expensesThisMonth = sumThisMonth(expenses, "date", "amount");
+      const netThisMonth = tithesThisMonth - expensesThisMonth;
       return [
         {
           key: "audit",
@@ -271,20 +282,28 @@ export function PendingWorkSection({
           icon: CircleDot,
           isAudit: true,
           stats: [
-            { label: "Pending tithes", value: pendingTithes.length },
-            { label: "Submitted RFs", value: rfByStatus("submitted").length },
-            { label: "For approval", value: rfByStatus("for_approval").length },
-            { label: "Approved (no voucher)", value: rfByStatus("approved").length },
-            { label: "Awaiting disbursement", value: rfByStatus("voucher_created").length },
-            { label: "Awaiting receipt", value: rfByStatus("disbursed").length },
-            { label: "Vouchers this month", value: vouchersThisMonth.length },
+            { label: "Pending tithes", value: pendingTithes.length, to: "/tithes" },
+            { label: "Submitted RFs", value: rfByStatus("submitted").length, to: "/request-form" },
+            { label: "For approval", value: rfByStatus("for_approval").length, to: "/request-form" },
+            { label: "Approved (no voucher)", value: rfByStatus("approved").length, to: "/request-form" },
+            { label: "Awaiting disbursement", value: rfByStatus("voucher_created").length, to: "/request-form" },
+            { label: "Awaiting receipt", value: rfByStatus("disbursed").length, to: "/request-form" },
+            { label: "Vouchers this month", value: vouchersThisMonth.length, to: "/voucher" },
+            { label: "Tithes (this month)", value: formatPHP(tithesThisMonth), to: "/reports" },
+            { label: "Expenses (this month)", value: formatPHP(expensesThisMonth), to: "/reports" },
+            {
+              label: "Net (this month)",
+              value: formatPHP(netThisMonth),
+              to: "/reports",
+              valueClass: netThisMonth >= 0 ? "text-emerald-700" : "text-red-700",
+            },
           ],
         },
       ];
     }
 
     return [];
-  }, [role, userId, tithes, rfs, vouchers]);
+  }, [role, userId, tithes, rfs, vouchers, expenses]);
 
   if (!buckets) return null;
 
@@ -421,15 +440,33 @@ export function PendingWorkSection({
                       <b.icon className="h-4 w-4 text-muted-foreground" />
                       <p className="text-sm font-semibold">{b.title}</p>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
-                      {b.stats.map((s) => (
-                        <div key={s.label} className="rounded-md bg-background p-3 border">
-                          <div className="text-2xl font-semibold">{s.value}</div>
-                          <div className="text-[11px] text-muted-foreground leading-tight">
-                            {s.label}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                      {b.stats.map((s) => {
+                        const inner = (
+                          <>
+                            <div className={`text-2xl font-semibold ${s.valueClass ?? ""}`}>
+                              {s.value}
+                            </div>
+                            <div className="text-[11px] text-muted-foreground leading-tight">
+                              {s.label}
+                            </div>
+                          </>
+                        );
+                        return s.to ? (
+                          <button
+                            key={s.label}
+                            type="button"
+                            onClick={() => navigate(s.to)}
+                            className="rounded-md bg-background p-3 border text-left hover:bg-muted/60 transition cursor-pointer"
+                          >
+                            {inner}
+                          </button>
+                        ) : (
+                          <div key={s.label} className="rounded-md bg-background p-3 border">
+                            {inner}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 );

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Coins, Receipt } from "lucide-react";
+import { Coins, Receipt, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DateRangePicker } from "@/components/reports-components/DateRangePicker";
 import { ExportBar } from "@/components/reports-components/ExportBar";
+import { FinancialSummary } from "@/components/reports-components/FinancialSummary";
 import { ReportPreviewTable } from "@/components/reports-components/ReportPreviewTable";
 import { ReportSummary } from "@/components/reports-components/ReportSummary";
 import { resolvePreset } from "@/components/reports-components/mockData";
@@ -13,6 +14,7 @@ import { can } from "@/utils/rolePermissions";
 function Reports() {
   const { user } = useAuth();
   const canViewExpense = can.viewExpenseReport(user?.role);
+  const canViewCombined = can.viewCombinedReport(user?.role);
   const initial = resolvePreset("this_month");
   const [tab, setTab] = useState("tithes");
   const [startDate, setStartDate] = useState(initial.start);
@@ -25,16 +27,26 @@ function Reports() {
     setPreset(p);
   };
 
-  const effectiveTab = tab === "expense" && !canViewExpense ? "tithes" : tab;
+  const effectiveTab =
+    (tab === "expense" && !canViewExpense) ||
+    (tab === "combined" && !canViewCombined)
+      ? "tithes"
+      : tab;
+  const isCombined = effectiveTab === "combined";
 
   const {
     data,
+    summary,
     loading,
     error,
     downloadReport,
     downloading,
     downloadError,
   } = useReports(effectiveTab, startDate, endDate);
+
+  const combinedRowCount = summary
+    ? summary.tithesCount + summary.expenseCount
+    : 0;
 
   return (
     <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1">
@@ -75,10 +87,24 @@ function Reports() {
             <Receipt className="h-4 w-4" /> Expense
           </Button>
         )}
+        {canViewCombined && (
+          <Button
+            type="button"
+            variant={tab === "combined" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setTab("combined")}
+          >
+            <Scale className="h-4 w-4" /> Financial Summary
+          </Button>
+        )}
       </div>
 
       <div className="shrink-0">
-        <ReportSummary tab={effectiveTab} data={data} />
+        {isCombined ? (
+          <FinancialSummary summary={summary} loading={loading} />
+        ) : (
+          <ReportSummary tab={effectiveTab} data={data} />
+        )}
       </div>
 
       <div className="shrink-0">
@@ -86,21 +112,23 @@ function Reports() {
           tab={effectiveTab}
           startDate={startDate}
           endDate={endDate}
-          rowCount={data.length}
+          rowCount={isCombined ? combinedRowCount : data.length}
           onDownload={downloadReport}
           downloading={downloading}
           downloadError={downloadError}
         />
       </div>
 
-      <div className="h-[24rem] md:h-[32rem] shrink-0">
-        <ReportPreviewTable
-          tab={effectiveTab}
-          data={data}
-          loading={loading}
-          error={error}
-        />
-      </div>
+      {!isCombined && (
+        <div className="h-[24rem] md:h-[32rem] shrink-0">
+          <ReportPreviewTable
+            tab={effectiveTab}
+            data={data}
+            loading={loading}
+            error={error}
+          />
+        </div>
+      )}
     </div>
   );
 }

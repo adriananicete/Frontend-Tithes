@@ -163,6 +163,7 @@ function Dashboard() {
         tithes={tithes}
         rfs={rfs}
         vouchers={vouchers}
+        expenses={expenses}
         actions={pendingActions}
       />
 
