@@ -16,9 +16,11 @@ export function useDashboardData(role) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const refetch = useCallback(async () => {
+  // `silent` skips the loading state so a realtime refresh doesn't flash
+  // skeletons over already-rendered data — used by the notification listener.
+  const load = useCallback(async (silent = false) => {
     if (!role) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     setError("");
 
     const showExpenses = canViewExpenses(role);
@@ -43,13 +45,25 @@ export function useDashboardData(role) {
     } catch (err) {
       setError(err.message || "Failed to load dashboard data");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [role]);
 
+  const refetch = useCallback(() => load(false), [load]);
+
   useEffect(() => {
-    refetch();
-  }, [refetch]);
+    load(false);
+  }, [load]);
+
+  // Realtime: NotificationsContext dispatches a window `notification:new`
+  // on every socket push. Silently refetch so "Your Pending Work" and the
+  // stats stay live without a manual refresh — same broadcast the resource
+  // hooks (useVouchers / useRequestForms / useTithes) already listen to.
+  useEffect(() => {
+    const onNotif = () => load(true);
+    window.addEventListener("notification:new", onNotif);
+    return () => window.removeEventListener("notification:new", onNotif);
+  }, [load]);
 
   return {
     tithes,
