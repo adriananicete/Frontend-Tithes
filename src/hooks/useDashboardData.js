@@ -55,14 +55,22 @@ export function useDashboardData(role) {
     load(false);
   }, [load]);
 
-  // Realtime: NotificationsContext dispatches a window `notification:new`
-  // on every socket push. Silently refetch so "Your Pending Work" and the
-  // stats stay live without a manual refresh — same broadcast the resource
-  // hooks (useVouchers / useRequestForms / useTithes) already listen to.
+  // Keep "Your Pending Work" and the stats live without a manual refresh,
+  // via two paths that mirror NotificationsContext:
+  //   1. `notification:new` — dispatched on every realtime socket push.
+  //   2. `focus` — reconcile when the user returns to the tab, covering the
+  //      case where a socket push was missed (socket dropped, or the notif
+  //      arrived while this tab was backgrounded). This is the same focus
+  //      reconcile the notification bell uses, so the dashboard now stays as
+  //      fresh as the bell. Both refetch silently (no loading skeleton flash).
   useEffect(() => {
-    const onNotif = () => load(true);
-    window.addEventListener("notification:new", onNotif);
-    return () => window.removeEventListener("notification:new", onNotif);
+    const reload = () => load(true);
+    window.addEventListener("notification:new", reload);
+    window.addEventListener("focus", reload);
+    return () => {
+      window.removeEventListener("notification:new", reload);
+      window.removeEventListener("focus", reload);
+    };
   }, [load]);
 
   return {
