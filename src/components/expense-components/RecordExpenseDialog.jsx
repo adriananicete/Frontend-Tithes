@@ -54,7 +54,8 @@ export function RecordExpenseDialog({
   };
 
   const amountNum = parseFloat(amount) || 0;
-  const canSubmit = category && amountNum > 0 && entryDate && !submitting;
+  const canSubmit =
+    category && amountNum > 0 && entryDate && remarks.trim() && !submitting;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,7 +67,7 @@ export function RecordExpenseDialog({
         date: entryDate,
         category,
         amount: amountNum,
-        remarks: remarks.trim() || undefined,
+        remarks: remarks.trim(),
       });
       setOpen(false);
       reset();
@@ -158,14 +159,18 @@ export function RecordExpenseDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="remarks">Remarks</Label>
+              <Label htmlFor="remarks">Remarks / Particulars</Label>
               <Textarea
                 id="remarks"
                 rows={3}
-                placeholder="e.g., Reimbursement for volunteer transport..."
+                placeholder="What was this spent on? e.g., Guitar strings for worship team..."
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
+                required
               />
+              <p className="text-xs text-muted-foreground">
+                Required — appears as the expense detail in financial reports.
+              </p>
             </div>
 
             {error && <p className="text-xs text-red-600">{error}</p>}

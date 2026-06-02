@@ -84,7 +84,7 @@ export function CreateRfDialog({
     entryDate,
     category: categoryId,
     estimatedAmount: Number(amount) || 0,
-    remarks,
+    remarks: remarks.trim(),
     attachments: [],
   });
 
@@ -132,6 +132,7 @@ export function CreateRfDialog({
   const canSubmit =
     !!categoryId &&
     Number(amount) > 0 &&
+    !!remarks.trim() &&
     !overBalance &&
     !noBalance &&
     !submitting;
@@ -224,14 +225,19 @@ export function CreateRfDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="remarks">Remarks</Label>
+              <Label htmlFor="remarks">Remarks / Particulars</Label>
               <Textarea
                 id="remarks"
-                placeholder="Additional context or justification..."
+                placeholder="What is this request for? e.g., Guitar strings for worship team..."
                 value={remarks}
                 onChange={(e) => setRemarks(e.target.value)}
                 rows={3}
+                required
               />
+              <p className="text-xs text-muted-foreground">
+                Required — carried to the voucher and shown as the expense
+                detail in financial reports.
+              </p>
             </div>
 
             {error && (
