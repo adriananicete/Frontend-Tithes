@@ -131,6 +131,9 @@ export const can = {
   // Reports
   viewExpenseReport: (role) => role !== 'member',
   exportExpense: (role) => ['admin', 'auditor'].includes(role),
+  // Combined Tithes+Expense financial report — admin/auditor only (matches
+  // the backend authorizeRoles on /api/reports/combined*).
+  viewCombinedReport: (role) => ['admin', 'auditor'].includes(role),
 
   // Admin
   manageUsers: (role) => role === 'admin',
