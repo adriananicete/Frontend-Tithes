@@ -129,7 +129,7 @@ function RejectDialog({ entry, open, onOpenChange, onConfirm }) {
         if (!v) reset();
       }}
     >
-      <DialogContent className="max-w-md overflow-x-hidden">
+      <DialogContent className="sm:max-w-md overflow-x-hidden">
         <DialogHeader>
           <DialogTitle>Reject tithes entry?</DialogTitle>
           <DialogDescription>

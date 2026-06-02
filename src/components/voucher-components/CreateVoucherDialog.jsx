@@ -180,7 +180,7 @@ export function CreateVoucherDialog({
           if (!v) reset();
         }}
       >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle>Create Voucher (PCF)</DialogTitle>
             <DialogDescription>
@@ -345,6 +345,7 @@ export function CreateVoucherDialog({
                         type="button"
                         variant="ghost"
                         size="icon"
+                        className="shrink-0"
                         onClick={() => removeReceipt(i)}
                         disabled={submitting}
                       >

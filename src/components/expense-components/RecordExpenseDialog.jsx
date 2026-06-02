@@ -92,7 +92,7 @@ export function RecordExpenseDialog({
           if (!v) reset();
         }}
       >
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle>Record Manual Expense</DialogTitle>
             <DialogDescription>

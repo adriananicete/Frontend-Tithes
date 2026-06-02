@@ -414,7 +414,7 @@ export function NotificationActionDialog({ notif, open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <div className="flex items-center gap-2 flex-wrap">
             <DialogTitle>
