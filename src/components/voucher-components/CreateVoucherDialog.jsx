@@ -180,7 +180,7 @@ export function CreateVoucherDialog({
           if (!v) reset();
         }}
       >
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle>Create Voucher (PCF)</DialogTitle>
             <DialogDescription>
