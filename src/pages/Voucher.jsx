@@ -38,6 +38,16 @@ const VOUCHER_CONFIRM_CONFIG = {
     endpoint: (v) => `/request-form/${v.rfId?._id}/received`,
     toastKey: "rfReceived",
   },
+  // Cancel runs through useVouchers.cancelVoucher (not the generic endpoint
+  // path below) so it reverses the expense + reopens the RF server-side.
+  cancel: {
+    variant: "reject",
+    title: "Cancel this voucher?",
+    describe: (v) =>
+      `${v.pcfNo} will be cancelled and ${v.rfId?.rfNo ?? "the request form"} will reopen so a new voucher can be issued. This cannot be undone.`,
+    confirmLabel: "Yes, cancel voucher",
+    pendingLabel: "Cancelling…",
+  },
 };
 
 function Voucher() {
@@ -53,7 +63,8 @@ function Voucher() {
   const [searchParams, setSearchParams] = useSearchParams();
   const focusId = searchParams.get("focus");
 
-  const { vouchers, loading, error, refetch, createVoucher } = useVouchers();
+  const { vouchers, loading, error, refetch, createVoucher, cancelVoucher } =
+    useVouchers();
   // Approved-but-no-voucher list feeds the PendingRfsCard. The hook
   // refetches itself on `notification:new` events with refModel=RequestForm,
   // so this stays in sync after disburse / received / new approvals.
@@ -101,6 +112,11 @@ function Voucher() {
 
   const handleConfirmVoucherAction = async () => {
     if (!confirming) return;
+    // Cancel has its own hook that reverses the expense and reopens the RF.
+    if (confirming.kind === "cancel") {
+      await cancelVoucher(confirming.voucher._id);
+      return;
+    }
     const cfg = VOUCHER_CONFIRM_CONFIG[confirming.kind];
     if (!cfg) return;
     const path = cfg.endpoint(confirming.voucher);

@@ -120,6 +120,9 @@ export const can = {
   // Voucher
   createVoucher: (role) => ['validator', 'admin'].includes(role),
   viewVoucher: (role) => ['admin', 'do', 'validator', 'auditor'].includes(role),
+  // Validator may only cancel vouchers they created (creator check happens in
+  // the UI with currentUserId vs voucher.createdBy); admin can cancel any.
+  cancelVoucher: (role) => ['validator', 'admin'].includes(role),
 
   // Expense
   viewExpense: (role) => ['admin', 'auditor'].includes(role),

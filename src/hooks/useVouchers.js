@@ -41,5 +41,22 @@ export function useVouchers() {
     notifyAction("voucherCreated", res?.data?.pcfNo);
   };
 
-  return { vouchers, loading, error, refetch, createVoucher };
+  // Cancelling reopens the linked RF, so broadcast a RequestForm refresh
+  // alongside refetching vouchers — keeps any mounted RF page / Dashboard
+  // and the PendingRfsCard in sync.
+  const cancelVoucher = async (id, cancellationNote) => {
+    const res = await apiFetch(`/vouchers/${id}/cancel`, {
+      method: "PATCH",
+      body: JSON.stringify(
+        cancellationNote ? { cancellationNote } : {},
+      ),
+    });
+    window.dispatchEvent(
+      new CustomEvent("notification:new", { detail: { refModel: "RequestForm" } }),
+    );
+    await refetch();
+    notifyAction("voucherCancelled", res?.data?.pcfNo);
+  };
+
+  return { vouchers, loading, error, refetch, createVoucher, cancelVoucher };
 }
