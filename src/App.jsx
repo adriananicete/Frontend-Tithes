@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from "react-router";
 import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import DevRolePicker from "./pages/DevRolePicker";
 import Dashboard from "./pages/Dashboard";
 import Tithes from "./pages/Tithes";
@@ -17,6 +19,8 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       {/* Dev-only role picker — excluded from production builds */}
       {import.meta.env.DEV && (

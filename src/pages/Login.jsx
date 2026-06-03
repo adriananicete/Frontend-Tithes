@@ -102,7 +102,8 @@ function Login() {
             placeholder="Enter your password"
             name="password"
             titleName='Password'
-            secondName="Foget Password?"
+            secondName="Forgot Password?"
+            onSecondClick={() => navigate('/forgot-password')}
             onChange={handleChange}
           />
           {error && (

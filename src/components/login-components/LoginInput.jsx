@@ -9,6 +9,7 @@ function LoginInput({
   name,
   titleName,
   secondName,
+  onSecondClick,
   onChange,
 }) {
   const [type, setType] = useState(inputType);
@@ -21,7 +22,12 @@ function LoginInput({
     <div className="w-full bg-[]">
       <div className="bg-[] flex justify-between items-center">
         <p className="text-sm text-gray-600">{titleName}</p>
-        <p className="text-[12px] cursor-pointer text-indigo-400">{secondName}</p>
+        <p
+          className="text-[12px] cursor-pointer text-indigo-400 hover:underline"
+          onClick={onSecondClick}
+        >
+          {secondName}
+        </p>
       </div>
 
       <div className="bg-[] border border-gray-700 w-full p-2 flex justify-between items-center rounded-[5px]">
