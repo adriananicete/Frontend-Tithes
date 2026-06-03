@@ -26,21 +26,21 @@ import {
 import { formatActivityAmount, formatActivityDate } from "./dashboardUtils";
 
 const actionStyles = {
-  Created:   "bg-blue-100 text-blue-700",
-  Approved:  "bg-green-100 text-green-700",
-  Validated: "bg-indigo-100 text-indigo-700",
-  Submitted: "bg-yellow-100 text-yellow-700",
-  Rejected:  "bg-red-100 text-red-700",
-  Received:  "bg-emerald-100 text-emerald-700",
+  Created:   "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",
+  Approved:  "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400",
+  Validated: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400",
+  Submitted: "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-400",
+  Rejected:  "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
+  Received:  "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
 };
 
 const roleStyles = {
-  admin:     "bg-purple-100 text-purple-700",
-  pastor:    "bg-amber-100 text-amber-700",
-  validator: "bg-indigo-100 text-indigo-700",
-  auditor:   "bg-sky-100 text-sky-700",
-  do:        "bg-orange-100 text-orange-700",
-  member:    "bg-gray-100 text-gray-700",
+  admin:     "bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400",
+  pastor:    "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",
+  validator: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400",
+  auditor:   "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-400",
+  do:        "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400",
+  member:    "bg-muted text-muted-foreground",
 };
 
 // Backend has no audit log, so we can only surface activity from the
@@ -133,12 +133,12 @@ export function RecentActivity({
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.user}</TableCell>
                     <TableCell>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role] ?? "bg-gray-100 text-gray-700"}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role] ?? "bg-muted text-muted-foreground"}`}>
                         {item.role}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${actionStyles[item.action] ?? "bg-gray-100 text-gray-700"}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${actionStyles[item.action] ?? "bg-muted text-muted-foreground"}`}>
                         {item.action}
                       </span>
                     </TableCell>
@@ -169,7 +169,7 @@ export function RecentActivity({
                     </div>
                   </div>
                   <span
-                    className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${actionStyles[item.action] ?? "bg-gray-100 text-gray-700"}`}
+                    className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${actionStyles[item.action] ?? "bg-muted text-muted-foreground"}`}
                   >
                     {item.action}
                   </span>
@@ -177,7 +177,7 @@ export function RecentActivity({
                 <div className="flex items-center justify-between gap-2 text-sm">
                   <div className="flex items-center gap-2 min-w-0">
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role] ?? "bg-gray-100 text-gray-700"}`}
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role] ?? "bg-muted text-muted-foreground"}`}
                     >
                       {item.role}
                     </span>

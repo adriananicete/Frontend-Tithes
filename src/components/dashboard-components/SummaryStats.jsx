@@ -95,7 +95,7 @@ export function SummaryStats({
           value={formatPHP(stats.tithesThisMonth)}
           icon={TrendingUp}
           trend={stats.tithesTrend}
-          accent="bg-green-50/50"
+          accent="bg-green-50/50 dark:bg-green-500/10"
         />
         {canViewExpenses ? (
           <StatTile
@@ -103,14 +103,14 @@ export function SummaryStats({
             value={formatPHP(stats.expensesThisMonth)}
             icon={TrendingDown}
             trend={stats.expensesTrend}
-            accent="bg-red-50/50"
+            accent="bg-red-50/50 dark:bg-red-500/10"
           />
         ) : (
           <StatTile
             label="Total Expenses"
             value="—"
             icon={TrendingDown}
-            accent="bg-red-50/50"
+            accent="bg-red-50/50 dark:bg-red-500/10"
           />
         )}
         {canViewExpenses ? (
@@ -118,21 +118,21 @@ export function SummaryStats({
             label="Net Balance"
             value={formatPHP(stats.netBalance)}
             icon={Wallet}
-            accent="bg-blue-50/50"
+            accent="bg-blue-50/50 dark:bg-blue-500/10"
           />
         ) : (
           <StatTile
             label="Net Balance"
             value="—"
             icon={Wallet}
-            accent="bg-blue-50/50"
+            accent="bg-blue-50/50 dark:bg-blue-500/10"
           />
         )}
         <StatTile
           label="Pending Approvals"
           value={stats.pendingApprovals}
           icon={Clock}
-          accent="bg-amber-50/50"
+          accent="bg-amber-50/50 dark:bg-amber-500/10"
         />
       </CardContent>
       <CardFooter className="flex-col items-start gap-1 text-sm">

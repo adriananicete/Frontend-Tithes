@@ -56,22 +56,22 @@ export function FinancialSummary({ className, summary, loading }) {
             value={formatPHP(summary.totalTithes)}
             sub={`${summary.tithesCount} entries`}
             icon={Coins}
-            accent="bg-emerald-50/50"
+            accent="bg-emerald-50/50 dark:bg-emerald-500/10"
           />
           <Tile
             label="Total Expenses"
             value={formatPHP(summary.totalExpenses)}
             sub={`${summary.expenseCount} entries`}
             icon={Receipt}
-            accent="bg-amber-50/50"
+            accent="bg-amber-50/50 dark:bg-amber-500/10"
           />
           <Tile
             label="NET Position"
             value={formatPHP(net)}
             sub={positive ? "surplus" : "deficit"}
             icon={Scale}
-            accent={positive ? "bg-blue-50/50" : "bg-red-50/50"}
-            valueClass={positive ? "text-emerald-700" : "text-red-700"}
+            accent={positive ? "bg-blue-50/50 dark:bg-blue-500/10" : "bg-red-50/50 dark:bg-red-500/10"}
+            valueClass={positive ? "text-emerald-700 dark:text-emerald-400" : "text-red-700 dark:text-red-400"}
           />
         </CardContent>
       </Card>

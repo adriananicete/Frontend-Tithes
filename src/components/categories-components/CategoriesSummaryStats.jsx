@@ -43,28 +43,28 @@ export function CategoriesSummaryStats({ className, categories = [] }) {
           value={stats.total.toString()}
           sub="across all types"
           icon={Layers}
-          accent="bg-blue-50/50"
+          accent="bg-blue-50/50 dark:bg-blue-500/10"
         />
         <StatTile
           label="Request Form"
           value={stats.rf.toString()}
           sub="used in RF entries"
           icon={FileText}
-          accent="bg-indigo-50/50"
+          accent="bg-indigo-50/50 dark:bg-indigo-500/10"
         />
         <StatTile
           label="Expense"
           value={stats.expense.toString()}
           sub="used in expenses"
           icon={Receipt}
-          accent="bg-amber-50/50"
+          accent="bg-amber-50/50 dark:bg-amber-500/10"
         />
         <StatTile
           label="Active vs Inactive"
           value={`${stats.active} / ${stats.inactive}`}
           sub="enabled vs archived"
           icon={Archive}
-          accent="bg-emerald-50/50"
+          accent="bg-emerald-50/50 dark:bg-emerald-500/10"
         />
       </CardContent>
     </Card>

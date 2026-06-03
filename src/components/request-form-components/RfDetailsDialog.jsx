@@ -48,7 +48,7 @@ function TimelineItem({ label, timestamp, by, state, isLast }) {
         ? "text-blue-600 animate-pulse"
         : state === "rejected"
           ? "text-red-600"
-          : "text-gray-300";
+          : "text-muted-foreground/40";
   const textColor = state === "upcoming" ? "text-muted-foreground/60" : "";
 
   return (
@@ -123,7 +123,7 @@ function buildFooterActions({ rf, role, currentUserId }) {
 const variantClass = {
   primary: "bg-green-600 hover:bg-green-700 text-white",
   danger: "bg-red-600 hover:bg-red-700 text-white",
-  "outline-red": "border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700",
+  "outline-red": "border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-500 dark:text-red-400 dark:hover:bg-red-500/10 dark:hover:text-red-300",
   outline: "",
 };
 
@@ -188,7 +188,7 @@ export function RfDetailsDialog({
             {voucherLabel && (
               <div className="sm:col-span-2">
                 <div className="text-xs text-muted-foreground">Voucher</div>
-                <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400">
                   {voucherLabel}
                 </Badge>
               </div>
@@ -247,8 +247,8 @@ export function RfDetailsDialog({
             </div>
 
             {isRejected && rf.rejectionNote && (
-              <div className="mt-3 p-3 rounded-md bg-red-50 border border-red-200 text-sm">
-                <div className="text-xs font-medium text-red-700 mb-1">
+              <div className="mt-3 p-3 rounded-md bg-red-50 border border-red-200 text-sm dark:bg-red-500/10 dark:border-red-500/30">
+                <div className="text-xs font-medium text-red-700 dark:text-red-400 mb-1">
                   Rejection Note
                 </div>
                 <div className="text-red-900">{rf.rejectionNote}</div>

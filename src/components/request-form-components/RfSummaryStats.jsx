@@ -71,28 +71,28 @@ export function RfSummaryStats({ rfs = [], className }) {
           amount={stats.active.amount}
           count={stats.active.count}
           icon={Activity}
-          accent="bg-blue-50/50"
+          accent="bg-blue-50/50 dark:bg-blue-500/10"
         />
         <StatTile
           label="Pending Disbursement"
           amount={stats.pendingDisb.amount}
           count={stats.pendingDisb.count}
           icon={Clock}
-          accent="bg-amber-50/50"
+          accent="bg-amber-50/50 dark:bg-amber-500/10"
         />
         <StatTile
           label="Approved This Month"
           amount={stats.approved.amount}
           count={stats.approved.count}
           icon={CheckCircle2}
-          accent="bg-green-50/50"
+          accent="bg-green-50/50 dark:bg-green-500/10"
         />
         <StatTile
           label="Rejected This Month"
           amount={stats.rejected.amount}
           count={stats.rejected.count}
           icon={XCircle}
-          accent="bg-red-50/50"
+          accent="bg-red-50/50 dark:bg-red-500/10"
         />
       </CardContent>
     </Card>

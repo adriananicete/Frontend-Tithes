@@ -28,7 +28,7 @@ function StatTile({ label, amount, count, unit, icon: Icon, accent }) {
 
 function SplitTile({ split }) {
   return (
-    <div className="rounded-lg border p-4 flex flex-col gap-2 bg-slate-50/50">
+    <div className="rounded-lg border p-4 flex flex-col gap-2 bg-muted/50">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">Auto vs Manual</span>
         <Zap className="h-4 w-4 text-muted-foreground" />
@@ -87,7 +87,7 @@ export function ExpenseSummaryStats({ expenses = [], className }) {
           count={stats.thisMonth.count}
           unit="expenses"
           icon={CalendarDays}
-          accent="bg-blue-50/50"
+          accent="bg-blue-50/50 dark:bg-blue-500/10"
         />
         <StatTile
           label="Last 3 Months"
@@ -95,7 +95,7 @@ export function ExpenseSummaryStats({ expenses = [], className }) {
           count={stats.last3Mos.count}
           unit="expenses"
           icon={TrendingDown}
-          accent="bg-amber-50/50"
+          accent="bg-amber-50/50 dark:bg-amber-500/10"
         />
         <StatTile
           label="This Year"
@@ -103,7 +103,7 @@ export function ExpenseSummaryStats({ expenses = [], className }) {
           count={stats.thisYear.count}
           unit="expenses"
           icon={BarChart3}
-          accent="bg-emerald-50/50"
+          accent="bg-emerald-50/50 dark:bg-emerald-500/10"
         />
         <SplitTile split={stats.split} />
       </CardContent>

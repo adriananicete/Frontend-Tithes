@@ -45,28 +45,28 @@ export function UsersSummaryStats({ users = [], className }) {
           value={stats.total.toString()}
           sub="registered accounts"
           icon={Users}
-          accent="bg-blue-50/50"
+          accent="bg-blue-50/50 dark:bg-blue-500/10"
         />
         <StatTile
           label="Active"
           value={stats.active.toString()}
           sub="can sign in"
           icon={UserCheck}
-          accent="bg-emerald-50/50"
+          accent="bg-emerald-50/50 dark:bg-emerald-500/10"
         />
         <StatTile
           label="Inactive"
           value={stats.inactive.toString()}
           sub="deactivated accounts"
           icon={UserX}
-          accent="bg-red-50/50"
+          accent="bg-red-50/50 dark:bg-red-500/10"
         />
         <StatTile
           label="Officers vs Members"
           value={`${stats.officers} / ${stats.members}`}
           sub="officer roles vs members"
           icon={ShieldCheck}
-          accent="bg-purple-50/50"
+          accent="bg-purple-50/50 dark:bg-purple-500/10"
         />
       </CardContent>
     </Card>

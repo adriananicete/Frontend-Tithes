@@ -32,8 +32,8 @@ function ForgotPassword() {
   };
 
   return (
-    <div className="bg-gray-200 w-full h-dvh flex justify-center items-center">
-      <div className="bg-[#ffffff] w-[80%] max-w-[400px] h-[auto] p-8 flex flex-col justify-center items-center gap-4 rounded-[8px] shadow-md">
+    <div className="bg-muted w-full h-dvh flex justify-center items-center">
+      <div className="bg-card w-[80%] max-w-[400px] h-[auto] p-8 flex flex-col justify-center items-center gap-4 rounded-[8px] shadow-md">
         {/* header */}
         <div className="w-full flex justify-start items-center gap-2">
           <div className="w-[48px] h-[48px]">
@@ -43,30 +43,30 @@ function ForgotPassword() {
             />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-700">
+            <h1 className="text-xl font-bold text-foreground">
               JOSCM <span className="text-[#2f6a7a]">Tithes App</span>
             </h1>
-            <p className="text-sm text-gray-500">Financial Management System</p>
+            <p className="text-sm text-muted-foreground">Financial Management System</p>
           </div>
         </div>
 
         <div className="w-full mt-5">
           <h2 className="text-xl font-bold">Forgot Password</h2>
-          <p className="text-gray-400 text-xs">
+          <p className="text-muted-foreground text-xs">
             Enter your email and we'll send you a reset link.
           </p>
         </div>
 
         {submitted ? (
           <div className="w-full mt-2">
-            <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-[5px] p-3">
+            <div className="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 text-green-700 dark:text-green-400 text-sm rounded-[5px] p-3">
               If that email is registered, a reset link has been sent. Please
               check your inbox (and spam folder). The link expires in 1 hour.
             </div>
             <button
               type="button"
               onClick={() => navigate("/login")}
-              className="bg-black flex justify-center items-center gap-1 text-white text-sm w-full rounded-[3px] py-2 mt-4 cursor-pointer"
+              className="bg-primary flex justify-center items-center gap-1 text-primary-foreground text-sm w-full rounded-[3px] py-2 mt-4 cursor-pointer"
             >
               Back to Login
             </button>
@@ -90,7 +90,7 @@ function ForgotPassword() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-black flex justify-center items-center gap-1 text-white text-sm w-full rounded-[3px] py-2 mt-3 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              className="bg-primary flex justify-center items-center gap-1 text-primary-foreground text-sm w-full rounded-[3px] py-2 mt-3 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Sending…" : (<>Send Reset Link <BiRightArrowAlt size={18} /></>)}
             </button>

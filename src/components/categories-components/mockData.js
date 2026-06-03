@@ -9,13 +9,13 @@ export const TYPES = [
 ];
 
 export const typeConfig = {
-  rf:      { label: "Request Form", color: "bg-indigo-100 text-indigo-700" },
-  expense: { label: "Expense",      color: "bg-amber-100 text-amber-700" },
+  rf:      { label: "Request Form", color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400" },
+  expense: { label: "Expense",      color: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400" },
 };
 
 export const statusConfig = {
-  active:   { label: "Active",   color: "bg-emerald-100 text-emerald-700" },
-  inactive: { label: "Inactive", color: "bg-slate-100 text-slate-700" },
+  active:   { label: "Active",   color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400" },
+  inactive: { label: "Inactive", color: "bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-300" },
 };
 
 // Curated Tailwind-friendly color palette for category accents.

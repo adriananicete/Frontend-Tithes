@@ -11,7 +11,7 @@ const VARIANTS = {
   },
   approve: {
     illustration: approveSvg,
-    accent: "text-emerald-600 border-emerald-600 hover:bg-emerald-50",
+    accent: "text-emerald-600 border-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:border-emerald-500 dark:hover:bg-emerald-500/10",
   },
   reject: {
     illustration: rejectSvg,
@@ -70,7 +70,7 @@ export function ConfirmActionDialog({
         <div className="w-full text-center sm:text-left">
           <p className="font-bold text-[20px] leading-none">{title}</p>
           {description && (
-            <p className="text-[12px] text-gray-500 mt-1">{description}</p>
+            <p className="text-[12px] text-muted-foreground mt-1">{description}</p>
           )}
         </div>
 
@@ -91,7 +91,7 @@ export function ConfirmActionDialog({
             type="button"
             onClick={() => onOpenChange?.(false)}
             disabled={submitting}
-            className="cursor-pointer text-white font-medium border border-black bg-black rounded-[5px] py-1 px-8 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-900 transition-colors"
+            className="cursor-pointer text-primary-foreground font-medium border border-primary bg-primary rounded-[5px] py-1 px-8 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
           >
             Cancel
           </button>

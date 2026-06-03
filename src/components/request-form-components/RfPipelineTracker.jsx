@@ -45,7 +45,7 @@ export function RfPipelineTracker({ rfs = [], activeStatus, onSelectStatus, clas
                   onClick={() => onSelectStatus?.(isActive ? null : stage)}
                   className={`flex-1 min-w-[130px] rounded-lg border p-3 text-left transition ${
                     isActive
-                      ? "ring-2 ring-offset-1 ring-blue-500 bg-blue-50/50"
+                      ? "ring-2 ring-offset-1 ring-blue-500 bg-blue-50/50 dark:bg-blue-500/10"
                       : "hover:bg-muted/50"
                   }`}
                 >
@@ -75,7 +75,7 @@ export function RfPipelineTracker({ rfs = [], activeStatus, onSelectStatus, clas
             }
             className={`min-w-[130px] rounded-lg border p-3 text-left transition ${
               activeStatus === "rejected"
-                ? "ring-2 ring-offset-1 ring-red-500 bg-red-50/50"
+                ? "ring-2 ring-offset-1 ring-red-500 bg-red-50/50 dark:bg-red-500/10"
                 : "hover:bg-muted/50"
             }`}
           >

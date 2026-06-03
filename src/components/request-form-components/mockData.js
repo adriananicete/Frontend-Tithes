@@ -3,14 +3,14 @@
 // the file name is preserved for import compatibility.
 
 export const statusConfig = {
-  draft:           { label: "Draft",           color: "bg-gray-100 text-gray-700",       order: 1 },
-  submitted:       { label: "Submitted",       color: "bg-blue-100 text-blue-700",       order: 2 },
-  for_approval:    { label: "For Approval",    color: "bg-indigo-100 text-indigo-700",   order: 3 },
-  approved:        { label: "Approved",        color: "bg-green-100 text-green-700",     order: 4 },
-  voucher_created: { label: "Voucher Created", color: "bg-purple-100 text-purple-700",   order: 5 },
-  disbursed:       { label: "Disbursed",       color: "bg-cyan-100 text-cyan-700",       order: 6 },
-  received:        { label: "Received",        color: "bg-emerald-100 text-emerald-700", order: 7 },
-  rejected:        { label: "Rejected",        color: "bg-red-100 text-red-700",         order: 99 },
+  draft:           { label: "Draft",           color: "bg-muted text-muted-foreground",                                    order: 1 },
+  submitted:       { label: "Submitted",       color: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",       order: 2 },
+  for_approval:    { label: "For Approval",    color: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400",   order: 3 },
+  approved:        { label: "Approved",        color: "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400",     order: 4 },
+  voucher_created: { label: "Voucher Created", color: "bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400",   order: 5 },
+  disbursed:       { label: "Disbursed",       color: "bg-cyan-100 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-400",       order: 6 },
+  received:        { label: "Received",        color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400", order: 7 },
+  rejected:        { label: "Rejected",        color: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",         order: 99 },
 };
 
 export const pipelineStages = [
