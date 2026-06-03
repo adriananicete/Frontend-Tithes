@@ -42,7 +42,7 @@ function Login() {
                 method: 'POST',
                 body: JSON.stringify({ email, password }),
             });
-            login(res.data, res.token);
+            login(res.data);
             navigate('/dashboard', { replace: true });
         } catch (err) {
             setError(err.message || 'Login failed');

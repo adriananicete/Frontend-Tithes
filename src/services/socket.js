@@ -9,11 +9,13 @@ export const getSocket = () => socket;
 
 export const connectSocket = () => {
   if (socket && socket.connected) return socket;
-  const token = localStorage.getItem("token");
-  if (!token) return null;
   if (socket) socket.disconnect();
+  // Auth rides the httpOnly cookie via withCredentials; the auth.token payload
+  // is only a dev/legacy fallback when a token still sits in localStorage.
+  const token = localStorage.getItem("token");
   socket = io(SOCKET_URL, {
-    auth: { token },
+    withCredentials: true,
+    ...(token ? { auth: { token } } : {}),
     transports: ["websocket", "polling"],
     autoConnect: true,
   });

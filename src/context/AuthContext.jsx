@@ -1,43 +1,44 @@
 import { createContext, useEffect, useState } from "react";
+import { apiFetch } from "../services/api";
 
 export const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  // The JWT now lives in an httpOnly cookie the browser manages — JS never
+  // touches it. We only keep the (non-sensitive) user profile for UI/role
+  // rendering; the cookie is the real source of auth truth.
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
-    if (storedToken && storedUser) {
+    if (storedUser) {
       try {
-        setToken(storedToken);
         setUser(JSON.parse(storedUser));
       } catch {
-        localStorage.removeItem("token");
         localStorage.removeItem("user");
       }
     }
+    // Clean up any token left over from the pre-cookie auth scheme.
+    localStorage.removeItem("token");
     setIsLoading(false);
   }, []);
 
-  const login = (userData, authToken) => {
+  const login = (userData) => {
     setUser(userData);
-    setToken(authToken);
-    localStorage.setItem("token", authToken);
     localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const logout = () => {
     setUser(null);
-    setToken(null);
-    localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    // Tell the server to clear the httpOnly cookies; fire-and-forget.
+    apiFetch("/auth/logout", { method: "POST" }).catch(() => {});
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
