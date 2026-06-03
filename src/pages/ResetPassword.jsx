@@ -49,8 +49,8 @@ function ResetPassword() {
   };
 
   return (
-    <div className="bg-gray-200 w-full h-dvh flex justify-center items-center">
-      <div className="bg-[#ffffff] w-[80%] max-w-[400px] h-[auto] p-8 flex flex-col justify-center items-center gap-4 rounded-[8px] shadow-md">
+    <div className="bg-gray-200 dark:bg-background w-full h-dvh flex justify-center items-center">
+      <div className="bg-[#ffffff] dark:bg-card w-[80%] max-w-[400px] h-[auto] p-8 flex flex-col justify-center items-center gap-4 rounded-[8px] shadow-md">
         {/* header */}
         <div className="w-full flex justify-start items-center gap-2">
           <div className="w-[48px] h-[48px]">
@@ -60,30 +60,30 @@ function ResetPassword() {
             />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-700">
+            <h1 className="text-xl font-bold text-gray-700 dark:text-foreground">
               JOSCM <span className="text-[#2f6a7a]">Tithes App</span>
             </h1>
-            <p className="text-sm text-gray-500">Financial Management System</p>
+            <p className="text-sm text-gray-500 dark:text-muted-foreground">Financial Management System</p>
           </div>
         </div>
 
         <div className="w-full mt-5">
           <h2 className="text-xl font-bold">Reset Password</h2>
-          <p className="text-gray-400 text-xs">
+          <p className="text-gray-400 dark:text-muted-foreground text-xs">
             Choose a new password for your account.
           </p>
         </div>
 
         {done ? (
           <div className="w-full mt-2">
-            <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-[5px] p-3">
+            <div className="bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 text-green-700 dark:text-green-400 text-sm rounded-[5px] p-3">
               Your password has been reset. You can now sign in with your new
               password.
             </div>
             <button
               type="button"
               onClick={() => navigate("/login")}
-              className="bg-black flex justify-center items-center gap-1 text-white text-sm w-full rounded-[3px] py-2 mt-4 cursor-pointer"
+              className="bg-black dark:bg-primary flex justify-center items-center gap-1 text-white dark:text-primary-foreground text-sm w-full rounded-[3px] py-2 mt-4 cursor-pointer"
             >
               Go to Login
             </button>
@@ -119,7 +119,7 @@ function ResetPassword() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-black flex justify-center items-center gap-1 text-white text-sm w-full rounded-[3px] py-2 mt-3 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              className="bg-black dark:bg-primary flex justify-center items-center gap-1 text-white dark:text-primary-foreground text-sm w-full rounded-[3px] py-2 mt-3 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Resetting…" : (<>Reset Password <BiRightArrowAlt size={18} /></>)}
             </button>

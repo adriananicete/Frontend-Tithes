@@ -55,28 +55,28 @@ export function ReportSummary({ className, tab, data }) {
           value={formatPHP(stats.total)}
           sub={`${stats.count} entries`}
           icon={FileBarChart}
-          accent="bg-blue-50/50"
+          accent="bg-blue-50/50 dark:bg-blue-500/10"
         />
         <StatTile
           label="Entry Count"
           value={stats.count.toString()}
           sub={tab === "tithes" ? "tithes submitted" : "expenses recorded"}
           icon={BarChart3}
-          accent="bg-amber-50/50"
+          accent="bg-amber-50/50 dark:bg-amber-500/10"
         />
         <StatTile
           label="Average per Entry"
           value={formatPHP(stats.avg)}
           sub={stats.count > 0 ? "mean value" : "no entries"}
           icon={Calculator}
-          accent="bg-emerald-50/50"
+          accent="bg-emerald-50/50 dark:bg-emerald-500/10"
         />
         <StatTile
           label={stats.groupLabel}
           value={stats.topEntry ? stats.topEntry[0] : "—"}
           sub={stats.topEntry ? formatPHP(stats.topEntry[1]) : "no data"}
           icon={Trophy}
-          accent="bg-purple-50/50"
+          accent="bg-purple-50/50 dark:bg-purple-500/10"
         />
       </CardContent>
     </Card>

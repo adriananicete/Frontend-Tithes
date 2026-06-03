@@ -133,8 +133,8 @@ function Notifications() {
                     <button
                       type="button"
                       onClick={() => handleClick(n)}
-                      className={`w-full text-left px-4 py-3 hover:bg-gray-50 flex gap-3 ${
-                        n.isRead ? "" : "bg-blue-50/40"
+                      className={`w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-accent flex gap-3 ${
+                        n.isRead ? "" : "bg-blue-50/40 dark:bg-blue-500/10"
                       }`}
                     >
                       <span
@@ -144,7 +144,7 @@ function Notifications() {
                         <div className="flex flex-wrap items-center gap-2">
                           <p className="text-sm leading-tight">{n.message}</p>
                           {!n.isRead && (
-                            <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400">
                               new
                             </Badge>
                           )}

@@ -54,28 +54,28 @@ export function TithesSummary({ tithes = [], className }) {
           amount={summary.total.amount}
           count={summary.total.count}
           icon={Wallet}
-          accent="bg-blue-50/50"
+          accent="bg-blue-50/50 dark:bg-blue-500/10"
         />
         <StatTile
           label="Approved"
           amount={summary.approved.amount}
           count={summary.approved.count}
           icon={CheckCircle2}
-          accent="bg-green-50/50"
+          accent="bg-green-50/50 dark:bg-green-500/10"
         />
         <StatTile
           label="Pending"
           amount={summary.pending.amount}
           count={summary.pending.count}
           icon={Clock}
-          accent="bg-amber-50/50"
+          accent="bg-amber-50/50 dark:bg-amber-500/10"
         />
         <StatTile
           label="Rejected"
           amount={summary.rejected.amount}
           count={summary.rejected.count}
           icon={XCircle}
-          accent="bg-red-50/50"
+          accent="bg-red-50/50 dark:bg-red-500/10"
         />
       </CardContent>
     </Card>

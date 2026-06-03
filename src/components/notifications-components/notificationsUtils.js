@@ -1,13 +1,13 @@
 // Shared lookups + formatters for the Notifications feature.
 
 export const TYPE_STYLE = {
-  approval:  { dot: "bg-emerald-500", chip: "bg-emerald-50 text-emerald-700" },
-  rejection: { dot: "bg-red-500",     chip: "bg-red-50 text-red-700" },
-  info:      { dot: "bg-blue-500",    chip: "bg-blue-50 text-blue-700" },
-  reminder:  { dot: "bg-amber-500",   chip: "bg-amber-50 text-amber-700" },
+  approval:  { dot: "bg-emerald-500", chip: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400" },
+  rejection: { dot: "bg-red-500",     chip: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400" },
+  info:      { dot: "bg-blue-500",    chip: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400" },
+  reminder:  { dot: "bg-amber-500",   chip: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400" },
 };
 
-const fallbackStyle = { dot: "bg-gray-400", chip: "bg-gray-100 text-gray-700" };
+const fallbackStyle = { dot: "bg-gray-400", chip: "bg-gray-100 text-gray-700 dark:bg-muted dark:text-muted-foreground" };
 
 export const styleForType = (type) => TYPE_STYLE[type] ?? fallbackStyle;
 

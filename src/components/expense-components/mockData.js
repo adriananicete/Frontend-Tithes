@@ -5,8 +5,8 @@
 //   "voucher" — auto-recorded when Dani creates a PCF voucher
 //   "manual"  — admin-entered directly (POST /api/expenses)
 export const sourceConfig = {
-  voucher: { label: "Voucher", color: "bg-blue-100 text-blue-700" },
-  manual:  { label: "Manual",  color: "bg-purple-100 text-purple-700" },
+  voucher: { label: "Voucher", color: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400" },
+  manual:  { label: "Manual",  color: "bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400" },
 };
 
 export const formatPHP = (n) =>

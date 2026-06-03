@@ -21,7 +21,7 @@ function LoginInput({
   return (
     <div className="w-full bg-[]">
       <div className="bg-[] flex justify-between items-center">
-        <p className="text-sm text-gray-600">{titleName}</p>
+        <p className="text-sm text-gray-600 dark:text-muted-foreground">{titleName}</p>
         <p
           className="text-[12px] cursor-pointer text-indigo-400 hover:underline"
           onClick={onSecondClick}
@@ -30,7 +30,7 @@ function LoginInput({
         </p>
       </div>
 
-      <div className="bg-[] border border-gray-700 w-full p-2 flex justify-between items-center rounded-[5px]">
+      <div className="border border-gray-700 dark:border-input w-full p-2 flex justify-between items-center rounded-[5px]">
         <Icon size={18} />
         <input
           className="bg-[] w-[92%] px-2 rounded-[3px] bg-[transparent] outline-none text-sm"

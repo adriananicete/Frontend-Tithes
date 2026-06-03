@@ -22,14 +22,14 @@ import { formatDate, formatPHP } from "./mockData";
 const PAGE_SIZE = 10;
 
 const tithesStatusColor = {
-  approved: "bg-emerald-100 text-emerald-700",
-  pending:  "bg-amber-100 text-amber-700",
-  rejected: "bg-red-100 text-red-700",
+  approved: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+  pending:  "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",
+  rejected: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
 };
 
 const sourceColor = {
-  voucher: "bg-blue-100 text-blue-700",
-  manual:  "bg-purple-100 text-purple-700",
+  voucher: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",
+  manual:  "bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400",
 };
 
 export function ReportPreviewTable({ className, tab, data, loading, error }) {

@@ -124,10 +124,10 @@ export const mockVouchers = [
 ];
 
 export const voucherStatusConfig = {
-  voucher_created: { label: "Awaiting Disbursement", color: "bg-amber-100 text-amber-700" },
-  disbursed:       { label: "Disbursed",             color: "bg-cyan-100 text-cyan-700" },
-  received:        { label: "Received",              color: "bg-emerald-100 text-emerald-700" },
-  cancelled:       { label: "Cancelled",             color: "bg-rose-100 text-rose-700" },
+  voucher_created: { label: "Awaiting Disbursement", color: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400" },
+  disbursed:       { label: "Disbursed",             color: "bg-cyan-100 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-400" },
+  received:        { label: "Received",              color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400" },
+  cancelled:       { label: "Cancelled",             color: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400" },
 };
 
 export const formatPHP = (n) =>

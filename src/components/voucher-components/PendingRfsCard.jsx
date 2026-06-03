@@ -29,7 +29,7 @@ export function PendingRfsCard({
               Click an RF to issue its PCF voucher
             </CardDescription>
           </div>
-          <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+          <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400">
             {rfs.length} pending
           </Badge>
         </div>

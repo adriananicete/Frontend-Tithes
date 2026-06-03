@@ -41,7 +41,7 @@ export function NotificationsBell() {
       <PopoverTrigger
         type="button"
         aria-label="Notifications"
-        className="relative border border-gray-300 p-2 rounded-[5px] text-gray-700 hover:bg-gray-50"
+        className="relative border border-gray-300 dark:border-border p-2 rounded-[5px] text-gray-700 dark:text-foreground hover:bg-gray-50 dark:hover:bg-accent"
       >
         <IoNotificationsOutline size={18} />
         {unreadCount > 0 && (
@@ -84,8 +84,8 @@ export function NotificationsBell() {
                   key={n._id}
                   type="button"
                   onClick={() => handleItemClick(n)}
-                  className={`w-full text-left px-4 py-3 hover:bg-gray-50 flex gap-3 ${
-                    n.isRead ? "" : "bg-blue-50/40"
+                  className={`w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-accent flex gap-3 ${
+                    n.isRead ? "" : "bg-blue-50/40 dark:bg-blue-500/10"
                   }`}
                 >
                   <span className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${style.dot}`} />

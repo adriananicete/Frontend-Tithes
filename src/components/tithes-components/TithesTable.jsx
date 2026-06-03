@@ -461,7 +461,7 @@ export function TithesTable({
               {viewing.status === "rejected" && viewing.rejectionNote && (
                 <div>
                   <div className="text-xs text-muted-foreground">Rejection Note</div>
-                  <div className="rounded-md border border-red-200 bg-red-50 p-2 text-red-800">
+                  <div className="rounded-md border border-red-200 bg-red-50 p-2 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
                     {viewing.rejectionNote}
                   </div>
                 </div>
@@ -492,7 +492,7 @@ export function TithesTable({
                     type="button"
                     variant="outline"
                     onClick={() => closeAndRun(setRejecting)}
-                    className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700"
+                    className="border-red-600 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-500 dark:text-red-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
                   >
                     <X className="h-4 w-4" /> Reject
                   </Button>

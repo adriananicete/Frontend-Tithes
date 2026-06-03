@@ -69,7 +69,7 @@ export function VoucherSummaryStats({
           count={stats.total.count}
           unit="vouchers"
           icon={Receipt}
-          accent="bg-blue-50/50"
+          accent="bg-blue-50/50 dark:bg-blue-500/10"
         />
         <StatTile
           label="Awaiting Disbursement"
@@ -77,7 +77,7 @@ export function VoucherSummaryStats({
           count={stats.awaitingDisbursement.count}
           unit="for admin/DO action"
           icon={Clock}
-          accent="bg-amber-50/50"
+          accent="bg-amber-50/50 dark:bg-amber-500/10"
         />
         <StatTile
           label="Pending Receipt"
@@ -85,7 +85,7 @@ export function VoucherSummaryStats({
           count={stats.pendingReceipt.count}
           unit="awaiting requester"
           icon={CheckCircle2}
-          accent="bg-cyan-50/50"
+          accent="bg-cyan-50/50 dark:bg-cyan-500/10"
         />
         <StatTile
           label="RFs Awaiting Voucher"
@@ -93,7 +93,7 @@ export function VoucherSummaryStats({
           count={stats.awaiting.count}
           unit="approved RFs"
           icon={FileClock}
-          accent="bg-purple-50/50"
+          accent="bg-purple-50/50 dark:bg-purple-500/10"
         />
       </CardContent>
     </Card>

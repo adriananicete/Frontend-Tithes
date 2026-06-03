@@ -434,7 +434,7 @@ export function PendingWorkSection({
                 return (
                   <div
                     key={b.key}
-                    className="rounded-lg border p-4 flex flex-col gap-2 bg-blue-50/40 md:col-span-2 lg:col-span-3"
+                    className="rounded-lg border p-4 flex flex-col gap-2 bg-blue-50/40 dark:bg-blue-500/10 md:col-span-2 lg:col-span-3"
                   >
                     <div className="flex items-center gap-2">
                       <b.icon className="h-4 w-4 text-muted-foreground" />
