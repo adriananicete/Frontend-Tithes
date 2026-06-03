@@ -28,7 +28,7 @@ function StatTile({ label, amount, count, unit, icon: Icon, accent }) {
 
 function SplitTile({ split }) {
   return (
-    <div className="rounded-lg border p-4 flex flex-col gap-2 bg-muted/50">
+    <div className="rounded-lg border p-4 flex flex-col gap-2 bg-slate-50/50 dark:bg-muted/50">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">Auto vs Manual</span>
         <Zap className="h-4 w-4 text-muted-foreground" />

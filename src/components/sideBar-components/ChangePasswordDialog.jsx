@@ -33,7 +33,7 @@ const PasswordField = ({ id, label, value, onChange, show, onToggle, hint, error
       <button
         type="button"
         onClick={onToggle}
-        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-muted-foreground hover:text-gray-700 dark:hover:text-foreground"
         tabIndex={-1}
         aria-label={show ? "Hide password" : "Show password"}
       >

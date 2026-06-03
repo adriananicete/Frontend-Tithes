@@ -40,13 +40,13 @@ function Header({ onOpenSidebar }) {
   };
 
   return (
-    <header className="w-full flex items-center justify-between gap-3 md:gap-5 border-b border-border pb-3">
+    <header className="w-full flex items-center justify-between gap-3 md:gap-5 border-b border-gray-200 dark:border-border pb-3">
       <div className="flex items-center gap-2 md:gap-4 min-w-0">
         <button
           type="button"
           onClick={onOpenSidebar}
           aria-label="Open menu"
-          className="md:hidden p-1 text-foreground shrink-0"
+          className="md:hidden p-1 text-gray-700 dark:text-foreground shrink-0"
         >
           <FiMenu size={22} />
         </button>
@@ -58,8 +58,8 @@ function Header({ onOpenSidebar }) {
       </div>
 
       <div className="flex items-center gap-2 md:gap-5 shrink-0">
-        <p className="hidden lg:block text-sm text-muted-foreground whitespace-nowrap">{dateLabel}</p>
-        <div className="hidden sm:flex border border-border w-48 lg:w-70 p-2 justify-between items-center rounded-[5px]">
+        <p className="hidden lg:block text-sm text-gray-600 dark:text-muted-foreground whitespace-nowrap">{dateLabel}</p>
+        <div className="hidden sm:flex border border-gray-300 dark:border-border w-48 lg:w-70 p-2 justify-between items-center rounded-[5px]">
           <CiSearch size={18} />
           <input
             className="w-[92%] px-2 rounded-[3px] bg-transparent outline-none text-sm"
@@ -73,12 +73,12 @@ function Header({ onOpenSidebar }) {
           <button
             type="button"
             aria-label="Search"
-            className="sm:hidden border border-border p-2 rounded-[5px] text-foreground"
+            className="sm:hidden border border-gray-300 dark:border-border p-2 rounded-[5px] text-gray-700 dark:text-foreground"
           >
             <CiSearch size={18} />
           </button>
           <NotificationsBell />
-          <div className="hidden sm:block border border-border p-2 rounded-[5px]">
+          <div className="hidden sm:block border border-gray-300 dark:border-border p-2 rounded-[5px]">
             <LuShare2 size={18} />
           </div>
 
@@ -86,7 +86,7 @@ function Header({ onOpenSidebar }) {
             <PopoverTrigger
               type="button"
               aria-label="Settings"
-              className="border border-border p-2 rounded-[5px] text-foreground hover:bg-accent"
+              className="border border-gray-300 dark:border-border p-2 rounded-[5px] text-gray-700 dark:text-foreground hover:bg-gray-50 dark:hover:bg-accent"
             >
               <IoSettingsOutline size={18} />
             </PopoverTrigger>
@@ -101,7 +101,7 @@ function Header({ onOpenSidebar }) {
                 <button
                   type="button"
                   onClick={handleChangePassword}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-accent text-foreground"
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-accent text-gray-700 dark:text-foreground"
                 >
                   <LuKeyRound size={16} />
                   Change password

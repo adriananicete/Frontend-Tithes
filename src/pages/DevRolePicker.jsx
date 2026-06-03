@@ -20,8 +20,8 @@ function DevRolePicker() {
   };
 
   return (
-    <div className="bg-muted w-full h-dvh flex justify-center items-center">
-      <div className="bg-card w-[90%] max-w-[440px] p-8 flex flex-col gap-5 rounded-[8px] shadow-md">
+    <div className="bg-gray-200 dark:bg-background w-full h-dvh flex justify-center items-center">
+      <div className="bg-white dark:bg-card w-[90%] max-w-[440px] p-8 flex flex-col gap-5 rounded-[8px] shadow-md">
         <div className="w-full flex justify-between items-start gap-2">
           <div className="flex items-center gap-2">
             <div className="w-[48px] h-[48px]">
@@ -31,10 +31,10 @@ function DevRolePicker() {
               />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">
+              <h1 className="text-xl font-bold text-gray-700 dark:text-foreground">
                 JOSCM <span className="text-[#2f6a7a]">Tithes App</span>
               </h1>
-              <p className="text-sm text-muted-foreground">Dev Role Picker</p>
+              <p className="text-sm text-gray-500 dark:text-muted-foreground">Dev Role Picker</p>
             </div>
           </div>
         </div>
@@ -42,13 +42,13 @@ function DevRolePicker() {
         <div className="w-full flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold">Select a test user</h2>
-            <p className="text-muted-foreground text-xs">
+            <p className="text-gray-400 dark:text-muted-foreground text-xs">
               Mock auth — bypasses the real login for RBAC preview.
             </p>
           </div>
           <Link
             to="/login"
-            className="text-xs text-muted-foreground hover:text-[#2f6a7a] flex items-center gap-1"
+            className="text-xs text-gray-500 dark:text-muted-foreground hover:text-[#2f6a7a] flex items-center gap-1"
           >
             <FiArrowLeft size={14} /> Back
           </Link>
@@ -60,24 +60,24 @@ function DevRolePicker() {
               key={u._id}
               type="button"
               onClick={() => handlePickRole(u)}
-              className="group flex justify-between items-center gap-3 border border-border hover:border-[#2f6a7a] hover:bg-accent rounded-[5px] px-4 py-3 text-left transition cursor-pointer"
+              className="group flex justify-between items-center gap-3 border border-gray-200 dark:border-border hover:border-[#2f6a7a] hover:bg-[#f6f6f6] dark:hover:bg-accent rounded-[5px] px-4 py-3 text-left transition cursor-pointer"
             >
               <div>
-                <p className="text-sm font-medium text-foreground">{u.name}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm font-medium text-gray-800 dark:text-foreground">{u.name}</p>
+                <p className="text-xs text-gray-500 dark:text-muted-foreground">
                   {ROLE_LABELS[u.role]} · {u.email}
                 </p>
               </div>
               <BiRightArrowAlt
                 size={20}
-                className="text-muted-foreground group-hover:text-[#2f6a7a] transition"
+                className="text-gray-400 dark:text-muted-foreground group-hover:text-[#2f6a7a] transition"
               />
             </button>
           ))}
         </div>
 
         <div className="w-full">
-          <p className="text-[10px] text-muted-foreground text-center">
+          <p className="text-[10px] text-gray-400 dark:text-muted-foreground text-center">
             Dev-only — remove before production
           </p>
         </div>

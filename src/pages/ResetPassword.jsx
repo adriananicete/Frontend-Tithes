@@ -49,8 +49,8 @@ function ResetPassword() {
   };
 
   return (
-    <div className="bg-muted w-full h-dvh flex justify-center items-center">
-      <div className="bg-card w-[80%] max-w-[400px] h-[auto] p-8 flex flex-col justify-center items-center gap-4 rounded-[8px] shadow-md">
+    <div className="bg-gray-200 dark:bg-background w-full h-dvh flex justify-center items-center">
+      <div className="bg-[#ffffff] dark:bg-card w-[80%] max-w-[400px] h-[auto] p-8 flex flex-col justify-center items-center gap-4 rounded-[8px] shadow-md">
         {/* header */}
         <div className="w-full flex justify-start items-center gap-2">
           <div className="w-[48px] h-[48px]">
@@ -60,16 +60,16 @@ function ResetPassword() {
             />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">
+            <h1 className="text-xl font-bold text-gray-700 dark:text-foreground">
               JOSCM <span className="text-[#2f6a7a]">Tithes App</span>
             </h1>
-            <p className="text-sm text-muted-foreground">Financial Management System</p>
+            <p className="text-sm text-gray-500 dark:text-muted-foreground">Financial Management System</p>
           </div>
         </div>
 
         <div className="w-full mt-5">
           <h2 className="text-xl font-bold">Reset Password</h2>
-          <p className="text-muted-foreground text-xs">
+          <p className="text-gray-400 dark:text-muted-foreground text-xs">
             Choose a new password for your account.
           </p>
         </div>
@@ -83,7 +83,7 @@ function ResetPassword() {
             <button
               type="button"
               onClick={() => navigate("/login")}
-              className="bg-primary flex justify-center items-center gap-1 text-primary-foreground text-sm w-full rounded-[3px] py-2 mt-4 cursor-pointer"
+              className="bg-black dark:bg-primary flex justify-center items-center gap-1 text-white dark:text-primary-foreground text-sm w-full rounded-[3px] py-2 mt-4 cursor-pointer"
             >
               Go to Login
             </button>
@@ -119,7 +119,7 @@ function ResetPassword() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-primary flex justify-center items-center gap-1 text-primary-foreground text-sm w-full rounded-[3px] py-2 mt-3 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              className="bg-black dark:bg-primary flex justify-center items-center gap-1 text-white dark:text-primary-foreground text-sm w-full rounded-[3px] py-2 mt-3 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Resetting…" : (<>Reset Password <BiRightArrowAlt size={18} /></>)}
             </button>

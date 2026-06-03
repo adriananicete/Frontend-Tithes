@@ -40,7 +40,7 @@ const roleStyles = {
   validator: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400",
   auditor:   "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-400",
   do:        "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400",
-  member:    "bg-muted text-muted-foreground",
+  member:    "bg-gray-100 text-gray-700 dark:bg-muted dark:text-muted-foreground",
 };
 
 // Backend has no audit log, so we can only surface activity from the
@@ -133,12 +133,12 @@ export function RecentActivity({
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.user}</TableCell>
                     <TableCell>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role] ?? "bg-muted text-muted-foreground"}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role] ?? "bg-gray-100 text-gray-700 dark:bg-muted dark:text-muted-foreground"}`}>
                         {item.role}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${actionStyles[item.action] ?? "bg-muted text-muted-foreground"}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${actionStyles[item.action] ?? "bg-gray-100 text-gray-700 dark:bg-muted dark:text-muted-foreground"}`}>
                         {item.action}
                       </span>
                     </TableCell>
@@ -169,7 +169,7 @@ export function RecentActivity({
                     </div>
                   </div>
                   <span
-                    className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${actionStyles[item.action] ?? "bg-muted text-muted-foreground"}`}
+                    className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${actionStyles[item.action] ?? "bg-gray-100 text-gray-700 dark:bg-muted dark:text-muted-foreground"}`}
                   >
                     {item.action}
                   </span>
@@ -177,7 +177,7 @@ export function RecentActivity({
                 <div className="flex items-center justify-between gap-2 text-sm">
                   <div className="flex items-center gap-2 min-w-0">
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role] ?? "bg-muted text-muted-foreground"}`}
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role] ?? "bg-gray-100 text-gray-700 dark:bg-muted dark:text-muted-foreground"}`}
                     >
                       {item.role}
                     </span>

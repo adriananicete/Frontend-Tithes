@@ -48,7 +48,7 @@ function TimelineItem({ label, timestamp, by, state, isLast }) {
         ? "text-blue-600 animate-pulse"
         : state === "rejected"
           ? "text-red-600"
-          : "text-muted-foreground/40";
+          : "text-gray-300 dark:text-muted-foreground/40";
   const textColor = state === "upcoming" ? "text-muted-foreground/60" : "";
 
   return (

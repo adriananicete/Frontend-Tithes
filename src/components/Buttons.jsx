@@ -1,6 +1,6 @@
 function Button({ icon: Icon, titleName}) {
     return ( 
-        <button className="w-full bg-primary text-primary-foreground rounded-[5px] py-2 text-[13px] cursor-pointer flex justify-center items-center gap-2"><Icon size={18} />{titleName}</button>
+        <button className="w-full bg-black text-white dark:bg-primary dark:text-primary-foreground rounded-[5px] py-2 text-[13px] cursor-pointer flex justify-center items-center gap-2"><Icon size={18} />{titleName}</button>
      );
 }
 

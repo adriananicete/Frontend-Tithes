@@ -133,7 +133,7 @@ function Notifications() {
                     <button
                       type="button"
                       onClick={() => handleClick(n)}
-                      className={`w-full text-left px-4 py-3 hover:bg-accent flex gap-3 ${
+                      className={`w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-accent flex gap-3 ${
                         n.isRead ? "" : "bg-blue-50/40 dark:bg-blue-500/10"
                       }`}
                     >

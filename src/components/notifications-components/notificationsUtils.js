@@ -7,7 +7,7 @@ export const TYPE_STYLE = {
   reminder:  { dot: "bg-amber-500",   chip: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400" },
 };
 
-const fallbackStyle = { dot: "bg-gray-400", chip: "bg-muted text-muted-foreground" };
+const fallbackStyle = { dot: "bg-gray-400", chip: "bg-gray-100 text-gray-700 dark:bg-muted dark:text-muted-foreground" };
 
 export const styleForType = (type) => TYPE_STYLE[type] ?? fallbackStyle;
 

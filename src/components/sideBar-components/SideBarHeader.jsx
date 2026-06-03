@@ -13,10 +13,10 @@ function SideBarHeader() {
                 </div>
                 <div className="flex-1 px-2 min-w-0 md:hidden xl:block">
                     <p className="truncate">{user?.name ?? "—"}</p>
-                    <p className="text-muted-foreground text-sm">{user ? ROLE_LABELS[user.role] : ""}</p>
+                    <p className="text-gray-500 dark:text-muted-foreground text-sm">{user ? ROLE_LABELS[user.role] : ""}</p>
                 </div>
                 <div className="shrink-0 flex items-center gap-2 md:hidden xl:flex">
-                    <FiSidebar size={20} className="text-muted-foreground" />
+                    <FiSidebar size={20} className="text-gray-700 dark:text-muted-foreground" />
                 </div>
             </div>
         </div>

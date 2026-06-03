@@ -134,7 +134,7 @@ function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <p className="text-xl md:text-[25px] font-[600]">Welcome, {firstName} 👋</p>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-gray-600 dark:text-muted-foreground text-sm">
             Here's a snapshot of activity across the church.
           </p>
         </div>
