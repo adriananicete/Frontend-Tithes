@@ -28,6 +28,9 @@ const CREATE_VOUCHER  = { key: "create_voucher",  label: "Create Voucher",  icon
 const SUBMIT_TITHES   = { key: "submit_tithes",   label: "Submit Tithes",   icon: LuCoins };
 const GENERATE_REPORT = { key: "generate_report", label: "Generate Report", icon: LuChartBar };
 
+// Roles that get the full, church-wide Recent Activity feed.
+const OVERSIGHT_ROLES = ["admin", "pastor", "auditor"];
+
 const QUICK_ACTIONS_BY_ROLE = {
   admin:     [ADD_CATEGORY, CREATE_VOUCHER, SUBMIT_TITHES, GENERATE_REPORT],
   validator: [CREATE_VOUCHER, SUBMIT_TITHES],
@@ -45,6 +48,7 @@ function Dashboard() {
 
   const {
     tithes,
+    tithesChart,
     expenses,
     expensesByCategory,
     rfs,
@@ -55,10 +59,15 @@ function Dashboard() {
     canViewExpenses,
   } = useDashboardData(user?.role);
 
-  const activity = useMemo(
-    () => buildActivity({ tithes, rfs, vouchers }),
-    [tithes, rfs, vouchers]
-  );
+  // Oversight roles see the full activity feed; everyone else sees only the
+  // actions they themselves performed. (The underlying tithes/RF data is
+  // already role-scoped by the backend; this further trims the feed to "my
+  // actions" so a member doesn't see, e.g., a pastor approving their RF.)
+  const activity = useMemo(() => {
+    const all = buildActivity({ tithes, rfs, vouchers });
+    if (OVERSIGHT_ROLES.includes(user?.role)) return all;
+    return all.filter((item) => item.user === user?.name);
+  }, [tithes, rfs, vouchers, user?.role, user?.name]);
 
   // Dashboard does its mutations inline via apiFetch (not the feature
   // hooks — those would fire duplicate GETs against useDashboardData), so
@@ -173,7 +182,7 @@ function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 w-full">
         <div className="min-w-0 order-2 lg:order-none">
           <ChartAreaGradient
-            tithes={tithes}
+            tithes={tithesChart}
             expenses={expenses}
             canViewExpenses={canViewExpenses}
           />
@@ -185,7 +194,7 @@ function Dashboard() {
 
         <div className="min-w-0 lg:h-auto order-1 lg:order-none">
           <SummaryStats
-            tithes={tithes}
+            tithes={tithesChart}
             expenses={expenses}
             rfs={rfs}
             canViewExpenses={canViewExpenses}
@@ -198,6 +207,7 @@ function Dashboard() {
           activity={activity}
           loading={loading}
           error={error}
+          scope={OVERSIGHT_ROLES.includes(user?.role) ? "all" : "own"}
         />
       </div>
 

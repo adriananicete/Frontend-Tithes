@@ -9,6 +9,9 @@ const canViewVouchers = (role) =>
 
 export function useDashboardData(role) {
   const [tithes, setTithes] = useState([]);
+  // Church-wide + anonymized tithes for charts/summary (see useTithes). The
+  // `tithes` list above stays role-scoped for the activity feed.
+  const [tithesChart, setTithesChart] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [expensesByCategory, setExpensesByCategory] = useState([]);
   const [rfs, setRfs] = useState([]);
@@ -38,6 +41,7 @@ export function useDashboardData(role) {
         apiFetch("/expenses/by-category"),
       ]);
       setTithes(Array.isArray(tRes?.data) ? tRes.data : []);
+      setTithesChart(Array.isArray(tRes?.chartData) ? tRes.chartData : []);
       setRfs(Array.isArray(rRes?.data) ? rRes.data : []);
       setExpenses(Array.isArray(eRes?.data) ? eRes.data : []);
       setVouchers(Array.isArray(vRes?.data) ? vRes.data : []);
@@ -75,6 +79,7 @@ export function useDashboardData(role) {
 
   return {
     tithes,
+    tithesChart,
     expenses,
     expensesByCategory,
     rfs,

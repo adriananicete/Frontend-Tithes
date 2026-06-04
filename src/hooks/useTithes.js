@@ -4,6 +4,10 @@ import { notifyAction } from "@/lib/toast";
 
 export function useTithes() {
   const [tithes, setTithes] = useState([]);
+  // chartData is church-wide + anonymized (no submitter identity) so charts
+  // and the summary show the whole church's totals to every role, while
+  // `tithes` (the table rows) stays role-scoped by the backend.
+  const [chartData, setChartData] = useState([]);
   const [totalBalance, setTotalBalance] = useState(0);
   const [availableBalance, setAvailableBalance] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -15,6 +19,7 @@ export function useTithes() {
     try {
       const res = await apiFetch("/tithes");
       setTithes(Array.isArray(res?.data) ? res.data : []);
+      setChartData(Array.isArray(res?.chartData) ? res.chartData : []);
       setTotalBalance(res?.totalBalance ?? 0);
       setAvailableBalance(res?.availableBalance ?? 0);
     } catch (err) {
@@ -71,6 +76,7 @@ export function useTithes() {
 
   return {
     tithes,
+    chartData,
     totalBalance,
     availableBalance,
     loading,

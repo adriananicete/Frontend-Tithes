@@ -9,6 +9,7 @@ import { useTithes } from "@/hooks/useTithes";
 function Tithes() {
   const {
     tithes,
+    chartData,
     loading,
     error,
     submitTithes,
@@ -38,14 +39,16 @@ function Tithes() {
         <SubmitTithesDialog onSubmit={submitTithes} />
       </div>
 
+      {/* Charts/summary use the church-wide `chartData` so every role sees the
+          whole church's totals; the table below stays role-scoped. */}
       <div className="h-72 md:h-96">
-        <TithesTrendChart tithes={tithes} />
+        <TithesTrendChart tithes={chartData} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <TithesSummary tithes={tithes} />
+        <TithesSummary tithes={chartData} />
         <div className="h-72 md:h-80">
-          <ServiceTypeBreakdown tithes={tithes} />
+          <ServiceTypeBreakdown tithes={chartData} />
         </div>
       </div>
 

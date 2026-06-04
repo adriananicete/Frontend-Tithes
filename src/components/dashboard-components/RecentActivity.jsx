@@ -53,6 +53,7 @@ export function RecentActivity({
   activity = [],
   loading = false,
   error = "",
+  scope = "all",
   className,
 }) {
   const [typeFilter, setTypeFilter] = useState("All");
@@ -88,7 +89,11 @@ export function RecentActivity({
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="space-y-1">
             <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest actions across all accounts</CardDescription>
+            <CardDescription>
+              {scope === "own"
+                ? "Your latest actions"
+                : "Latest actions across all accounts"}
+            </CardDescription>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2">
