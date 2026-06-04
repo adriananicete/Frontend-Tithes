@@ -1,15 +1,22 @@
-import { createContext, useCallback, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch } from "../services/api";
 import { connectSocket, disconnectSocket } from "../services/socket";
 import { useAuth } from "../hooks/useAuth";
 
 export const NotificationsContext = createContext(null);
 
+// How often to poll for new notifications when the websocket isn't available
+// (prod, behind the Vercel proxy). Tab-visibility–aware so it pauses in the
+// background.
+const POLL_MS = 10000;
+
 export function NotificationsProvider({ children }) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  // Ids we've already seen, so a poll can tell which notifications are new.
+  const knownIdsRef = useRef(new Set());
 
   const refetch = useCallback(async () => {
     if (!user) {
@@ -67,6 +74,50 @@ export function NotificationsProvider({ children }) {
       window.removeEventListener("focus", handleReconcile);
     };
   }, [user, refetch]);
+
+  // Keep the "seen" id set in sync with the current list.
+  useEffect(() => {
+    knownIdsRef.current = new Set(notifications.map((n) => n._id));
+  }, [notifications]);
+
+  // Polling fallback for near-realtime updates when the websocket can't be
+  // used (prod behind the proxy). Each poll refreshes the bell AND re-dispatches
+  // the same `notification:new` event the socket used, so list pages and the
+  // dashboard's "Your Pending Work" refresh too. Pauses while the tab is hidden.
+  useEffect(() => {
+    if (!user) return;
+
+    const poll = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const res = await apiFetch("/notifications");
+        const incoming = Array.isArray(res?.data) ? res.data : [];
+        const known = knownIdsRef.current;
+        const fresh = incoming.filter((n) => !known.has(n._id));
+        knownIdsRef.current = new Set(incoming.map((n) => n._id));
+        setNotifications(incoming);
+        // Fire the same event the socket would, so dependent hooks refetch.
+        for (const n of fresh) {
+          window.dispatchEvent(new CustomEvent("notification:new", { detail: n }));
+        }
+      } catch {
+        // Ignore — the next tick retries.
+      }
+    };
+
+    const timer = setInterval(poll, POLL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") poll();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [user]);
 
   const markAsRead = useCallback(async (id) => {
     setNotifications((prev) =>
