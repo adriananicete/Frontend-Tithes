@@ -7,6 +7,7 @@ import { FiMenu, FiLogOut } from "react-icons/fi";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { NotificationsBell } from "@/components/notifications-components/NotificationsBell";
 import { SearchResultsDropdown } from "@/components/layout/SearchResultsDropdown";
+import { PushToggle } from "@/components/layout/PushToggle";
 import { ChangePasswordDialog } from "@/components/sideBar-components/ChangePasswordDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useGlobalSearch } from "@/hooks/useGlobalSearch";
@@ -155,6 +156,7 @@ function Header({ onOpenSidebar }) {
                 </p>
               </div>
               <div className="py-1">
+                <PushToggle />
                 <button
                   type="button"
                   onClick={handleChangePassword}
