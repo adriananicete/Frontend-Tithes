@@ -13,6 +13,7 @@ import Expense from "./pages/Expense";
 import Reports from "./pages/Reports";
 import Notifications from "./pages/Notifications";
 import Search from "./pages/Search";
+import AuditLog from "./pages/AuditLog";
 import Users from "./pages/Users";
 import Categories from "./pages/Categories";
 
@@ -52,6 +53,7 @@ function App() {
 
           <Route element={<ProtectedRoute allowedRoles={["admin", "auditor"]} />}>
             <Route path="/expense" element={<Expense />} />
+            <Route path="/audit-log" element={<AuditLog />} />
           </Route>
 
           <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
