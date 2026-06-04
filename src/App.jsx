@@ -12,6 +12,7 @@ import Voucher from "./pages/Voucher";
 import Expense from "./pages/Expense";
 import Reports from "./pages/Reports";
 import Notifications from "./pages/Notifications";
+import Search from "./pages/Search";
 import Users from "./pages/Users";
 import Categories from "./pages/Categories";
 
@@ -33,6 +34,7 @@ function App() {
           <Route path="/tithes" element={<Tithes />} />
           <Route path="/request-form" element={<RequestForm />} />
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/search" element={<Search />} />
 
           <Route
             element={

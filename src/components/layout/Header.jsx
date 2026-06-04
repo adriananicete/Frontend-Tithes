@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { CiSearch } from "react-icons/ci";
 import { IoSettingsOutline } from "react-icons/io5";
@@ -6,8 +6,10 @@ import { LuShare2, LuKeyRound } from "react-icons/lu";
 import { FiMenu, FiLogOut } from "react-icons/fi";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { NotificationsBell } from "@/components/notifications-components/NotificationsBell";
+import { SearchResultsDropdown } from "@/components/layout/SearchResultsDropdown";
 import { ChangePasswordDialog } from "@/components/sideBar-components/ChangePasswordDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useGlobalSearch } from "@/hooks/useGlobalSearch";
 import { ROLE_LABELS } from "@/utils/rolePermissions";
 
 const daysOfWeek = [
@@ -27,6 +29,37 @@ function Header({ onOpenSidebar }) {
   const { user, logout } = useAuth();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pwdOpen, setPwdOpen] = useState(false);
+
+  // Global search (RF + Voucher). Dropdown shows the top matches; "View all"
+  // and the mobile icon go to the full /search page.
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef(null);
+  const { results, counts, loading: searchLoading, error: searchError } =
+    useGlobalSearch(searchQuery, { limit: 8 });
+
+  // Close the dropdown when clicking outside the search box.
+  useEffect(() => {
+    const onPointerDown = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setSearchOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, []);
+
+  const handleSelectResult = (r) => {
+    setSearchOpen(false);
+    setSearchQuery("");
+    navigate(`${r.route}?focus=${r.focusId}`);
+  };
+
+  const handleViewAll = () => {
+    const q = searchQuery.trim();
+    setSearchOpen(false);
+    navigate(`/search?q=${encodeURIComponent(q)}`);
+  };
 
   const handleChangePassword = () => {
     setSettingsOpen(false);
@@ -59,20 +92,44 @@ function Header({ onOpenSidebar }) {
 
       <div className="flex items-center gap-2 md:gap-5 shrink-0">
         <p className="hidden lg:block text-sm text-gray-600 dark:text-muted-foreground whitespace-nowrap">{dateLabel}</p>
-        <div className="hidden sm:flex border border-gray-300 dark:border-border w-48 lg:w-70 p-2 justify-between items-center rounded-[5px]">
-          <CiSearch size={18} />
-          <input
-            className="w-[92%] px-2 rounded-[3px] bg-transparent outline-none text-sm"
-            type="text"
-            placeholder="Search for ....."
-            autoComplete=""
-          />
+        <div ref={searchRef} className="hidden sm:block relative w-48 lg:w-70">
+          <div className="flex border border-gray-300 dark:border-border w-full p-2 justify-between items-center rounded-[5px]">
+            <CiSearch size={18} />
+            <input
+              className="w-[92%] px-2 rounded-[3px] bg-transparent outline-none text-sm"
+              type="text"
+              placeholder="Search RF / PCF / particulars…"
+              autoComplete="off"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setSearchOpen(true);
+              }}
+              onFocus={() => setSearchOpen(true)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && searchQuery.trim().length >= 2) handleViewAll();
+                if (e.key === "Escape") setSearchOpen(false);
+              }}
+            />
+          </div>
+          {searchOpen && searchQuery.trim().length >= 2 && (
+            <SearchResultsDropdown
+              results={results}
+              counts={counts}
+              loading={searchLoading}
+              error={searchError}
+              query={searchQuery}
+              onSelect={handleSelectResult}
+              onViewAll={handleViewAll}
+            />
+          )}
         </div>
 
         <div className="flex items-center gap-2">
           <button
             type="button"
             aria-label="Search"
+            onClick={() => navigate("/search")}
             className="sm:hidden border border-gray-300 dark:border-border p-2 rounded-[5px] text-gray-700 dark:text-foreground"
           >
             <CiSearch size={18} />
