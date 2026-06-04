@@ -164,7 +164,7 @@ export function RfDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
+      <DialogContent className="sm:max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <div className="flex items-center gap-3 flex-wrap">
             <DialogTitle>{rf.rfNo}</DialogTitle>
@@ -177,7 +177,10 @@ export function RfDetailsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5">
+        {/* Two columns on desktop: left = details + status timeline,
+            right = comments. Stacks to one column on mobile. */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <div className="text-xs text-muted-foreground">Requester</div>
@@ -262,7 +265,11 @@ export function RfDetailsDialog({
             )}
           </div>
 
-          <RfComments rfId={rf._id} open={open} canPost={canComment} />
+          </div>
+
+          <div className="lg:border-l lg:border-border lg:pl-6">
+            <RfComments rfId={rf._id} open={open} canPost={canComment} />
+          </div>
         </div>
 
         {footerButtons.length > 0 && (
