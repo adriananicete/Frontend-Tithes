@@ -15,6 +15,11 @@ let socket = null;
 export const getSocket = () => socket;
 
 export const connectSocket = () => {
+  // In prod the API + socket run behind the Vercel proxy, which can't carry a
+  // WebSocket/long-poll reliably (and a direct cross-origin socket loses the
+  // auth cookie on Safari/Chrome). So skip the socket when proxied and let
+  // NotificationsContext fall back to polling. Dev (absolute URL) keeps the ws.
+  if (proxied) return null;
   if (socket && socket.connected) return socket;
   if (socket) socket.disconnect();
   // Auth rides the httpOnly cookie via withCredentials; the auth.token payload
