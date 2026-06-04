@@ -7,6 +7,7 @@ import {
   LuChartBar,
   LuUsers,
   LuTag,
+  LuHistory,
 } from 'react-icons/lu'
 
 export const ROLES = {
@@ -75,6 +76,12 @@ export const NAV_ITEMS = [
     path: '/reports',
     icon: LuChartBar,
     roles: ['admin', 'do', 'validator', 'pastor', 'auditor'],
+  },
+  {
+    label: 'Audit Log',
+    path: '/audit-log',
+    icon: LuHistory,
+    roles: ['admin', 'auditor'],
   },
   {
     label: 'Users',
