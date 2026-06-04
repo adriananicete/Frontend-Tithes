@@ -6,6 +6,7 @@ import {
   getPushStatus,
   pushSupported,
 } from "@/lib/push";
+import { notifyError, notifyInfo, notifySuccess } from "@/lib/toast";
 
 // A row for the Header settings popover that lets the user turn phone push
 // notifications on/off. Hidden entirely when the browser can't do push.
@@ -26,10 +27,16 @@ export function PushToggle() {
   const toggle = async () => {
     setBusy(true);
     try {
-      if (status === "subscribed") setStatus(await disablePush());
-      else setStatus(await enablePush());
-    } catch {
-      // Permission denied or subscribe failed — reflect the latest state.
+      if (status === "subscribed") {
+        setStatus(await disablePush());
+        notifyInfo("Notifications turned off");
+      } else {
+        setStatus(await enablePush());
+        notifySuccess("Notifications enabled", "You'll get alerts on this device.");
+      }
+    } catch (err) {
+      // Surface the real reason so push failures aren't silent.
+      notifyError("Couldn't enable notifications", err?.message || String(err));
       setStatus(await getPushStatus());
     } finally {
       setBusy(false);
