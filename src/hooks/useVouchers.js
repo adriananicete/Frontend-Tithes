@@ -1,32 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { apiFetch } from "../services/api";
 import { notifyAction } from "@/lib/toast";
+import { useCachedResource } from "./useCachedResource";
 
 export function useVouchers() {
-  const [vouchers, setVouchers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const refetch = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await apiFetch("/vouchers");
-      setVouchers(Array.isArray(res?.data) ? res.data : []);
-    } catch (err) {
-      setError(err.message || "Failed to load vouchers");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const { data: res, loading, error, refetch } = useCachedResource(
+    "vouchers",
+    () => apiFetch("/vouchers"),
+  );
+  const vouchers = res?.data ?? [];
 
   useEffect(() => {
     const onNotif = (e) => {
-      if (e.detail?.refModel === "Voucher") refetch();
+      if (e.detail?.refModel === "Voucher") refetch({ silent: true });
     };
     window.addEventListener("notification:new", onNotif);
     return () => window.removeEventListener("notification:new", onNotif);

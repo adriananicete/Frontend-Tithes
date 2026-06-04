@@ -1,28 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
 import { notifyAction } from "@/lib/toast";
+import { useCachedResource } from "./useCachedResource";
 
 export function useExpenses() {
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const refetch = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await apiFetch("/expenses");
-      setExpenses(Array.isArray(res?.data) ? res.data : []);
-    } catch (err) {
-      setError(err.message || "Failed to load expenses");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const { data: res, loading, error, refetch } = useCachedResource(
+    "expenses",
+    () => apiFetch("/expenses"),
+  );
+  const expenses = res?.data ?? [];
 
   const createExpense = async (payload) => {
     await apiFetch("/expenses", {

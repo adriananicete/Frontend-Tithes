@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { apiFetch } from "../services/api";
+import { useCachedResource } from "./useCachedResource";
 
 // Role-aware parallel fetch for the Dashboard. Skips endpoints the user
 // is not authorized to hit so the page doesn't generate console-noisy 403s.
@@ -8,31 +9,15 @@ const canViewVouchers = (role) =>
   ["validator", "do", "auditor", "admin"].includes(role);
 
 export function useDashboardData(role) {
-  const [tithes, setTithes] = useState([]);
-  // Church-wide + anonymized tithes for charts/summary (see useTithes). The
-  // `tithes` list above stays role-scoped for the activity feed.
-  const [tithesChart, setTithesChart] = useState([]);
-  const [expenses, setExpenses] = useState([]);
-  const [expensesByCategory, setExpensesByCategory] = useState([]);
-  const [rfs, setRfs] = useState([]);
-  const [vouchers, setVouchers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const showExpenses = canViewExpenses(role);
+  const showVouchers = canViewVouchers(role);
 
-  // `silent` skips the loading state so a realtime refresh doesn't flash
-  // skeletons over already-rendered data — used by the notification listener.
-  const load = useCallback(async (silent = false) => {
-    if (!role) return;
-    if (!silent) setLoading(true);
-    setError("");
-
-    const showExpenses = canViewExpenses(role);
-    const showVouchers = canViewVouchers(role);
-
-    try {
-      // /expenses/by-category is aggregated (category totals only) and is
-      // open to every role, so it's fetched unconditionally — unlike the
-      // full /expenses list which stays admin/auditor-gated.
+  // Cached so returning to the Dashboard is instant; revalidates silently.
+  const { data: res, loading, error, refetch } = useCachedResource(
+    "dashboard",
+    async () => {
+      // /expenses/by-category is aggregated (category totals only) and open to
+      // every role; the full /expenses + /vouchers lists stay role-gated.
       const [tRes, rRes, eRes, vRes, ecRes] = await Promise.all([
         apiFetch("/tithes"),
         apiFetch("/request-form"),
@@ -40,54 +25,43 @@ export function useDashboardData(role) {
         showVouchers ? apiFetch("/vouchers") : Promise.resolve(null),
         apiFetch("/expenses/by-category"),
       ]);
-      setTithes(Array.isArray(tRes?.data) ? tRes.data : []);
-      setTithesChart(Array.isArray(tRes?.chartData) ? tRes.chartData : []);
-      setRfs(Array.isArray(rRes?.data) ? rRes.data : []);
-      setExpenses(Array.isArray(eRes?.data) ? eRes.data : []);
-      setVouchers(Array.isArray(vRes?.data) ? vRes.data : []);
-      setExpensesByCategory(Array.isArray(ecRes?.data) ? ecRes.data : []);
-    } catch (err) {
-      setError(err.message || "Failed to load dashboard data");
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, [role]);
+      return {
+        tithes: Array.isArray(tRes?.data) ? tRes.data : [],
+        tithesChart: Array.isArray(tRes?.chartData) ? tRes.chartData : [],
+        rfs: Array.isArray(rRes?.data) ? rRes.data : [],
+        expenses: Array.isArray(eRes?.data) ? eRes.data : [],
+        vouchers: Array.isArray(vRes?.data) ? vRes.data : [],
+        expensesByCategory: Array.isArray(ecRes?.data) ? ecRes.data : [],
+      };
+    },
+    { enabled: !!role },
+  );
 
-  const refetch = useCallback(() => load(false), [load]);
-
-  useEffect(() => {
-    load(false);
-  }, [load]);
-
-  // Keep "Your Pending Work" and the stats live without a manual refresh,
-  // via two paths that mirror NotificationsContext:
+  // Keep "Your Pending Work" and the stats live without a manual refresh:
   //   1. `notification:new` — dispatched on every realtime socket push.
-  //   2. `focus` — reconcile when the user returns to the tab, covering the
-  //      case where a socket push was missed (socket dropped, or the notif
-  //      arrived while this tab was backgrounded). This is the same focus
-  //      reconcile the notification bell uses, so the dashboard now stays as
-  //      fresh as the bell. Both refetch silently (no loading skeleton flash).
+  //   2. `focus` — reconcile when the user returns to the tab (covers a missed
+  //      socket push). Both revalidate silently (no loading skeleton flash).
   useEffect(() => {
-    const reload = () => load(true);
+    const reload = () => refetch({ silent: true });
     window.addEventListener("notification:new", reload);
     window.addEventListener("focus", reload);
     return () => {
       window.removeEventListener("notification:new", reload);
       window.removeEventListener("focus", reload);
     };
-  }, [load]);
+  }, [refetch]);
 
   return {
-    tithes,
-    tithesChart,
-    expenses,
-    expensesByCategory,
-    rfs,
-    vouchers,
+    tithes: res?.tithes ?? [],
+    tithesChart: res?.tithesChart ?? [],
+    expenses: res?.expenses ?? [],
+    expensesByCategory: res?.expensesByCategory ?? [],
+    rfs: res?.rfs ?? [],
+    vouchers: res?.vouchers ?? [],
     loading,
     error,
     refetch,
-    canViewExpenses: canViewExpenses(role),
-    canViewVouchers: canViewVouchers(role),
+    canViewExpenses: showExpenses,
+    canViewVouchers: showVouchers,
   };
 }
