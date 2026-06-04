@@ -100,11 +100,12 @@ export const canAccessRoute = (role, path) => {
 
 // Action-level permission matrix. Mirrors the backend ACL in CLAUDE.md §API Endpoints.
 export const can = {
-  // Tithes
+  // Tithes — only DO and admin may approve/reject, and never their own entry
+  // (mirrors the backend REVIEWER_ROLES + conflict-of-interest check).
   submitTithes: (role) => !!role,
   approveTithes: (role, submitterName, userName) =>
-    !!role && submitterName !== userName,
-  rejectTithes: (role) => !!role,
+    ["do", "admin"].includes(role) && submitterName !== userName,
+  rejectTithes: (role) => ["do", "admin"].includes(role),
 
   // Request Form
   createRf: (role) => !!role,
