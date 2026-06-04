@@ -171,7 +171,7 @@ function Dashboard() {
           per-transaction detail) so all staff have visibility into
           spending — hence the grid is always three columns. */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 w-full">
-        <div className="min-w-0">
+        <div className="min-w-0 order-2 lg:order-none">
           <ChartAreaGradient
             tithes={tithes}
             expenses={expenses}
@@ -179,11 +179,11 @@ function Dashboard() {
           />
         </div>
 
-        <div className="min-w-0">
+        <div className="min-w-0 order-3 lg:order-none">
           <ChartBarExpense data={expensesByCategory} />
         </div>
 
-        <div className="min-w-0 lg:h-auto">
+        <div className="min-w-0 lg:h-auto order-1 lg:order-none">
           <SummaryStats
             tithes={tithes}
             expenses={expenses}
