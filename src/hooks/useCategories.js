@@ -1,28 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
 import { notifyAction } from "@/lib/toast";
+import { useCachedResource } from "./useCachedResource";
 
 export function useCategories() {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const refetch = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await apiFetch("/admin/categories");
-      setCategories(Array.isArray(res) ? res : []);
-    } catch (err) {
-      setError(err.message || "Failed to load categories");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
+  const { data: res, loading, error, refetch } = useCachedResource(
+    "categories",
+    () => apiFetch("/admin/categories"),
+  );
+  const categories = Array.isArray(res) ? res : [];
 
   const createCategory = async (payload) => {
     await apiFetch("/admin/categories", {

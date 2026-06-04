@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState } from "react";
 import { apiFetch } from "../services/api";
+import { clearResourceCache } from "../hooks/useCachedResource";
 
 export const AuthContext = createContext(null);
 
@@ -25,11 +26,15 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = (userData) => {
+    // Drop any cached page data from a previous session so a new user never
+    // sees the prior user's role-scoped data.
+    clearResourceCache();
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const logout = () => {
+    clearResourceCache();
     setUser(null);
     localStorage.removeItem("user");
     localStorage.removeItem("token");
