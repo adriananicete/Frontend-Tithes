@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { can } from "@/utils/rolePermissions";
+import { RfComments } from "./RfComments";
 import { formatDate, formatDateTime, formatPHP, statusConfig } from "./mockData";
 
 const stages = [
@@ -146,6 +147,11 @@ export function RfDetailsDialog({
   const voucherLabel = rf.voucherId?.pcfNo || rf.voucherNo;
   const footerButtons = buildFooterActions({ rf, role: userRole, currentUserId });
 
+  // Comment composer is open to any staff role or the RF's own requester
+  // (mirrors the backend's workflow-participant rule).
+  const ownerId = typeof rf.requestedBy === "string" ? null : rf.requestedBy?._id;
+  const canComment = userRole !== "member" || (!!ownerId && ownerId === currentUserId);
+
   // For non-rejected RFs: stage is "done" if its order < current, "current" if
   // it equals current. Once rejected, stages reached before rejection stay
   // "done" and the rest are "upcoming".
@@ -255,6 +261,8 @@ export function RfDetailsDialog({
               </div>
             )}
           </div>
+
+          <RfComments rfId={rf._id} open={open} canPost={canComment} />
         </div>
 
         {footerButtons.length > 0 && (
