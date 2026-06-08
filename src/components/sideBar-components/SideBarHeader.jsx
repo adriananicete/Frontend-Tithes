@@ -1,24 +1,15 @@
 import { FiSidebar } from "react-icons/fi";
-import { useAuth } from "../../hooks/useAuth";
-import { ROLE_LABELS } from "../../utils/rolePermissions";
-import { UserAvatar } from "../shared/UserAvatar";
 
 function SideBarHeader() {
-    const { user } = useAuth();
-
     return (
         <div className="bg-[] flex flex-col justify-center items-center gap-4 py-2">
             <div className="w-full flex justify-between md:justify-center xl:justify-between items-center">
                 <div className="w-[43px] h-[45px] rounded-[8px] overflow-hidden shrink-0">
                     <img className="w-full h-full" src="https://res.cloudinary.com/dks2psaem/image/upload/v1763347986/joscm-logo_jq0zlo.png" alt="" />
                 </div>
-                <div className="flex-1 px-2 min-w-0 md:hidden xl:flex items-center gap-2">
-                    <UserAvatar name={user?.name} src={user?.avatarUrl} size="sm" />
-                    <div className="min-w-0">
-                        <p className="truncate">{user?.name ?? "—"}</p>
-                        <p className="text-gray-500 dark:text-muted-foreground text-sm">{user ? ROLE_LABELS[user.role] : ""}</p>
-                    </div>
-                </div>
+                <span className="font-bold text-lg md:hidden xl:inline">
+                    <span className="text-[#2f6a7a]">JOSCM</span>
+                </span>
                 <div className="shrink-0 flex items-center gap-2 md:hidden xl:flex">
                     <FiSidebar size={20} className="text-gray-700 dark:text-muted-foreground" />
                 </div>

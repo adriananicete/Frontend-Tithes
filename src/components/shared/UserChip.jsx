@@ -10,11 +10,14 @@ export function UserChip({
   fallback = "—",
   className = "",
   nameClassName = "",
+  showAvatar = true,
 }) {
   const isObj = user && typeof user === "object";
   const name = isObj ? user.name : typeof user === "string" ? user : null;
 
   if (!name) return <span className={nameClassName}>{fallback}</span>;
+
+  if (!showAvatar) return <span className={nameClassName}>{name}</span>;
 
   return (
     <span className={`inline-flex items-center gap-2 min-w-0 ${className}`}>

@@ -37,7 +37,7 @@ const stages = [
   { key: "received",        label: "Received",        timestampField: "receivedAt",       byField: "receivedBy" },
 ];
 
-function TimelineItem({ label, timestamp, byUser, state, isLast }) {
+function TimelineItem({ label, timestamp, byUser, state, isLast, showAvatar = true }) {
   const Icon =
     state === "rejected" ? XCircle : state === "current" ? CircleDot : Check;
   const iconColor =
@@ -64,7 +64,7 @@ function TimelineItem({ label, timestamp, byUser, state, isLast }) {
             {timestamp && byUser && <span>·</span>}
             {byUser && (
               <span className="inline-flex items-center gap-1.5">
-                by <UserChip user={byUser} size="xs" nameClassName="text-foreground" />
+                by <UserChip user={byUser} size="xs" nameClassName="text-foreground" showAvatar={showAvatar} />
               </span>
             )}
           </div>
@@ -234,6 +234,9 @@ export function RfDetailsDialog({
                 const cfgStage = statusConfig[s.key];
                 const timestamp = s.timestampField ? rf[s.timestampField] : null;
                 const byUser = s.byField ? rf[s.byField] : null;
+                // Created + Submitted both point at the requester (already shown
+                // with an avatar in the field above) — keep those rows text-only.
+                const showAvatar = s.key !== "draft" && s.key !== "submitted";
                 return (
                   <TimelineItem
                     key={s.key}
@@ -242,6 +245,7 @@ export function RfDetailsDialog({
                     byUser={byUser}
                     state={stageState(cfgStage.order)}
                     isLast={!isRejected && idx === stages.length - 1}
+                    showAvatar={showAvatar}
                   />
                 );
               })}
