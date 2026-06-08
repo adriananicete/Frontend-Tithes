@@ -1,5 +1,5 @@
 import SideBarHeader from "../sideBar-components/SideBarHeader";
-import { getNavItemsForRole, ROLE_LABELS } from "../../utils/rolePermissions.js";
+import { getNavItemsForRole } from "../../utils/rolePermissions.js";
 import { NavLink, useNavigate } from "react-router";
 import { useAuth } from "../../hooks/useAuth";
 import { Sheet, SheetContent, SheetTitle } from "../ui/sheet";
@@ -25,35 +25,28 @@ function SidebarFooter({ onNavigate }) {
 
   return (
     <div className="mt-auto">
-      {/* Profile + quick actions, sitting above the divider/theme row. */}
+      {/* Profile avatar + Settings (icon + label) + logout, above the theme row. */}
       <div className="flex items-center gap-2 px-2 pb-3 md:justify-center xl:justify-start">
         <UserAvatar name={user?.name} src={user?.avatarUrl} size="sm" />
-        <div className="min-w-0 flex-1 md:hidden xl:block">
-          <p className="truncate text-sm font-medium">{user?.name ?? "—"}</p>
-          <p className="text-xs text-gray-500 dark:text-muted-foreground truncate">
-            {user ? ROLE_LABELS[user.role] : ""}
-          </p>
-        </div>
-        <div className="shrink-0 flex items-center gap-1 md:hidden xl:flex">
-          <button
-            type="button"
-            onClick={handleSettings}
-            aria-label="Profile & settings"
-            title="Profile & settings"
-            className="p-1.5 rounded-[5px] text-gray-700 dark:text-muted-foreground hover:bg-gray-200 dark:hover:bg-sidebar-accent hover:text-black dark:hover:text-sidebar-accent-foreground transition-colors cursor-pointer"
-          >
-            <IoSettingsOutline size={18} />
-          </button>
-          <button
-            type="button"
-            onClick={handleLogout}
-            aria-label="Log out"
-            title="Log out"
-            className="p-1.5 rounded-[5px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer"
-          >
-            <FiLogOut size={18} />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={handleSettings}
+          aria-label="Settings"
+          title="Settings"
+          className="min-w-0 flex-1 flex items-center gap-2 p-1.5 rounded-[5px] text-gray-700 dark:text-muted-foreground hover:bg-gray-200 dark:hover:bg-sidebar-accent hover:text-black dark:hover:text-sidebar-accent-foreground transition-colors cursor-pointer md:hidden xl:flex"
+        >
+          <IoSettingsOutline size={18} className="shrink-0" />
+          <span className="text-sm truncate">Settings</span>
+        </button>
+        <button
+          type="button"
+          onClick={handleLogout}
+          aria-label="Log out"
+          title="Log out"
+          className="shrink-0 p-1.5 rounded-[5px] text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer md:hidden xl:flex"
+        >
+          <FiLogOut size={18} />
+        </button>
       </div>
 
       <div className="border-t border-gray-300 dark:border-border pt-3 px-2">

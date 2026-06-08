@@ -1,6 +1,10 @@
 import { FiSidebar } from "react-icons/fi";
+import { useAuth } from "../../hooks/useAuth";
+import { ROLE_LABELS } from "../../utils/rolePermissions";
 
 function SideBarHeader() {
+    const { user } = useAuth();
+
     return (
         <div className="bg-[] flex flex-col justify-center items-center gap-4 py-2">
             <div className="w-full flex justify-between md:justify-center xl:justify-between items-center">
@@ -9,12 +13,8 @@ function SideBarHeader() {
                         <img className="w-full h-full" src="https://res.cloudinary.com/dks2psaem/image/upload/v1763347986/joscm-logo_jq0zlo.png" alt="" />
                     </div>
                     <div className="min-w-0 md:hidden xl:block">
-                        <p className="font-bold text-lg leading-tight truncate">
-                            <span className="text-[#2f6a7a]">JOSCM</span>
-                        </p>
-                        <p className="text-gray-500 dark:text-muted-foreground text-xs leading-tight truncate">
-                            Tithes Management
-                        </p>
+                        <p className="truncate">{user?.name ?? "—"}</p>
+                        <p className="text-gray-500 dark:text-muted-foreground text-sm truncate">{user ? ROLE_LABELS[user.role] : ""}</p>
                     </div>
                 </div>
                 <div className="shrink-0 flex items-center gap-2 md:hidden xl:flex">
