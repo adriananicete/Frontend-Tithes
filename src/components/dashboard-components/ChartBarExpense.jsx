@@ -20,7 +20,11 @@ import { formatPHP } from "./dashboardUtils";
 const chartConfig = {
   amount: {
     label: "Amount",
-    color: "var(--chart-3)",
+    // Keep the default chart color in light mode; use a warm gold in dark mode.
+    theme: {
+      light: "var(--chart-3)",
+      dark: "#ccac55",
+    },
   },
   label: {
     color: "var(--background)",
