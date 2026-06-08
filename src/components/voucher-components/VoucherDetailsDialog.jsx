@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { can } from "@/utils/rolePermissions";
+import { UserChip } from "@/components/shared/UserChip";
 import { formatDate, formatDateTime, formatPHP, voucherStatusConfig } from "./mockData";
 
 export function VoucherDetailsDialog({
@@ -62,8 +63,9 @@ export function VoucherDetailsDialog({
             </div>
             <div>
               <div className="text-xs text-muted-foreground">Created By</div>
-              <div className="font-medium">
-                {voucher.createdBy?.name ?? "—"} · {formatDateTime(voucher.createdAt)}
+              <div className="font-medium flex items-center gap-2 flex-wrap">
+                <UserChip user={voucher.createdBy} size="sm" />
+                <span className="text-xs text-muted-foreground">· {formatDateTime(voucher.createdAt)}</span>
               </div>
             </div>
           </div>

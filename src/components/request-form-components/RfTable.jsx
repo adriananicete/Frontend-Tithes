@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { UserChip } from "@/components/shared/UserChip";
 import {
   Card,
   CardContent,
@@ -357,7 +358,7 @@ export function RfTable({
                         <TableCell className="text-muted-foreground">
                           {formatDate(rf.entryDate)}
                         </TableCell>
-                        <TableCell>{requesterName(rf)}</TableCell>
+                        <TableCell><UserChip user={rf.requestedBy} /></TableCell>
                         <TableCell>{categoryName(rf)}</TableCell>
                         <TableCell className="text-right font-medium">
                           {formatPHP(rf.estimatedAmount)}

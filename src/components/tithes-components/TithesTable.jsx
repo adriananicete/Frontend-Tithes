@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { MoreHorizontal, Eye, Check, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { UserChip } from "@/components/shared/UserChip";
 import {
   Card,
   CardContent,
@@ -306,7 +307,7 @@ export function TithesTable({
                       className="cursor-pointer hover:bg-muted/50"
                     >
                       <TableCell className="text-muted-foreground">{formatDate(row.entryDate)}</TableCell>
-                      <TableCell className="font-medium">{row.submittedBy?.name || "—"}</TableCell>
+                      <TableCell className="font-medium"><UserChip user={row.submittedBy} /></TableCell>
                       <TableCell>{row.serviceType}</TableCell>
                       <TableCell className="text-right font-medium">{formatPHP(row.total)}</TableCell>
                       <TableCell>
@@ -348,7 +349,7 @@ export function TithesTable({
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="font-medium truncate">{row.submittedBy?.name || "—"}</div>
+                      <UserChip user={row.submittedBy} size="sm" nameClassName="font-medium" />
                       <div className="text-xs text-muted-foreground truncate">{row.serviceType}</div>
                     </div>
                     <div
@@ -428,7 +429,7 @@ export function TithesTable({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <div className="text-xs text-muted-foreground">Submitter</div>
-                  <div className="font-medium">{viewing.submittedBy?.name || "—"}</div>
+                  <div className="font-medium"><UserChip user={viewing.submittedBy} size="sm" /></div>
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">Status</div>

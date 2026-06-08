@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Eye, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { UserChip } from "@/components/shared/UserChip";
 import {
   Card,
   CardContent,
@@ -204,7 +205,7 @@ export function ExpenseTable({
                       <TableCell className="text-right font-medium tabular-nums">
                         {formatPHP(e.amount)}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{e.recordedBy?.name ?? "—"}</TableCell>
+                      <TableCell className="text-muted-foreground"><UserChip user={e.recordedBy} /></TableCell>
                       <TableCell className="text-right">
                         <RowActions onView={() => onViewExpense?.(e)} />
                       </TableCell>

@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { UserChip } from "@/components/shared/UserChip";
 import { formatDate, formatPHP, sourceConfig } from "./mockData";
 
 export function ExpenseDetailsDialog({ expense, open, onOpenChange }) {
@@ -41,7 +42,7 @@ export function ExpenseDetailsDialog({ expense, open, onOpenChange }) {
             </div>
             <div>
               <div className="text-xs text-muted-foreground">Recorded By</div>
-              <div className="font-medium">{expense.recordedBy?.name ?? "—"}</div>
+              <div className="font-medium"><UserChip user={expense.recordedBy} size="sm" /></div>
             </div>
             <div>
               <div className="text-xs text-muted-foreground">Source</div>
@@ -69,11 +70,11 @@ export function ExpenseDetailsDialog({ expense, open, onOpenChange }) {
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">Requester</div>
-                  <div className="font-medium">{linkedRf?.requestedBy?.name ?? "—"}</div>
+                  <div className="font-medium"><UserChip user={linkedRf?.requestedBy} size="sm" /></div>
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">Approved By</div>
-                  <div className="font-medium">{linkedRf?.approvedBy?.name ?? "—"}</div>
+                  <div className="font-medium"><UserChip user={linkedRf?.approvedBy} size="sm" /></div>
                 </div>
               </div>
             </div>
