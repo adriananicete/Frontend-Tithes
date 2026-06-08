@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { BadgeCheck, Ban, Eye, MoreHorizontal, PackageCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { UserChip } from "@/components/shared/UserChip";
 import {
   Card,
   CardContent,
@@ -256,7 +257,7 @@ export function VoucherTable({
                       <TableCell className="text-muted-foreground">{formatDate(v.date)}</TableCell>
                       <TableCell className="font-medium">{v.rfId?.rfNo ?? "—"}</TableCell>
                       <TableCell>{v.category?.name ?? "—"}</TableCell>
-                      <TableCell>{v.createdBy?.name ?? "—"}</TableCell>
+                      <TableCell><UserChip user={v.createdBy} /></TableCell>
                       <TableCell className="text-right font-medium">{formatPHP(v.amount)}</TableCell>
                       <TableCell>
                         <Badge variant="secondary" className={cfg.color}>

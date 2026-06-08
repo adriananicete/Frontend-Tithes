@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { can } from "@/utils/rolePermissions";
+import { UserChip } from "@/components/shared/UserChip";
 import { RfComments } from "./RfComments";
 import { formatDate, formatDateTime, formatPHP, statusConfig } from "./mockData";
 
@@ -36,10 +37,7 @@ const stages = [
   { key: "received",        label: "Received",        timestampField: "receivedAt",       byField: "receivedBy" },
 ];
 
-const personName = (val) =>
-  val && typeof val === "object" ? val.name : null;
-
-function TimelineItem({ label, timestamp, by, state, isLast }) {
+function TimelineItem({ label, timestamp, byUser, state, isLast }) {
   const Icon =
     state === "rejected" ? XCircle : state === "current" ? CircleDot : Check;
   const iconColor =
@@ -60,11 +58,15 @@ function TimelineItem({ label, timestamp, by, state, isLast }) {
       </div>
       <div className={`pb-4 flex-1 ${textColor}`}>
         <div className="text-sm font-medium">{label}</div>
-        {(timestamp || by) && (
-          <div className="text-xs text-muted-foreground">
-            {timestamp ? formatDateTime(timestamp) : ""}
-            {timestamp && by ? " · " : ""}
-            {by ? `by ${by}` : ""}
+        {(timestamp || byUser) && (
+          <div className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+            {timestamp && <span>{formatDateTime(timestamp)}</span>}
+            {timestamp && byUser && <span>·</span>}
+            {byUser && (
+              <span className="inline-flex items-center gap-1.5">
+                by <UserChip user={byUser} size="xs" nameClassName="text-foreground" />
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -141,7 +143,6 @@ export function RfDetailsDialog({
   const cfg = statusConfig[rf.status] ?? statusConfig.draft;
   const isRejected = rf.status === "rejected";
   const currentOrder = cfg.order;
-  const requesterName = personName(rf.requestedBy) || "—";
   const categoryLabel =
     typeof rf.category === "string" ? rf.category : rf.category?.name || "—";
   const voucherLabel = rf.voucherId?.pcfNo || rf.voucherNo;
@@ -184,7 +185,7 @@ export function RfDetailsDialog({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
               <div className="text-xs text-muted-foreground">Requester</div>
-              <div className="font-medium">{requesterName}</div>
+              <div className="font-medium"><UserChip user={rf.requestedBy} size="sm" /></div>
             </div>
             <div>
               <div className="text-xs text-muted-foreground">Estimated Amount</div>
@@ -232,13 +233,13 @@ export function RfDetailsDialog({
               {stages.map((s, idx) => {
                 const cfgStage = statusConfig[s.key];
                 const timestamp = s.timestampField ? rf[s.timestampField] : null;
-                const by = s.byField ? personName(rf[s.byField]) : null;
+                const byUser = s.byField ? rf[s.byField] : null;
                 return (
                   <TimelineItem
                     key={s.key}
                     label={s.label}
                     timestamp={timestamp}
-                    by={by}
+                    byUser={byUser}
                     state={stageState(cfgStage.order)}
                     isLast={!isRejected && idx === stages.length - 1}
                   />
@@ -248,7 +249,7 @@ export function RfDetailsDialog({
                 <TimelineItem
                   label="Rejected"
                   timestamp={rf.rejectedAt}
-                  by={personName(rf.rejectedBy)}
+                  byUser={rf.rejectedBy}
                   state="rejected"
                   isLast
                 />
