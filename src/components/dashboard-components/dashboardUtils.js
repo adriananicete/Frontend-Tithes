@@ -46,6 +46,7 @@ export const buildActivity = ({ tithes = [], rfs = [], vouchers = [] }) => {
       items.push({
         id: `t-${t._id}`,
         user: t.submittedBy?.name ?? "—",
+        avatarUrl: t.submittedBy?.avatarUrl,
         role: t.submittedBy?.role ?? "member",
         action: "Submitted",
         type: "Tithes",
@@ -57,6 +58,7 @@ export const buildActivity = ({ tithes = [], rfs = [], vouchers = [] }) => {
       items.push({
         id: `t-${t._id}`,
         user: t.reviewedBy?.name ?? t.submittedBy?.name ?? "—",
+        avatarUrl: t.reviewedBy?.avatarUrl ?? t.submittedBy?.avatarUrl,
         role: t.reviewedBy?.role ?? "—",
         action: t.status === "approved" ? "Approved" : "Rejected",
         type: "Tithes",
@@ -80,6 +82,7 @@ export const buildActivity = ({ tithes = [], rfs = [], vouchers = [] }) => {
       items.push({
         ...base,
         user: rf.requestedBy?.name ?? "—",
+        avatarUrl: rf.requestedBy?.avatarUrl,
         role: rf.requestedBy?.role ?? "member",
         action: "Submitted",
         date: rf.updatedAt ?? rf.createdAt,
@@ -88,6 +91,7 @@ export const buildActivity = ({ tithes = [], rfs = [], vouchers = [] }) => {
       items.push({
         ...base,
         user: rf.validatedBy?.name ?? "—",
+        avatarUrl: rf.validatedBy?.avatarUrl,
         role: rf.validatedBy?.role ?? "validator",
         action: "Validated",
         date: rf.validatedAt ?? rf.updatedAt,
@@ -96,6 +100,7 @@ export const buildActivity = ({ tithes = [], rfs = [], vouchers = [] }) => {
       items.push({
         ...base,
         user: rf.approvedBy?.name ?? "—",
+        avatarUrl: rf.approvedBy?.avatarUrl,
         role: rf.approvedBy?.role ?? "pastor",
         action: "Approved",
         date: rf.approvedAt ?? rf.updatedAt,
@@ -104,6 +109,7 @@ export const buildActivity = ({ tithes = [], rfs = [], vouchers = [] }) => {
       items.push({
         ...base,
         user: rf.rejectedBy?.name ?? "—",
+        avatarUrl: rf.rejectedBy?.avatarUrl,
         role: rf.rejectedBy?.role ?? "—",
         action: "Rejected",
         date: rf.rejectedAt ?? rf.updatedAt,
@@ -112,6 +118,7 @@ export const buildActivity = ({ tithes = [], rfs = [], vouchers = [] }) => {
       items.push({
         ...base,
         user: rf.disbursedBy?.name ?? "—",
+        avatarUrl: rf.disbursedBy?.avatarUrl,
         role: rf.disbursedBy?.role ?? "do",
         action: "Disbursed",
         date: rf.disbursedAt ?? rf.updatedAt,
@@ -120,6 +127,7 @@ export const buildActivity = ({ tithes = [], rfs = [], vouchers = [] }) => {
       items.push({
         ...base,
         user: rf.receivedBy?.name ?? rf.requestedBy?.name ?? "—",
+        avatarUrl: rf.receivedBy?.avatarUrl ?? rf.requestedBy?.avatarUrl,
         role: rf.receivedBy?.role ?? rf.requestedBy?.role ?? "member",
         action: "Received",
         date: rf.receivedAt ?? rf.updatedAt,
@@ -131,6 +139,7 @@ export const buildActivity = ({ tithes = [], rfs = [], vouchers = [] }) => {
     items.push({
       id: `v-${v._id}`,
       user: v.createdBy?.name ?? "—",
+      avatarUrl: v.createdBy?.avatarUrl,
       role: v.createdBy?.role ?? "validator",
       action: "Created",
       type: "Voucher",

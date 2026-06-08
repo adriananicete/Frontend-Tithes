@@ -23,7 +23,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { UserChip } from "@/components/shared/UserChip";
 import { formatActivityAmount, formatActivityDate } from "./dashboardUtils";
+
+// Activity items keep `user` as a plain name string (the Dashboard "own" filter
+// matches on it), so rebuild the avatar-bearing shape UserChip expects here.
+const toUserRef = (item) =>
+  !item.user || item.user === "—"
+    ? null
+    : { name: item.user, avatarUrl: item.avatarUrl };
 
 const actionStyles = {
   Created:   "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",
@@ -136,7 +144,9 @@ export function RecentActivity({
               ) : (
                 pageItems.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.user}</TableCell>
+                    <TableCell className="font-medium">
+                      <UserChip user={toUserRef(item)} size="xs" nameClassName="truncate" />
+                    </TableCell>
                     <TableCell>
                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${roleStyles[item.role] ?? "bg-gray-100 text-gray-700 dark:bg-muted dark:text-muted-foreground"}`}>
                         {item.role}
@@ -168,7 +178,7 @@ export function RecentActivity({
               <div key={item.id} className="px-4 py-3 space-y-1.5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="font-medium truncate">{item.user}</div>
+                    <UserChip user={toUserRef(item)} size="xs" className="font-medium" nameClassName="truncate" />
                     <div className="text-xs text-muted-foreground truncate">
                       {item.type + " · " + item.ref}
                     </div>
