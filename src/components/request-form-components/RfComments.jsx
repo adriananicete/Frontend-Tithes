@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 import { useRfComments } from "@/hooks/useRfComments";
 import { formatRelativeTime } from "@/components/notifications-components/notificationsUtils";
 
@@ -36,19 +37,27 @@ export function RfComments({ rfId, open, canPost }) {
           <p className="text-sm text-muted-foreground">No comments yet.</p>
         ) : (
           comments.map((c) => (
-            <div key={c._id} className="text-sm">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="font-medium">{c.authorId?.name ?? "—"}</span>
-                {c.authorId?.role && (
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${roleStyles[c.authorId.role] ?? roleStyles.member}`}>
-                    {c.authorId.role}
+            <div key={c._id} className="text-sm flex gap-2">
+              <UserAvatar
+                name={c.authorId?.name}
+                src={c.authorId?.avatarUrl}
+                size="xs"
+                className="mt-0.5"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-medium">{c.authorId?.name ?? "—"}</span>
+                  {c.authorId?.role && (
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${roleStyles[c.authorId.role] ?? roleStyles.member}`}>
+                      {c.authorId.role}
+                    </span>
+                  )}
+                  <span className="text-xs text-muted-foreground">
+                    {formatRelativeTime(c.createdAt)}
                   </span>
-                )}
-                <span className="text-xs text-muted-foreground">
-                  {formatRelativeTime(c.createdAt)}
-                </span>
+                </div>
+                <div className="mt-0.5 whitespace-pre-wrap break-words">{c.text}</div>
               </div>
-              <div className="mt-0.5 whitespace-pre-wrap break-words">{c.text}</div>
             </div>
           ))
         )}

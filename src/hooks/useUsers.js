@@ -64,6 +64,25 @@ export function useUsers() {
     notifyAction("userDeleted");
   };
 
+  const setUserAvatar = async (id, file) => {
+    const fd = new FormData();
+    fd.append("avatar", file);
+    const res = await apiFetch(`/admin/users/${id}/avatar`, {
+      method: "PATCH",
+      body: fd,
+    });
+    await refetch();
+    notifyAction("avatarUpdated");
+    return res?.data;
+  };
+
+  const removeUserAvatar = async (id) => {
+    const res = await apiFetch(`/admin/users/${id}/avatar`, { method: "DELETE" });
+    await refetch();
+    notifyAction("avatarRemoved");
+    return res?.data;
+  };
+
   return {
     users,
     loading,
@@ -74,5 +93,7 @@ export function useUsers() {
     deactivateUser,
     activateUser,
     deleteUser,
+    setUserAvatar,
+    removeUserAvatar,
   };
 }

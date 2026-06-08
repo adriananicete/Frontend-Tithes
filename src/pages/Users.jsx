@@ -19,6 +19,8 @@ function Users() {
     deactivateUser,
     activateUser,
     deleteUser,
+    setUserAvatar,
+    removeUserAvatar,
   } = useUsers();
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -38,6 +40,17 @@ function Users() {
     if (action === "deactivate") await deactivateUser(user._id);
     else if (action === "activate") await activateUser(user._id);
     else if (action === "delete") await deleteUser(user._id);
+  };
+
+  // Keep the open details dialog in sync after an admin avatar change.
+  const handleSetAvatar = async (id, file) => {
+    const updated = await setUserAvatar(id, file);
+    if (updated) setViewingUser(updated);
+  };
+
+  const handleRemoveAvatar = async (id) => {
+    const updated = await removeUserAvatar(id);
+    if (updated) setViewingUser(updated);
   };
 
   return (
@@ -82,6 +95,8 @@ function Users() {
         user={viewingUser}
         open={!!viewingUser}
         onOpenChange={(v) => !v && setViewingUser(null)}
+        onSetAvatar={handleSetAvatar}
+        onRemoveAvatar={handleRemoveAvatar}
       />
 
       {editingUser && (

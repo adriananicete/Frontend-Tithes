@@ -13,6 +13,7 @@ import Expense from "./pages/Expense";
 import Reports from "./pages/Reports";
 import Notifications from "./pages/Notifications";
 import Search from "./pages/Search";
+import Profile from "./pages/Profile";
 import AuditLog from "./pages/AuditLog";
 import Users from "./pages/Users";
 import Categories from "./pages/Categories";
@@ -36,6 +37,7 @@ function App() {
           <Route path="/request-form" element={<RequestForm />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/search" element={<Search />} />
+          <Route path="/profile" element={<Profile />} />
 
           <Route
             element={

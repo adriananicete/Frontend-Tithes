@@ -63,6 +63,10 @@ const WORKFLOW_TOASTS = {
 
   // Auth
   passwordChanged:   { type: "success", title: "Password changed" },
+
+  // Profile
+  avatarUpdated:     { type: "success", title: "Profile photo updated" },
+  avatarRemoved:     { type: "info",    title: "Profile photo removed" },
 };
 
 const fnFor = (type) => {
