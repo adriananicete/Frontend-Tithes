@@ -16,6 +16,14 @@ export function AuthProvider({ children }) {
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
+        // Refresh profile fields the JWT doesn't carry (e.g. avatarUrl) so a
+        // session created before the avatar feature — or on another device —
+        // picks up the latest photo. Best-effort; ignore failures.
+        apiFetch("/users/me")
+          .then((res) => {
+            if (res?.data) updateUser(res.data);
+          })
+          .catch(() => {});
       } catch {
         localStorage.removeItem("user");
       }
@@ -33,6 +41,16 @@ export function AuthProvider({ children }) {
     localStorage.setItem("user", JSON.stringify(userData));
   };
 
+  // Merge profile fields (e.g. avatarUrl) into the current user without the
+  // cache-clear that login() does. Used after an avatar upload/remove.
+  const updateUser = (partial) => {
+    setUser((prev) => {
+      const next = { ...(prev ?? {}), ...partial };
+      localStorage.setItem("user", JSON.stringify(next));
+      return next;
+    });
+  };
+
   const logout = () => {
     clearResourceCache();
     setUser(null);
@@ -43,7 +61,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

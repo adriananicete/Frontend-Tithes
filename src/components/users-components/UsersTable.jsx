@@ -35,11 +35,11 @@ import {
 } from "@/components/ui/table";
 import {
   formatDate,
-  getInitials,
   ROLES,
   roleConfig,
   statusConfig,
 } from "./mockData";
+import { UserAvatar } from "@/components/shared/UserAvatar";
 
 const PAGE_SIZE = 10;
 
@@ -213,9 +213,7 @@ export function UsersTable({
                     <TableRow key={u._id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground">
-                            {getInitials(u.name)}
-                          </div>
+                          <UserAvatar name={u.name} src={u.avatarUrl} size="sm" />
                           <div className="font-medium">{u.name}</div>
                         </div>
                       </TableCell>
@@ -269,9 +267,7 @@ export function UsersTable({
                 <div key={u._id} className="px-4 py-3 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground shrink-0">
-                        {getInitials(u.name)}
-                      </div>
+                      <UserAvatar name={u.name} src={u.avatarUrl} size="md" />
                       <div className="min-w-0">
                         <div className="font-medium truncate">{u.name}</div>
                         <div className="text-xs text-muted-foreground truncate">{u.email}</div>

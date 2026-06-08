@@ -1,6 +1,10 @@
 // Shared lookup constants + formatters for the Admin Users page.
 // User records come from /api/admin/users via the useUsers hook.
 
+// Re-exported from the shared avatar util so existing `import { getInitials }
+// from "./mockData"` call sites keep working from one source of truth.
+export { getInitials } from "@/lib/avatar";
+
 export const ROLES = [
   { value: "admin",     label: "Admin" },
   { value: "do",        label: "Disbursing Officer" },
@@ -35,11 +39,3 @@ export const formatDateTime = (d) =>
     hour: "numeric",
     minute: "2-digit",
   });
-
-export const getInitials = (name) =>
-  name
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
