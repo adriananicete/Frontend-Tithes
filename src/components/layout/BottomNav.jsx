@@ -11,7 +11,7 @@ const MAX_TABS = 4;
 
 const itemClass = ({ isActive }) =>
   [
-    "flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5 min-w-0",
+    "flex flex-1 flex-col items-center justify-center gap-1 py-3 min-w-0",
     isActive
       ? "text-[#2f6a7a] dark:text-sidebar-accent-foreground"
       : "text-gray-500 dark:text-muted-foreground",
@@ -30,14 +30,14 @@ function BottomNav({ onOpenMore }) {
   return (
     <nav
       className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex items-stretch
-                 border-t border-gray-200 bg-white dark:border-border dark:bg-card
+                 px-2 pt-1 border-t border-gray-200 bg-white dark:border-border dark:bg-card
                  pb-[env(safe-area-inset-bottom)]"
       aria-label="Primary"
     >
       {tabs.map((item) => (
         <NavLink key={item.path} to={item.path} className={itemClass}>
-          <item.icon size={20} />
-          <span className="text-[10px] leading-tight truncate max-w-full px-1">
+          <item.icon size={22} />
+          <span className="text-[11px] leading-tight truncate max-w-full px-1">
             {item.label}
           </span>
         </NavLink>
@@ -48,11 +48,11 @@ function BottomNav({ onOpenMore }) {
           type="button"
           onClick={onOpenMore}
           aria-label="More"
-          className="flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5
+          className="flex flex-1 flex-col items-center justify-center gap-1 py-3
                      min-w-0 text-gray-500 dark:text-muted-foreground"
         >
-          <FiMenu size={20} />
-          <span className="text-[10px] leading-tight">More</span>
+          <FiMenu size={22} />
+          <span className="text-[11px] leading-tight">More</span>
         </button>
       )}
     </nav>
