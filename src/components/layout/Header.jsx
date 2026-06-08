@@ -3,7 +3,7 @@ import { useNavigate } from "react-router";
 import { CiSearch } from "react-icons/ci";
 import { IoSettingsOutline } from "react-icons/io5";
 import { LuShare2, LuKeyRound } from "react-icons/lu";
-import { FiMenu, FiLogOut } from "react-icons/fi";
+import { FiLogOut } from "react-icons/fi";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { NotificationsBell } from "@/components/notifications-components/NotificationsBell";
 import { SearchResultsDropdown } from "@/components/layout/SearchResultsDropdown";
@@ -80,9 +80,13 @@ function Header({ onOpenSidebar }) {
           type="button"
           onClick={onOpenSidebar}
           aria-label="Open menu"
-          className="md:hidden p-1 text-gray-700 dark:text-foreground shrink-0"
+          className="md:hidden w-9 h-9 rounded-[8px] overflow-hidden shrink-0"
         >
-          <FiMenu size={22} />
+          <img
+            className="w-full h-full object-cover"
+            src="https://res.cloudinary.com/dks2psaem/image/upload/v1763347986/joscm-logo_jq0zlo.png"
+            alt="JOSCM logo — open menu"
+          />
         </button>
         <p className="text-base md:text-[20px] font-bold truncate">
           <span className="text-[#2f6a7a]">JOSCM</span>
