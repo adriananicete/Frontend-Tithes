@@ -72,7 +72,7 @@ function AuditLog() {
     : "No audit entries found.";
 
   return (
-    <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1">
+    <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
       <div>
         <h1 className="text-xl md:text-2xl font-semibold">Audit Log</h1>
         <p className="text-sm text-muted-foreground">

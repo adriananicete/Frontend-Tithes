@@ -138,7 +138,7 @@ function Dashboard() {
 
   return (
     <div
-      className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1"
+      className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0"
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
