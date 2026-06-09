@@ -47,7 +47,9 @@ const toDayKey = (d) => new Date(d).toISOString().slice(0, 10);
 
 const buildSeries = (tithes, rangeDays, service) => {
   const filtered = tithes.filter((t) => {
-    if (t.status === "rejected") return false;
+    // Only approved tithes count as realized income — pending/rejected are not
+    // yet confirmed, so the trend line and the footer Total reflect approved only.
+    if (t.status !== "approved") return false;
     if (service !== "all" && t.serviceType !== service) return false;
     return true;
   });
