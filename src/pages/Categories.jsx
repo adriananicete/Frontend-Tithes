@@ -62,7 +62,7 @@ function Categories() {
         <CategoriesSummaryStats categories={categories} />
       </div>
 
-      <div className="h-[24rem] md:h-[32rem] shrink-0">
+      <div className="h-[34rem] md:h-[32rem] shrink-0">
         <CategoriesTable
           categories={categories}
           loading={loading}

@@ -52,7 +52,7 @@ function Tithes() {
         </div>
       </div>
 
-      <div className="h-[24rem] md:h-[32rem]">
+      <div className="h-[34rem] md:h-[32rem]">
         <TithesTable
           tithes={tithes}
           loading={loading}

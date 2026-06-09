@@ -174,7 +174,7 @@ function RequestForm() {
         <RfSummaryStats rfs={rfs} />
       </div>
 
-      <div className="h-[24rem] md:h-[32rem] shrink-0">
+      <div className="h-[34rem] md:h-[32rem] shrink-0">
         <RfTable
           rfs={rfs}
           loading={loading}
