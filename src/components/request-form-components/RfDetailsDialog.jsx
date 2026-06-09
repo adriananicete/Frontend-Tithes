@@ -153,15 +153,34 @@ export function RfDetailsDialog({
   const ownerId = typeof rf.requestedBy === "string" ? null : rf.requestedBy?._id;
   const canComment = userRole !== "member" || (!!ownerId && ownerId === currentUserId);
 
-  // For non-rejected RFs: stage is "done" if its order < current, "current" if
-  // it equals current. Once rejected, stages reached before rejection stay
-  // "done" and the rest are "upcoming".
+  // Stage is "done" if its order < current, "current" if it equals current.
+  // (Only used for non-rejected RFs; rejected RFs render only the stages that
+  // actually happened — see visibleStages below.)
   const stageState = (stageOrder) => {
-    if (isRejected) return stageOrder <= currentOrder ? "done" : "upcoming";
     if (stageOrder < currentOrder) return "done";
     if (stageOrder === currentOrder) return "current";
     return "upcoming";
   };
+
+  // A rejected RF carries the "rejected" status (order 99), which loses the
+  // trail of how far it actually got. So for rejected RFs we show only the
+  // stages it reached before the rejection, then the Rejected node. We infer
+  // the furthest stage from the latest recorded timestamp, then show every
+  // stage up to that order (contiguous — so a missing intermediate timestamp
+  // doesn't punch a gap in the trail). e.g. validated-then-rejected → Created,
+  // Submitted, Validated, Rejected (Approved/Voucher/etc. are dropped).
+  const reachedOrder = isRejected
+    ? stages.reduce(
+        (max, s) =>
+          s.timestampField && rf[s.timestampField]
+            ? Math.max(max, statusConfig[s.key].order)
+            : max,
+        statusConfig.submitted.order, // a rejected RF was at least submitted
+      )
+    : 0;
+  const visibleStages = isRejected
+    ? stages.filter((s) => statusConfig[s.key].order <= reachedOrder)
+    : stages;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -230,7 +249,7 @@ export function RfDetailsDialog({
               Approval Timeline
             </div>
             <div>
-              {stages.map((s, idx) => {
+              {visibleStages.map((s, idx) => {
                 const cfgStage = statusConfig[s.key];
                 const timestamp = s.timestampField ? rf[s.timestampField] : null;
                 const byUser = s.byField ? rf[s.byField] : null;
@@ -243,8 +262,8 @@ export function RfDetailsDialog({
                     label={s.label}
                     timestamp={timestamp}
                     byUser={byUser}
-                    state={stageState(cfgStage.order)}
-                    isLast={!isRejected && idx === stages.length - 1}
+                    state={isRejected ? "done" : stageState(cfgStage.order)}
+                    isLast={!isRejected && idx === visibleStages.length - 1}
                     showAvatar={showAvatar}
                   />
                 );
