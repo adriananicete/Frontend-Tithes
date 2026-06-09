@@ -23,7 +23,13 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // JSX element references (e.g. <Icon />) aren't seen as usage by core
+      // no-unused-vars, so mirror varsIgnorePattern for renamed component args
+      // (icon: Icon) to avoid false positives.
+      'no-unused-vars': [
+        'error',
+        { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^[A-Z_]' },
+      ],
     },
   },
 ])

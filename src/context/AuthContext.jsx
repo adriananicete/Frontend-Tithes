@@ -11,6 +11,17 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Merge profile fields (e.g. avatarUrl) into the current user without the
+  // cache-clear that login() does. Used after an avatar upload/remove and by
+  // the boot effect below to pick up server-side profile changes.
+  const updateUser = (partial) => {
+    setUser((prev) => {
+      const next = { ...(prev ?? {}), ...partial };
+      localStorage.setItem("user", JSON.stringify(next));
+      return next;
+    });
+  };
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -39,16 +50,6 @@ export function AuthProvider({ children }) {
     clearResourceCache();
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
-  };
-
-  // Merge profile fields (e.g. avatarUrl) into the current user without the
-  // cache-clear that login() does. Used after an avatar upload/remove.
-  const updateUser = (partial) => {
-    setUser((prev) => {
-      const next = { ...(prev ?? {}), ...partial };
-      localStorage.setItem("user", JSON.stringify(next));
-      return next;
-    });
   };
 
   const logout = () => {

@@ -208,8 +208,6 @@ export function PendingWorkSection({
     );
 
     const rfByStatus = (status) => rfs.filter((r) => r.status === status);
-    const rfBySetStatus = (statuses) =>
-      rfs.filter((r) => statuses.includes(r.status));
 
     if (role === "admin") {
       return [
