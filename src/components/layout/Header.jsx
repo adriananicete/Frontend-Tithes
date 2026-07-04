@@ -7,6 +7,7 @@ import { FiLogOut } from "react-icons/fi";
 import { UserAvatar } from "@/components/shared/UserAvatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { NotificationsBell } from "@/components/notifications-components/NotificationsBell";
+import { OnlinePresence } from "@/components/layout/OnlinePresence";
 import { SearchResultsDropdown } from "@/components/layout/SearchResultsDropdown";
 import { PushToggle } from "@/components/layout/PushToggle";
 import { ChangePasswordDialog } from "@/components/sideBar-components/ChangePasswordDialog";
@@ -97,6 +98,7 @@ function Header({ onOpenSidebar }) {
       </div>
 
       <div className="flex items-center gap-2 md:gap-5 shrink-0">
+        <OnlinePresence />
         <p className="hidden lg:block text-sm text-gray-600 dark:text-muted-foreground whitespace-nowrap">{dateLabel}</p>
         <div ref={searchRef} className="hidden sm:block relative w-48 lg:w-70">
           <div className="flex border border-gray-300 dark:border-border w-full p-2 justify-between items-center rounded-[5px]">
