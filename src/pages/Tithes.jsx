@@ -27,9 +27,15 @@ function Tithes() {
     setSearchParams(params, { replace: true });
   };
 
+  // Layout is a flex column on mobile/tablet and a 2-col grid on lg+.
+  // DOM order (Summary before Chart) drives the MOBILE order — members asked to
+  // see the Tithes Summary first on phones. `md:order-*` restores the tablet
+  // stack (Chart → Summary → Breakdown) and, with the lg grid col-spans,
+  // reproduces the unchanged desktop layout (Chart full-width, then
+  // Summary | Breakdown side by side, then Table).
   return (
-    <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0 lg:grid lg:grid-cols-2 lg:content-start">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:order-1 lg:col-span-2">
         <div>
           <h1 className="text-xl md:text-2xl font-semibold">Tithes</h1>
           <p className="text-sm text-muted-foreground">
@@ -41,21 +47,22 @@ function Tithes() {
 
       {/* Charts/summary use the church-wide `chartData` so every role sees the
           whole church's totals; the table below stays role-scoped. */}
+      <div className="md:order-3 lg:col-span-1">
+        <TithesSummary tithes={chartData} />
+      </div>
+
       {/* Mobile needs a taller box: the card header (title + service select +
           range buttons) and footer wrap onto extra rows on narrow screens, so a
           short box squished the plot. Desktop (md:h-96) is unchanged. */}
-      <div className="h-[28rem] md:h-96">
+      <div className="h-[28rem] md:h-96 md:order-2 lg:col-span-2">
         <TithesTrendChart tithes={chartData} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <TithesSummary tithes={chartData} />
-        <div className="h-72 md:h-80">
-          <ServiceTypeBreakdown tithes={chartData} />
-        </div>
+      <div className="h-72 md:h-80 md:order-4 lg:col-span-1">
+        <ServiceTypeBreakdown tithes={chartData} />
       </div>
 
-      <div className="h-[34rem] md:h-[32rem]">
+      <div className="h-[34rem] md:h-[32rem] md:order-5 lg:col-span-2">
         <TithesTable
           tithes={tithes}
           loading={loading}
