@@ -27,7 +27,7 @@ function SidebarFooter({ onNavigate }) {
     <div className="mt-auto">
       {/* Profile avatar + Settings (icon + label) + logout, above the theme row. */}
       <div className="flex items-center gap-2 px-2 pb-3 md:justify-center xl:justify-start">
-        <UserAvatar name={user?.name} src={user?.avatarUrl} size="sm" />
+        <UserAvatar name={user?.name} src={user?.avatarUrl} userId={user?._id ?? user?.id} size="sm" />
         <button
           type="button"
           onClick={handleSettings}

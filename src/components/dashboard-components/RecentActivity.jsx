@@ -31,7 +31,7 @@ import { formatActivityAmount, formatActivityDate } from "./dashboardUtils";
 const toUserRef = (item) =>
   !item.user || item.user === "—"
     ? null
-    : { name: item.user, avatarUrl: item.avatarUrl };
+    : { name: item.user, avatarUrl: item.avatarUrl, _id: item.userId };
 
 const actionStyles = {
   Created:   "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",

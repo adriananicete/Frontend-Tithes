@@ -76,7 +76,7 @@ function Profile() {
           <CardTitle>Profile photo</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row sm:items-center gap-6">
-          <UserAvatar name={user?.name} src={user?.avatarUrl} size="xl" />
+          <UserAvatar name={user?.name} src={user?.avatarUrl} userId={user?._id ?? user?.id} size="xl" />
 
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap gap-2">

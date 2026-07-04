@@ -157,7 +157,7 @@ function Header({ onOpenSidebar }) {
             </PopoverTrigger>
             <PopoverContent align="end" className="w-64 p-0" sideOffset={8}>
               <div className="px-4 py-3 border-b flex items-center gap-3">
-                <UserAvatar name={user?.name} src={user?.avatarUrl} size="md" />
+                <UserAvatar name={user?.name} src={user?.avatarUrl} userId={user?._id ?? user?.id} size="md" />
                 <div className="min-w-0">
                   <p className="text-sm font-semibold truncate">{user?.name ?? "—"}</p>
                   <p className="text-xs text-muted-foreground">

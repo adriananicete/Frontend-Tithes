@@ -63,7 +63,7 @@ export function UserDetailsDialog({
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto overflow-x-hidden">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <UserAvatar name={user.name} src={user.avatarUrl} size="lg" />
+            <UserAvatar name={user.name} src={user.avatarUrl} userId={user._id} size="lg" />
             <div className="space-y-1">
               <DialogTitle>{user.name}</DialogTitle>
               <DialogDescription>{user.email}</DialogDescription>
