@@ -96,7 +96,7 @@ export function TithesTrendChart({ tithes = [], className }) {
   }, [chartData]);
 
   return (
-    <Card className={`w-full h-full flex flex-col ${className ?? ""}`}>
+    <Card className={`w-full flex flex-col ${className ?? ""}`}>
       <CardHeader className="flex flex-row items-start justify-between gap-4 flex-wrap">
         <div className="space-y-1">
           <CardTitle>Tithes Trend</CardTitle>
@@ -133,7 +133,7 @@ export function TithesTrendChart({ tithes = [], className }) {
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 min-h-0">
+      <CardContent className="h-64 md:h-80">
         <ChartContainer config={chartConfig} className="h-full w-full">
           <AreaChart data={chartData} margin={{ left: 8, right: 8, top: 8 }}>
             <defs>
