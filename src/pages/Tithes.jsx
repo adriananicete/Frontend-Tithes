@@ -41,7 +41,12 @@ function Tithes() {
 
       {/* Charts/summary use the church-wide `chartData` so every role sees the
           whole church's totals; the table below stays role-scoped. */}
-      <TithesTrendChart tithes={chartData} />
+      {/* Mobile needs a taller box: the card header (title + service select +
+          range buttons) and footer wrap onto extra rows on narrow screens, so a
+          short box squished the plot. Desktop (md:h-96) is unchanged. */}
+      <div className="h-[28rem] md:h-96">
+        <TithesTrendChart tithes={chartData} />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <TithesSummary tithes={chartData} />
