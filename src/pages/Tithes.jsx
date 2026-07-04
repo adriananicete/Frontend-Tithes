@@ -41,9 +41,7 @@ function Tithes() {
 
       {/* Charts/summary use the church-wide `chartData` so every role sees the
           whole church's totals; the table below stays role-scoped. */}
-      <div className="h-72 md:h-96">
-        <TithesTrendChart tithes={chartData} />
-      </div>
+      <TithesTrendChart tithes={chartData} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <TithesSummary tithes={chartData} />
