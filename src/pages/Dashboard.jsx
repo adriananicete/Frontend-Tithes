@@ -4,6 +4,7 @@ import { LuChartBar, LuCoins, LuReceipt } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import Button from "@/components/Buttons";
 import { CategoryFormDialog } from "@/components/categories-components/CategoryFormDialog";
+import { AnimatedGreeting } from "@/components/dashboard-components/AnimatedGreeting";
 import { ChartAreaGradient } from "@/components/dashboard-components/ChartAreaGradient";
 import { ChartBarExpense } from "@/components/dashboard-components/ChartBarExpense";
 import { buildActivity } from "@/components/dashboard-components/dashboardUtils";
@@ -142,7 +143,10 @@ function Dashboard() {
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <p className="text-xl md:text-[25px] font-[600]">Welcome, {firstName} 👋</p>
+          <AnimatedGreeting
+            name={firstName}
+            className="text-xl md:text-[25px] font-[600] min-h-[1.6em]"
+          />
           <p className="text-gray-600 dark:text-muted-foreground text-sm">
             Here's a snapshot of activity across the church.
           </p>
