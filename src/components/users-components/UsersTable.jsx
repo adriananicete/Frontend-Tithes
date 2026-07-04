@@ -213,7 +213,7 @@ export function UsersTable({
                     <TableRow key={u._id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <UserAvatar name={u.name} src={u.avatarUrl} size="sm" />
+                          <UserAvatar name={u.name} src={u.avatarUrl} userId={u._id} size="sm" />
                           <div className="font-medium">{u.name}</div>
                         </div>
                       </TableCell>
@@ -267,7 +267,7 @@ export function UsersTable({
                 <div key={u._id} className="px-4 py-3 space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      <UserAvatar name={u.name} src={u.avatarUrl} size="md" />
+                      <UserAvatar name={u.name} src={u.avatarUrl} userId={u._id} size="md" />
                       <div className="min-w-0">
                         <div className="font-medium truncate">{u.name}</div>
                         <div className="text-xs text-muted-foreground truncate">{u.email}</div>

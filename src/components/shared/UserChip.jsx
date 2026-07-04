@@ -21,7 +21,12 @@ export function UserChip({
 
   return (
     <span className={`inline-flex items-center gap-2 min-w-0 ${className}`}>
-      <UserAvatar name={name} src={isObj ? user.avatarUrl : undefined} size={size} />
+      <UserAvatar
+        name={name}
+        src={isObj ? user.avatarUrl : undefined}
+        userId={isObj ? user._id : undefined}
+        size={size}
+      />
       <span className={`truncate ${nameClassName}`}>{name}</span>
     </span>
   );

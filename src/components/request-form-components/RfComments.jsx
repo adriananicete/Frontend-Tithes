@@ -41,6 +41,7 @@ export function RfComments({ rfId, open, canPost }) {
               <UserAvatar
                 name={c.authorId?.name}
                 src={c.authorId?.avatarUrl}
+                userId={c.authorId?._id}
                 size="xs"
                 className="mt-0.5"
               />

@@ -1,4 +1,5 @@
 import { getInitials, colorFromName } from "@/lib/avatar";
+import { usePresence } from "@/hooks/usePresence";
 
 // Single reusable avatar: shows the uploaded photo when `src` is set, otherwise
 // a deterministic colored initials circle. Used in the header, sidebar/drawer,
@@ -11,7 +12,8 @@ const SIZES = {
   xl: "h-24 w-24 text-2xl",
 };
 
-export function UserAvatar({ name = "", src, size = "md", className = "", online }) {
+export function UserAvatar({ name = "", src, size = "md", className = "", online, userId }) {
+  const { onlineIds } = usePresence();
   const dim = SIZES[size] ?? SIZES.md;
   const base = `${dim} ${className} rounded-full shrink-0 overflow-hidden flex items-center justify-center font-semibold`;
 
@@ -23,14 +25,18 @@ export function UserAvatar({ name = "", src, size = "md", className = "", online
     <div className={`${base} ${colorFromName(name)}`}>{getInitials(name)}</div>
   );
 
-  // Existing callers don't pass `online`, so they get the original markup
-  // unchanged. Only when `online` is provided do we add the presence dot.
-  if (online === undefined) return circle;
+  // Presence: an explicit `online` prop wins (e.g. the facepile); otherwise
+  // derive it from `userId` against the live online set. Callers that pass
+  // neither get the original markup unchanged — no wrapper, no dot.
+  const isOnline =
+    online !== undefined ? online : userId ? onlineIds.has(userId) : undefined;
+
+  if (isOnline === undefined) return circle;
 
   return (
     <div className="relative inline-flex shrink-0">
       {circle}
-      {online && (
+      {isOnline && (
         <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white dark:ring-card" />
       )}
     </div>
