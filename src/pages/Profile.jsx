@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserAvatar } from "@/components/shared/UserAvatar";
+import { Spinner } from "@/components/ui/spinner";
 import { ChangePasswordDialog } from "@/components/sideBar-components/ChangePasswordDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { apiFetch } from "@/services/api";
@@ -14,7 +15,9 @@ import { AVATAR_ACCEPT, validateAvatarFile } from "@/lib/avatar";
 function Profile() {
   const { user, updateUser } = useAuth();
   const fileRef = useRef(null);
-  const [busy, setBusy] = useState(false);
+  // "" (idle) | "upload" | "remove" — drives the avatar overlay + button label
+  // so the user gets clear feedback while the request is in flight.
+  const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
   const [pwdOpen, setPwdOpen] = useState(false);
 
@@ -34,7 +37,7 @@ function Profile() {
     }
 
     setError("");
-    setBusy(true);
+    setBusy("upload");
     try {
       const fd = new FormData();
       fd.append("avatar", file);
@@ -44,13 +47,13 @@ function Profile() {
     } catch (err) {
       setError(err.message || "Failed to upload photo");
     } finally {
-      setBusy(false);
+      setBusy("");
     }
   };
 
   const handleRemove = async () => {
     setError("");
-    setBusy(true);
+    setBusy("remove");
     try {
       await apiFetch("/users/me/avatar", { method: "DELETE" });
       updateUser({ avatarUrl: null });
@@ -58,7 +61,7 @@ function Profile() {
     } catch (err) {
       setError(err.message || "Failed to remove photo");
     } finally {
-      setBusy(false);
+      setBusy("");
     }
   };
 
@@ -76,7 +79,14 @@ function Profile() {
           <CardTitle>Profile photo</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row sm:items-center gap-6">
-          <UserAvatar name={user?.name} src={user?.avatarUrl} userId={user?._id ?? user?.id} size="xl" />
+          <div className="relative shrink-0">
+            <UserAvatar name={user?.name} src={user?.avatarUrl} userId={user?._id ?? user?.id} size="xl" />
+            {busy && (
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
+                <Spinner size="md" className="[&_svg]:text-white" />
+              </div>
+            )}
+          </div>
 
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap gap-2">
@@ -87,19 +97,32 @@ function Profile() {
                 className="hidden"
                 onChange={handleFile}
               />
-              <Button type="button" onClick={handlePick} disabled={busy}>
-                <Camera className="h-4 w-4" />
-                {user?.avatarUrl ? "Change photo" : "Upload photo"}
+              <Button type="button" onClick={handlePick} disabled={!!busy}>
+                {busy === "upload" ? (
+                  <Spinner size="sm" className="[&_svg]:text-current" />
+                ) : (
+                  <Camera className="h-4 w-4" />
+                )}
+                {busy === "upload"
+                  ? "Uploading…"
+                  : user?.avatarUrl
+                    ? "Change photo"
+                    : "Upload photo"}
               </Button>
               {user?.avatarUrl && (
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleRemove}
-                  disabled={busy}
+                  disabled={!!busy}
                   className="text-red-600 hover:text-red-700"
                 >
-                  <Trash2 className="h-4 w-4" /> Remove
+                  {busy === "remove" ? (
+                    <Spinner size="sm" className="[&_svg]:text-current" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                  {busy === "remove" ? "Removing…" : "Remove"}
                 </Button>
               )}
             </div>
