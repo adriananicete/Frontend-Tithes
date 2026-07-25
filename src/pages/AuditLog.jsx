@@ -1,6 +1,7 @@
 import { Inbox } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Card,
   CardContent,
@@ -65,12 +66,6 @@ function AuditLog() {
   const totalPages = Math.max(1, Math.ceil(total / limit));
   const pageStart = (page - 1) * limit;
 
-  const emptyText = loading
-    ? "Loading audit log…"
-    : error
-    ? error
-    : "No audit entries found.";
-
   return (
     <div className="w-full flex-1 min-h-0 flex flex-col gap-5 overflow-auto px-1 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0">
       <div>
@@ -121,10 +116,18 @@ function AuditLog() {
 
         <CardContent className="flex-1 min-h-0 overflow-auto p-0">
           {data.length === 0 ? (
-            <div className="py-16 flex flex-col items-center gap-2 text-sm text-muted-foreground">
-              <Inbox className="h-8 w-8 opacity-50" />
-              <p>{emptyText}</p>
-            </div>
+            loading ? (
+              <div className="py-16 flex justify-center">
+                <Spinner label="Loading audit log…" />
+              </div>
+            ) : (
+              <div className="py-16 flex flex-col items-center gap-2 text-sm text-muted-foreground">
+                <Inbox className="h-8 w-8 opacity-50" />
+                <p className={error ? "text-red-600" : ""}>
+                  {error || "No audit entries found."}
+                </p>
+              </div>
+            )
           ) : (
             <>
               {/* Desktop table */}

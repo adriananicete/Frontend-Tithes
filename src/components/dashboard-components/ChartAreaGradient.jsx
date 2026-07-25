@@ -16,6 +16,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Select,
   SelectContent,
@@ -108,6 +109,7 @@ export function ChartAreaGradient({
   tithes = [],
   expenses = [],
   canViewExpenses = false,
+  loading = false,
 }) {
   const [showExpenses, setShowExpenses] = useState(false);
 
@@ -216,7 +218,11 @@ export function ChartAreaGradient({
       <CardContent>
         {chartData.length === 0 ? (
           <div className="flex h-[16rem] items-center justify-center text-sm text-muted-foreground">
-            No data to display for {selectedYear}.
+            {loading ? (
+              <Spinner label="Loading chart…" />
+            ) : (
+              `No data to display for ${selectedYear}.`
+            )}
           </div>
         ) : (
           <ChartContainer config={chartConfig}>

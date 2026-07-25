@@ -3,6 +3,7 @@ import { MoreHorizontal, Eye, Check, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { UserChip } from "@/components/shared/UserChip";
+import { DataPlaceholder } from "@/components/shared/DataPlaceholder";
 import {
   Card,
   CardContent,
@@ -212,11 +213,14 @@ export function TithesTable({
 
   const resetPage = () => setPage(1);
 
-  const renderEmptyMessage = () => {
-    if (loading) return "Loading tithes…";
-    if (error) return error;
-    return "No tithes entries found.";
-  };
+  const emptyState = (
+    <DataPlaceholder
+      loading={loading}
+      error={error}
+      empty="No tithes entries found."
+      loadingLabel="Loading tithes…"
+    />
+  );
 
   const emptyClass = error ? "text-red-600" : "text-muted-foreground";
 
@@ -296,7 +300,7 @@ export function TithesTable({
                 {pageItems.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className={`text-center py-6 ${emptyClass}`}>
-                      {renderEmptyMessage()}
+                      {emptyState}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -338,7 +342,7 @@ export function TithesTable({
           <div className="md:hidden -mx-4 divide-y border-t">
             {pageItems.length === 0 ? (
               <div className={`py-10 text-center text-sm ${emptyClass}`}>
-                {renderEmptyMessage()}
+                {emptyState}
               </div>
             ) : (
               pageItems.map((row) => (

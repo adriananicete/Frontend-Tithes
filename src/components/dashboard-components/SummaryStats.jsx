@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import {
   formatPHP,
   monthOverMonthTrend,
@@ -48,6 +49,7 @@ export function SummaryStats({
   expenses = [],
   rfs = [],
   canViewExpenses = false,
+  loading = false,
 }) {
   const stats = useMemo(() => {
     // Approved tithes only — pending/rejected are not actual receipts.
@@ -89,6 +91,11 @@ export function SummaryStats({
         <CardTitle>Financial Summary</CardTitle>
         <CardDescription>Snapshot of this month's activity</CardDescription>
       </CardHeader>
+      {loading ? (
+        <CardContent className="flex-1 flex items-center justify-center">
+          <Spinner label="Loading summary…" />
+        </CardContent>
+      ) : (
       <CardContent className="grid grid-cols-2 auto-rows-fr gap-3 flex-1">
         <StatTile
           label="Total Tithes"
@@ -135,6 +142,7 @@ export function SummaryStats({
           accent="bg-amber-50/50 dark:bg-amber-500/10"
         />
       </CardContent>
+      )}
       <CardFooter className="flex-col items-start gap-1 text-sm">
         <div className="flex gap-2 leading-none font-medium">
           {canViewExpenses && stats.netBalance >= 0

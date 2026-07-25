@@ -8,6 +8,7 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
 import { useNotifications } from "@/hooks/useNotifications";
 import {
   formatAbsoluteTime,
@@ -57,9 +58,7 @@ function Notifications() {
     setPage(1);
   };
 
-  const emptyText = loading
-    ? "Loading notifications…"
-    : error
+  const emptyText = error
     ? error
     : filter === "unread"
     ? "No unread notifications."
@@ -120,10 +119,16 @@ function Notifications() {
         </CardHeader>
         <CardContent className="flex-1 min-h-0 overflow-auto p-0">
           {pageItems.length === 0 ? (
-            <div className="py-16 flex flex-col items-center gap-2 text-sm text-muted-foreground">
-              <Inbox className="h-8 w-8 opacity-50" />
-              <p>{emptyText}</p>
-            </div>
+            loading ? (
+              <div className="py-16 flex justify-center">
+                <Spinner label="Loading notifications…" />
+              </div>
+            ) : (
+              <div className="py-16 flex flex-col items-center gap-2 text-sm text-muted-foreground">
+                <Inbox className="h-8 w-8 opacity-50" />
+                <p className={error ? "text-red-600" : ""}>{emptyText}</p>
+              </div>
+            )
           ) : (
             <ul className="divide-y">
               {pageItems.map((n) => {

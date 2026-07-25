@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { formatPHP } from "./mockData";
 
 function Tile({ label, value, sub, icon: Icon, accent, valueClass }) {
@@ -30,9 +31,13 @@ export function FinancialSummary({ className, summary, loading }) {
       <Card className={`w-full ${className ?? ""}`}>
         <CardHeader>
           <CardTitle>Financial Summary</CardTitle>
-          <CardDescription>
-            {loading ? "Loading…" : "Select a date range to see the summary."}
-          </CardDescription>
+          {loading ? (
+            <CardDescription>
+              <Spinner size="sm" label="Loading summary…" className="flex-row" />
+            </CardDescription>
+          ) : (
+            <CardDescription>Select a date range to see the summary.</CardDescription>
+          )}
         </CardHeader>
       </Card>
     );

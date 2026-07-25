@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { SearchResultRow } from "@/components/layout/SearchResultsDropdown";
+import { Spinner } from "@/components/ui/spinner";
 import { useGlobalSearch } from "@/hooks/useGlobalSearch";
 
 function Section({ title, items, onSelect }) {
@@ -83,7 +84,7 @@ function Search() {
       {trimmed.length < 2 ? (
         <p className="text-sm text-muted-foreground">Type at least 2 characters to search.</p>
       ) : loading ? (
-        <p className="text-sm text-muted-foreground">Searching…</p>
+        <Spinner size="sm" label="Searching…" className="flex-row" />
       ) : error ? (
         <p className="text-sm text-red-600">{error}</p>
       ) : total === 0 ? (

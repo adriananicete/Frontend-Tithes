@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DataPlaceholder } from "@/components/shared/DataPlaceholder";
 import {
   Table,
   TableBody,
@@ -45,11 +46,14 @@ export function ReportPreviewTable({ className, tab, data, loading, error }) {
   const pageStart = (currentPage - 1) * PAGE_SIZE;
   const pageItems = sorted.slice(pageStart, pageStart + PAGE_SIZE);
 
-  const emptyText = loading
-    ? `Loading ${tab} entries…`
-    : error
-    ? error
-    : "No entries in this date range.";
+  const emptyState = (
+    <DataPlaceholder
+      loading={loading}
+      error={error}
+      empty="No entries in this date range."
+      loadingLabel={`Loading ${tab} entries…`}
+    />
+  );
 
   return (
     <Card className={`w-full h-full flex flex-col ${className ?? ""}`}>
@@ -92,7 +96,7 @@ export function ReportPreviewTable({ className, tab, data, loading, error }) {
                     colSpan={tab === "tithes" ? 5 : 6}
                     className="text-center text-muted-foreground py-6"
                   >
-                    {emptyText}
+                    {emptyState}
                   </TableCell>
                 </TableRow>
               ) : tab === "tithes" ? (
@@ -138,7 +142,7 @@ export function ReportPreviewTable({ className, tab, data, loading, error }) {
         <div className="md:hidden -mx-4 divide-y border-t">
           {pageItems.length === 0 ? (
             <div className="py-10 text-center text-sm text-muted-foreground">
-              {emptyText}
+              {emptyState}
             </div>
           ) : tab === "tithes" ? (
             pageItems.map((row) => (
