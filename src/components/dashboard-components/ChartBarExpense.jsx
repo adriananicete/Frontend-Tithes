@@ -15,6 +15,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { Spinner } from "@/components/ui/spinner";
 import { formatPHP } from "./dashboardUtils";
 
 const chartConfig = {
@@ -35,7 +36,7 @@ const chartConfig = {
 // of { category, amount } category totals for the last 6 months, sorted
 // amount-desc by the backend. This endpoint is open to every role, so the
 // chart can render for all of them.
-export function ChartBarExpense({ data = [] }) {
+export function ChartBarExpense({ data = [], loading = false }) {
   const chartData = data;
   const total = useMemo(
     () => chartData.reduce((a, c) => a + c.amount, 0),
@@ -52,7 +53,11 @@ export function ChartBarExpense({ data = [] }) {
       <CardContent>
         {chartData.length === 0 ? (
           <div className="flex items-center justify-center h-[200px] text-sm text-muted-foreground">
-            No expenses recorded in the last 6 months.
+            {loading ? (
+              <Spinner label="Loading chart…" />
+            ) : (
+              "No expenses recorded in the last 6 months."
+            )}
           </div>
         ) : (
           <ChartContainer config={chartConfig}>

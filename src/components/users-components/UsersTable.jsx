@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DataPlaceholder } from "@/components/shared/DataPlaceholder";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -187,22 +188,15 @@ export function UsersTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
+              {pageItems.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
-                    Loading users…
-                  </TableCell>
-                </TableRow>
-              ) : error ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-red-600 py-6">
-                    {error}
-                  </TableCell>
-                </TableRow>
-              ) : pageItems.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
-                    No users found.
+                  <TableCell colSpan={6} className="text-center py-6">
+                    <DataPlaceholder
+                      loading={loading}
+                      error={error}
+                      empty="No users found."
+                      loadingLabel="Loading users…"
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -247,17 +241,14 @@ export function UsersTable({
         </div>
 
         <div className="md:hidden -mx-4 divide-y border-t">
-          {loading ? (
-            <div className="py-10 text-center text-sm text-muted-foreground">
-              Loading users…
-            </div>
-          ) : error ? (
-            <div className="py-10 text-center text-sm text-red-600">
-              {error}
-            </div>
-          ) : pageItems.length === 0 ? (
-            <div className="py-10 text-center text-sm text-muted-foreground">
-              No users found.
+          {pageItems.length === 0 ? (
+            <div className="py-10 text-center text-sm">
+              <DataPlaceholder
+                loading={loading}
+                error={error}
+                empty="No users found."
+                loadingLabel="Loading users…"
+              />
             </div>
           ) : (
             pageItems.map((u) => {

@@ -3,6 +3,7 @@ import { BadgeCheck, Ban, Eye, MoreHorizontal, PackageCheck } from "lucide-react
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { UserChip } from "@/components/shared/UserChip";
+import { DataPlaceholder } from "@/components/shared/DataPlaceholder";
 import {
   Card,
   CardContent,
@@ -156,11 +157,14 @@ export function VoucherTable({
   const pageStart = (currentPage - 1) * PAGE_SIZE;
   const pageItems = filtered.slice(pageStart, pageStart + PAGE_SIZE);
 
-  const emptyMessage = loading
-    ? "Loading vouchers…"
-    : error
-    ? error
-    : "No vouchers found.";
+  const emptyMessage = (
+    <DataPlaceholder
+      loading={loading}
+      error={error}
+      empty="No vouchers found."
+      loadingLabel="Loading vouchers…"
+    />
+  );
 
   return (
     <Card className={`w-full h-full flex flex-col ${className ?? ""}`}>

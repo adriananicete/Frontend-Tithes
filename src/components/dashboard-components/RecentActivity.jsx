@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { DataPlaceholder } from "@/components/shared/DataPlaceholder";
 import {
   Select,
   SelectContent,
@@ -85,11 +86,14 @@ export function RecentActivity({
     setPage(1);
   };
 
-  const emptyText = loading
-    ? "Loading activity…"
-    : error
-    ? error
-    : "No activity found.";
+  const emptyState = (
+    <DataPlaceholder
+      loading={loading}
+      error={error}
+      empty="No activity found."
+      loadingLabel="Loading activity…"
+    />
+  );
 
   return (
     <Card className={`w-full h-full flex flex-col ${className ?? ""}`}>
@@ -138,7 +142,7 @@ export function RecentActivity({
               {pageItems.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
-                    {emptyText}
+                    {emptyState}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -171,7 +175,7 @@ export function RecentActivity({
         <div className="md:hidden -mx-4 divide-y border-t">
           {pageItems.length === 0 ? (
             <div className="py-10 text-center text-sm text-muted-foreground">
-              {emptyText}
+              {emptyState}
             </div>
           ) : (
             pageItems.map((item) => (

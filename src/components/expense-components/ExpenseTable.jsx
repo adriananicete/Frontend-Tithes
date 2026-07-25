@@ -3,6 +3,7 @@ import { Eye, MoreHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { UserChip } from "@/components/shared/UserChip";
+import { DataPlaceholder } from "@/components/shared/DataPlaceholder";
 import {
   Card,
   CardContent,
@@ -105,11 +106,14 @@ export function ExpenseTable({
   const pageStart = (currentPage - 1) * PAGE_SIZE;
   const pageItems = filtered.slice(pageStart, pageStart + PAGE_SIZE);
 
-  const emptyText = loading
-    ? "Loading expenses…"
-    : error
-    ? error
-    : "No expenses found.";
+  const emptyState = (
+    <DataPlaceholder
+      loading={loading}
+      error={error}
+      empty="No expenses found."
+      loadingLabel="Loading expenses…"
+    />
+  );
 
   return (
     <Card className={`w-full h-full flex flex-col ${className ?? ""}`}>
@@ -186,7 +190,7 @@ export function ExpenseTable({
               {pageItems.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground py-6">
-                    {emptyText}
+                    {emptyState}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -220,7 +224,7 @@ export function ExpenseTable({
         <div className="md:hidden -mx-4 divide-y border-t">
           {pageItems.length === 0 ? (
             <div className="py-10 text-center text-sm text-muted-foreground">
-              {emptyText}
+              {emptyState}
             </div>
           ) : (
             pageItems.map((e) => {

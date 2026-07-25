@@ -189,11 +189,12 @@ function Dashboard() {
             tithes={tithesChart}
             expenses={expenses}
             canViewExpenses={canViewExpenses}
+            loading={loading}
           />
         </div>
 
         <div className="min-w-0 order-3 lg:order-none">
-          <ChartBarExpense data={expensesByCategory} />
+          <ChartBarExpense data={expensesByCategory} loading={loading} />
         </div>
 
         <div className="min-w-0 lg:h-auto order-1 lg:order-none">
@@ -202,6 +203,7 @@ function Dashboard() {
             expenses={expenses}
             rfs={rfs}
             canViewExpenses={canViewExpenses}
+            loading={loading}
           />
         </div>
       </div>

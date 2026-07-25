@@ -15,6 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { UserChip } from "@/components/shared/UserChip";
+import { DataPlaceholder } from "@/components/shared/DataPlaceholder";
 import {
   Card,
   CardContent,
@@ -238,11 +239,14 @@ export function RfTable({
   // from RfDetailsDialog's footer too.
   const askAction = (rf, kind) => onRequestAction?.(kind, rf);
 
-  const renderEmptyMessage = () => {
-    if (loading) return "Loading request forms...";
-    if (error) return error;
-    return "No request forms found.";
-  };
+  const emptyState = (
+    <DataPlaceholder
+      loading={loading}
+      error={error}
+      empty="No request forms found."
+      loadingLabel="Loading request forms…"
+    />
+  );
 
   return (
     <>
@@ -342,7 +346,7 @@ export function RfTable({
                       colSpan={7}
                       className="text-center text-muted-foreground py-6"
                     >
-                      {renderEmptyMessage()}
+                      {emptyState}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -399,7 +403,7 @@ export function RfTable({
           <div className="md:hidden -mx-4 divide-y border-t">
             {pageItems.length === 0 ? (
               <div className="py-10 text-center text-sm text-muted-foreground">
-                {renderEmptyMessage()}
+                {emptyState}
               </div>
             ) : (
               pageItems.map((rf) => {

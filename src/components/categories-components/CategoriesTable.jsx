@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Archive, ArchiveRestore, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DataPlaceholder } from "@/components/shared/DataPlaceholder";
 import {
   Card,
   CardContent,
@@ -106,11 +107,14 @@ export function CategoriesTable({
   const pageStart = (currentPage - 1) * PAGE_SIZE;
   const pageItems = filtered.slice(pageStart, pageStart + PAGE_SIZE);
 
-  const emptyMessage = loading
-    ? "Loading categories…"
-    : error
-    ? error
-    : "No categories found.";
+  const emptyMessage = (
+    <DataPlaceholder
+      loading={loading}
+      error={error}
+      empty="No categories found."
+      loadingLabel="Loading categories…"
+    />
+  );
 
   return (
     <Card className={`w-full h-full flex flex-col ${className ?? ""}`}>
