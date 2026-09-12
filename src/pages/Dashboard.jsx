@@ -50,6 +50,7 @@ function Dashboard() {
   const {
     tithes,
     tithesChart,
+    availableBalance,
     expenses,
     expensesByCategory,
     rfs,
@@ -202,6 +203,7 @@ function Dashboard() {
             tithes={tithesChart}
             expenses={expenses}
             rfs={rfs}
+            availableBalance={availableBalance}
             canViewExpenses={canViewExpenses}
             loading={loading}
           />

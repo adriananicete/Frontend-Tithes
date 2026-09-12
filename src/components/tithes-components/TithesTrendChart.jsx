@@ -24,12 +24,36 @@ import {
 } from "@/components/ui/select";
 import { formatPHP, formatShortDate, SERVICE_TYPES } from "./tithesUtils";
 
+// `days: null` means every approved entry on record. It is the default because
+// the footer Total is the figure people compare against the Tithes Summary
+// card, which is all-time — defaulting to 30D made the same church look like it
+// had collected a fraction of what it had.
 const rangePresets = [
   { label: "7D",  days: 7 },
   { label: "30D", days: 30 },
   { label: "90D", days: 90 },
   { label: "1Y",  days: 365 },
+  { label: "ALL", days: null },
 ];
+
+// Days from the earliest approved entry to today, so the ALL preset covers the
+// whole history. Floors at 30 so an empty or brand-new church still gets a
+// readable axis instead of a single point.
+const spanOfAllRecords = (tithes) => {
+  let earliest = null;
+  for (const t of tithes) {
+    if (t.status !== "approved") continue;
+    const d = new Date(t.entryDate);
+    if (isNaN(d)) continue;
+    if (earliest === null || d < earliest) earliest = d;
+  }
+  if (earliest === null) return 30;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  earliest.setHours(0, 0, 0, 0);
+  return Math.max(30, Math.round((today - earliest) / 86400000) + 1);
+};
 
 const serviceOptions = [
   { value: "all", label: "All Services" },
@@ -73,11 +97,11 @@ const buildSeries = (tithes, rangeDays, service) => {
 };
 
 export function TithesTrendChart({ tithes = [], className }) {
-  const [rangeDays, setRangeDays] = useState(30);
+  const [rangeDays, setRangeDays] = useState(null);
   const [service, setService] = useState("all");
 
   const chartData = useMemo(
-    () => buildSeries(tithes, rangeDays, service),
+    () => buildSeries(tithes, rangeDays ?? spanOfAllRecords(tithes), service),
     [tithes, rangeDays, service]
   );
 

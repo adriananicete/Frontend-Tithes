@@ -1,11 +1,14 @@
 // Shared lookups + formatters for the Tithes feature.
 // Tithes records come from /api/tithes via the useTithes hook.
 
+// These are the only values the API accepts (TithesEntry.serviceType enum).
+// The list had drifted: "Prayer Meeting", "Youth Service" and "Special Offering"
+// were offered in the submit dialog and rejected by the server every time, so
+// three of the four options in the dropdown could not be submitted at all.
 export const SERVICE_TYPES = [
   "Sunday Service",
-  "Prayer Meeting",
-  "Youth Service",
-  "Special Offering",
+  "Special Service",
+  "Anniversary Service",
 ];
 
 export const DENOMINATIONS = [1000, 500, 200, 100, 50, 20, 10, 5, 1];

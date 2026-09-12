@@ -28,6 +28,10 @@ export function useDashboardData(role) {
       return {
         tithes: Array.isArray(tRes?.data) ? tRes.data : [],
         tithesChart: Array.isArray(tRes?.chartData) ? tRes.chartData : [],
+        // Cash on hand, computed server-side (approved tithes − all expenses)
+        // and returned to every role. The same number the create-request dialog
+        // prints, so the dashboard cannot disagree with it.
+        availableBalance: tRes?.availableBalance ?? 0,
         rfs: Array.isArray(rRes?.data) ? rRes.data : [],
         expenses: Array.isArray(eRes?.data) ? eRes.data : [],
         vouchers: Array.isArray(vRes?.data) ? vRes.data : [],
@@ -54,6 +58,7 @@ export function useDashboardData(role) {
   return {
     tithes: res?.tithes ?? [],
     tithesChart: res?.tithesChart ?? [],
+    availableBalance: res?.availableBalance ?? 0,
     expenses: res?.expenses ?? [],
     expensesByCategory: res?.expensesByCategory ?? [],
     rfs: res?.rfs ?? [],
