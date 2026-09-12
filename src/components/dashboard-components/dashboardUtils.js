@@ -162,22 +162,23 @@ export const buildActivity = ({ tithes = [], rfs = [], vouchers = [] }) => {
   return items;
 };
 
-const daysBetween = (d) =>
-  (Date.now() - new Date(d).getTime()) / (1000 * 60 * 60 * 24);
-
-// Sum a list of records by amount field within a day-window from today.
-export const sumWithinDays = (records, days, amountField = "amount") => {
-  let sum = 0;
-  for (const r of records) {
-    const date = r.date ?? r.entryDate ?? r.createdAt;
-    if (!date) continue;
-    const age = daysBetween(date);
-    if (age >= 0 && age <= days) sum += Number(r[amountField]) || 0;
-  }
-  return sum;
+const startOfDay = (d) => {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x.getTime();
 };
 
-// Sum within a windowed range [startDays, endDays] back from today.
+// Whole calendar days between a record's date and today, counted locally.
+//
+// Not a raw millisecond difference: entryDate is stored as midnight UTC, so in
+// PH (UTC+8) an entry dated today reads as two-to-eight hours in the FUTURE and
+// a raw age >= 0 test dropped it from the totals until 8am. Comparing calendar
+// days makes today 0 regardless of the hour.
+const daysBetween = (d) => Math.round((startOfDay(Date.now()) - startOfDay(d)) / 86400000);
+
+// Sum by amount field over the window [startDays, endDays) back from today.
+// Half-open on purpose: sumWithinDays(30) and sumWithinRange(30, 60) are then
+// two 30-day windows that do not both claim a record exactly 30 days old.
 export const sumWithinRange = (
   records,
   startDays,
@@ -189,10 +190,14 @@ export const sumWithinRange = (
     const date = r.date ?? r.entryDate ?? r.createdAt;
     if (!date) continue;
     const age = daysBetween(date);
-    if (age >= startDays && age <= endDays) sum += Number(r[amountField]) || 0;
+    if (age >= startDays && age < endDays) sum += Number(r[amountField]) || 0;
   }
   return sum;
 };
+
+// Sum the last `days` calendar days, today included.
+export const sumWithinDays = (records, days, amountField = "amount") =>
+  sumWithinRange(records, 0, days, amountField);
 
 // Compute month-over-month percent change. Guards divide-by-zero.
 export const monthOverMonthTrend = (current, prior) => {
